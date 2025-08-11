@@ -1,0 +1,103 @@
+name: SCAFFOLD WEB CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - "scaffold-web/**"
+  push:
+    branches:
+      - develop
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./scaffold-web
+
+jobs:
+  setup-job:
+    runs-on: ubuntu-20.04
+
+    if: github.repository == 'bcgov/EPIC.scaffold'
+
+    steps:
+      - uses: actions/checkout@v2
+      - run: "true"
+
+  linting:
+    needs: setup-job
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: |
+          npm install --legacy-peer-deps
+      - name: Lint
+        id: lint
+        run: |
+          npm run lint
+
+  testing:
+    needs: setup-job
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: |
+          npm install --legacy-peer-deps
+
+      - name: Test with Cypress
+        id: test
+        run: |
+          npx cypress run --component --headed --browser chrome
+
+      - name: Sets Codecov branch name
+        run: |
+          echo "CODECOV_BRANCH=PR_${{ github.head_ref }}" >> $GITHUB_ENV
+        if: github.event_name == 'pull_request'
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          flags: scaffold-web
+          name: codecov-scaffold-web
+          fail_ci_if_error: true
+          verbose: true
+          override_branch: ${{ env.CODECOV_BRANCH }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./scaffold-web/coverage
+
+  build-check:
+    needs: setup-job
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: |
+          npm install --legacy-peer-deps
+      - name: build to check strictness
+        id: build
+        run: |
+          npm run build --quiet || true
