@@ -1,5 +1,5 @@
 {
     "python.analysis.extraPaths": [
-        "./scaffold-api/src"
+        "./centre-api/src"
     ]
 }

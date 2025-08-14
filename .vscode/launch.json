@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Scaffold API",
+            "name": "Centre API",
             "type": "python",
-            "cwd": "${workspaceFolder}/scaffold-api/",
+            "cwd": "${workspaceFolder}/centre-api/",
             "request": "launch",
-            "program": "${workspaceFolder}/scaffold-api/wsgi.py",
+            "program": "${workspaceFolder}/centre-api/wsgi.py",
             "console": "integratedTerminal",
             "justMyCode": true
         }

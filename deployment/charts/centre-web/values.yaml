@@ -1,0 +1,26 @@
+app:
+  name: centre
+  url: centre-web-{{ .Release.Namespace }}.apps.gold.devops.gov.bc.ca
+  api: https://centre-api-{{ .Release.Namespace }}.apps.gold.devops.gov.bc.ca
+  env: dev
+resources:
+  cpu:
+    limit: 300m
+    request: 250m
+  memory:
+    limit: 200Mi
+    request: 100Mi
+image:
+  name: centre-web
+  tag: latest
+  repository: image-registry.openshift-image-registry.svc:5000/c72cba-tools/
+keycloak:
+  url: "https://dev.loginproxy.gov.bc.ca"
+  realm: eao-epic
+  client: centre-web
+service:
+  port: 8080
+replicas:
+  count: 1
+mountPath: /usr/share/nginx/html/config/
+

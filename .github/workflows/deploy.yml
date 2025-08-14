@@ -30,8 +30,8 @@ jobs:
         shell: bash
         run: |
           oc project ${{ secrets.OPENSHIFT_REPOSITORY }}-tools
-          oc tag scaffold-api:latest scaffold-api:${{ github.event.inputs.environment }}
-          oc tag scaffold-web:latest scaffold-web:${{ github.event.inputs.environment }}
+          oc tag centre-api:latest centre-api:${{ github.event.inputs.environment }}
+          oc tag centre-web:latest centre-web:${{ github.event.inputs.environment }}
           
-          oc rollout status dc/scaffold-api -n ${{ secrets.OPENSHIFT_REPOSITORY }}-${{ github.event.inputs.environment }} -w
-          oc rollout status dc/scaffold-web -n ${{ secrets.OPENSHIFT_REPOSITORY }}-${{ github.event.inputs.environment }} -w
+          oc rollout status dc/centre-api -n ${{ secrets.OPENSHIFT_REPOSITORY }}-${{ github.event.inputs.environment }} -w
+          oc rollout status dc/centre-web -n ${{ secrets.OPENSHIFT_REPOSITORY }}-${{ github.event.inputs.environment }} -w
