@@ -1,16 +1,16 @@
-name: SCAFFOLD API CI
+name: CENTRE API CI
 
 on:
   pull_request:
     branches:
       - develop
     paths:
-      - "scaffold-api/**"
+      - "centre-api/**"
 
 defaults:
   run:
     shell: bash
-    working-directory: ./scaffold-api
+    working-directory: ./centre-api
 
 jobs:
   setup-job:
@@ -97,8 +97,8 @@ jobs:
        - name: Upload coverage to Codecov
          uses: codecov/codecov-action@v4
          with:
-          flags: scaffold-api
-          name: codecov-scaffold-api
+          flags: centre-api
+          name: codecov-centre-api
           fail_ci_if_error: true
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}

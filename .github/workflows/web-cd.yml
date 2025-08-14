@@ -1,4 +1,4 @@
-name: SCAFFOLD WEB CD
+name: CENTRE WEB CD
 
 
 on:
@@ -6,7 +6,7 @@ on:
     branches:
       - develop
     paths:
-      - "scaffold-web/**"
+      - "centre-web/**"
   workflow_dispatch:
     inputs:
       environment:
@@ -17,17 +17,17 @@ on:
 defaults:
   run:
     shell: bash
-    working-directory: ./scaffold-web
+    working-directory: ./centre-web
 
 env:
-  APP_NAME: "scaffold-web"
+  APP_NAME: "centre-web"
   TAG_NAME: "${{ github.event.inputs.environment || 'dev' }}" # If the environment type is manually selected, use the input value; otherwise, use 'dev' as default
 
 jobs:
   web-cd:
     runs-on: ubuntu-20.04
 
-    if: github.repository == 'bcgov/EPIC.scaffold'
+    if: github.repository == 'bcgov/EPIC.centre'
     environment:
       name: "dev"
 

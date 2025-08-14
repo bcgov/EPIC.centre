@@ -1,0 +1,31 @@
+name: CENTRE WEB CI
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - "centre-web/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+      - name: Install dependencies
+        working-directory: ./centre-web
+        run: npm install
+      - name: Run tests
+        working-directory: ./centre-web
+        run: npm test
+      - name: Upload coverage to Codecov
+        if: github.repository == 'bcgov/EPIC.centre'
+        uses: codecov/codecov-action@v3
+        with:
+          flags: centre-web
+          name: codecov-centre-web
+          directory: ./centre-web/coverage 

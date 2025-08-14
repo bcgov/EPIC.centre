@@ -1,11 +1,11 @@
-name: SCAFFOLD WEB CI
+name: CENTRE WEB CI
 
 on:
   pull_request:
     branches:
       - develop
     paths:
-      - "scaffold-web/**"
+      - "centre-web/**"
   push:
     branches:
       - develop
@@ -13,13 +13,13 @@ on:
 defaults:
   run:
     shell: bash
-    working-directory: ./scaffold-web
+    working-directory: ./centre-web
 
 jobs:
   setup-job:
     runs-on: ubuntu-20.04
 
-    if: github.repository == 'bcgov/EPIC.scaffold'
+    if: github.repository == 'bcgov/EPIC.centre'
 
     steps:
       - uses: actions/checkout@v2
@@ -76,13 +76,13 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          flags: scaffold-web
-          name: codecov-scaffold-web
+          flags: centre-web
+          name: codecov-centre-web
           fail_ci_if_error: true
           verbose: true
           override_branch: ${{ env.CODECOV_BRANCH }}
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: ./scaffold-web/coverage
+          directory: ./centre-web/coverage
 
   build-check:
     needs: setup-job

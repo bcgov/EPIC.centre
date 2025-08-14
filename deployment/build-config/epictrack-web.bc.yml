@@ -51,10 +51,10 @@ objects:
 parameters:
   - name: APP
     description: "The application name"
-    value: scaffold-web
+    value: centre-web
   - name: GITHUB_REPO
     description: "The github repo uri"
     value: 'https://github.com/bcgov/EPIC-FLOW.git'
   - name: GITHUB_CONTEXT_DIR
     description: "The repository folder context"
-    value: /scaffold-web
+    value: /centre-web

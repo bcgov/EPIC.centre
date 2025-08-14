@@ -1,4 +1,4 @@
-# Scaffold Setup Instructions
+# Centre Setup Instructions
 
 This document outlines the setup instructions for both the backend and front-end components of the project. Ensure you follow the steps in sequence for a smooth setup.
 
@@ -9,10 +9,10 @@ Ensure Python 3.12.4 is installed in your WSL environment. Download it from the 
 
 ### 2. Set Up PYTHONPATH
 Add the following line to your `.bashrc` or `.zshrc` file to set the `PYTHONPATH` environment variable:
-export PYTHONPATH="/path/to/scaffold-api:${PYTHONPATH}"
+export PYTHONPATH="/path/to/centre-api:${PYTHONPATH}"
 
 ### 3. Configure Environment Variables
-Create a `.env` file in your scaffold-api with the necessary configurations. Reference sample.env to see what variables you need to configure
+Create a `.env` file in your centre-api with the necessary configurations. Reference sample.env to see what variables you need to configure
 
 ### 4. Start Docker Compose
 In a separate terminal, launch Docker Compose to set up your containers:
@@ -41,24 +41,24 @@ make run
     - set FLASK_APP=app.py 
       set FLASK_ENV=development
       
-2. Configure `PYTHONPATH` to your project's folder location up to `scaffold-api/src`:
-    - set PYTHONPATH=path\to\scaffold-api\src &&    PYTHONPATH=path\to\scaffold-api
+2. Configure `PYTHONPATH` to your project's folder location up to `centre-api/src`:
+    - set PYTHONPATH=path\to\centre-api\src &&    PYTHONPATH=path\to\centre-api
 
 ## Step 2: Start Docker
 
 1. Open a terminal.
-2. Navigate to the `scaffold-api` directory:
-    cd scaffold-api
+2. Navigate to the `centre-api` directory:
+    cd centre-api
 
 3. Run the following command to start the services using Docker Compose:
     docker-compose up
 
-## Step 3: Set Up `scaffold-api`
+## Step 3: Set Up `centre-api`
 
 1. Open a separate terminal.
 
 2. Navigate to the `` directory:
-    cd scaffold-api
+    cd centre-api
 
 3. Create a virtual environment. Refer to the official Python documentation on how to create a virtual environment: [Python venv](https://docs.python.org/3/library/venv.html).
     python -m venv venv
@@ -77,7 +77,7 @@ make run
 
 ### 1. Navigate to Front End Directory
 Change to the front-end directory:
-cd scaffold-web
+cd centre-web
 
 ### 2. Install Dependencies
 Install necessary npm packages:
@@ -149,7 +149,7 @@ You need a policy to allow pods in xxxx-dev to connect with each other
 
 
 # Github Workflows
-you can find a working example here: https://github.com/bcgov/EPIC.scaffold/tree/main/.github/workflows
+you can find a working example here: https://github.com/bcgov/EPIC.centre/tree/main/.github/workflows
 
 - create a github-action service account openshift in the tools namespace and bind to it image puller and image pusher roles
 - Add the following secrets in the repo settings under repository secrets: OPENSHIFT_IMAGE_REGISTRY (the public image repository, ignore the path just the base  url), OPENSHIFT_LOGIN_REGISTRY (you can pull this from the same place you get your oc login command, OPENSHIFT_REPOSITORY, OPENSHIFT_SA_NAME (github_action), OPENSHIFT_SA_TOKEN(github-action token, find it in secrets)
