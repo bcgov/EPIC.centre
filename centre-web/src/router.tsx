@@ -1,26 +1,31 @@
-import { createRouter, RouterProvider } from "@tanstack/react-router";
-import { routeTree } from "@/routeTree.gen";
+import { RouterProvider } from "@tanstack/react-router";
 import { useAuth } from "react-oidc-context";
+import { useEffect } from "react";
 
-// Create a new router instance
-const router = createRouter({
-  routeTree,
-  context: {
-    // authentication will initially be undefined
-    // We'll be passing down the authentication state from within a React component
-    authentication: undefined!,
-    queryClient: undefined!,
-  },
-});
-
-// Register the router instance for type safety
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof router;
-  }
-}
-
-export default function RouterProviderWithAuthContext() {
+type RouterProviderWithAuthContextProps = Readonly<{
+  router: any;
+}>;
+export default function RouterProviderWithAuthContext({
+  router,
+}: RouterProviderWithAuthContextProps) {
   const authentication = useAuth();
-  return <RouterProvider router={router} context={{ authentication }} />
+  useEffect(() => {
+    // the `return` is important - addAccessTokenExpiring() returns a cleanup function
+
+    return authentication.events.addAccessTokenExpiring(() => {
+      // eslint-disable-next-line no-console
+      console.log("AccessTokenExpiring: Refreshing token");
+      authentication.signinSilent();
+    });
+  }, [authentication]);
+
+  useEffect(() => {
+    if (authentication.user?.expired && authentication.isAuthenticated) {
+      // eslint-disable-next-line no-console
+      console.log("AccessToken expired");
+      window.location.href = window.location.origin + "/logout";
+    }
+  }, [authentication.user?.expired, authentication.isAuthenticated]);
+
+  return <RouterProvider router={router} context={{ authentication }} />;
 }
