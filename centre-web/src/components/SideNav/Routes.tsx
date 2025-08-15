@@ -14,7 +14,7 @@ export default function Routes() {
       <MainListItem
         route={{
           name: "Request Access",
-          path: "/launchpad",
+          path: "/request-access",
         }}
         sx={{ mb: BCDesignTokens.layoutMarginSmall }}
       />

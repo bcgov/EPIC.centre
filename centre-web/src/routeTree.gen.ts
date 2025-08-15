@@ -19,6 +19,7 @@ import { Route as ErrorImport } from './routes/error'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as IndexImport } from './routes/index'
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedRequestAccessIndexImport } from './routes/_authenticated/request-access/index'
 import { Route as AuthenticatedLaunchpadIndexImport } from './routes/_authenticated/launchpad/index'
 
 // Create Virtual Routes
@@ -61,6 +62,12 @@ const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+
+const AuthenticatedRequestAccessIndexRoute =
+  AuthenticatedRequestAccessIndexImport.update({
+    path: '/request-access/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 const AuthenticatedLaunchpadIndexRoute =
   AuthenticatedLaunchpadIndexImport.update({
@@ -128,6 +135,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLaunchpadIndexImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/request-access/': {
+      id: '/_authenticated/request-access/'
+      path: '/request-access'
+      fullPath: '/request-access'
+      preLoaderRoute: typeof AuthenticatedRequestAccessIndexImport
+      parentRoute: typeof AuthenticatedImport
+    }
   }
 }
 
@@ -138,6 +152,7 @@ export const routeTree = rootRoute.addChildren({
   AuthenticatedRoute: AuthenticatedRoute.addChildren({
     AuthenticatedIndexRoute,
     AuthenticatedLaunchpadIndexRoute,
+    AuthenticatedRequestAccessIndexRoute,
   }),
   ErrorRoute,
   LogoutRoute,
@@ -168,7 +183,8 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_authenticated.tsx",
       "children": [
         "/_authenticated/",
-        "/_authenticated/launchpad/"
+        "/_authenticated/launchpad/",
+        "/_authenticated/request-access/"
       ]
     },
     "/error": {
@@ -189,6 +205,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_authenticated/launchpad/": {
       "filePath": "_authenticated/launchpad/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/request-access/": {
+      "filePath": "_authenticated/request-access/index.tsx",
       "parent": "/_authenticated"
     }
   }

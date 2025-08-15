@@ -48,7 +48,7 @@ return (
             <>
                 <Box id="menu-appbar" display="flex" alignItems="center">
                     <Typography variant="body2" color="primary" onClick={handleClick} sx={{ cursor: "pointer" }}>
-                        {auth.user?.profile.name}
+                        Hi, {auth.user?.profile.given_name}
                     </Typography>
                     <IconButton size="small" onClick={handleClick}>
                         <KeyboardArrowDownIcon fontSize="small" htmlColor={theme.palette.grey[900]} />
