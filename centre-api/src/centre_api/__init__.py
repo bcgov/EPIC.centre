@@ -6,10 +6,6 @@ This module initializes the Flask application and registers all blueprints.
 
 from flask import Flask
 from flask_cors import CORS
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
-from flask_jwt_oidc import JwtManager
 
 from centre_api.auth import jwt
 from centre_api.config import get_named_config
@@ -17,21 +13,16 @@ from centre_api.models import db, ma, migrate
 from centre_api.utils.cache import cache
 from centre_api.utils.util import allowedorigins
 
-# Initialize extensions
-db = SQLAlchemy()
-ma = Marshmallow()
-migrate = Migrate()
-jwt = JwtManager()
 
 def create_app(config_object=None):
     """Create and configure the Flask application."""
     app = Flask(__name__)
-    
+
     if config_object is None:
         config_object = get_named_config()
-    
+
     app.config.from_object(config_object)
-    
+
     # Initialize extensions with app
     db.init_app(app)
     ma.init_app(app)
@@ -43,12 +34,10 @@ def create_app(config_object=None):
         API_BLUEPRINT,
         OPS_BLUEPRINT
     )
-
-    # Register blueprints
     app.register_blueprint(API_BLUEPRINT)
     app.register_blueprint(OPS_BLUEPRINT)
 
     # Enable CORS
     CORS(app, origins=allowedorigins())
-    
+
     return app
