@@ -1,5 +1,5 @@
 :root {
-  font-family: 'BC Sans';
+  font-family: "BC Sans", sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -14,9 +14,9 @@ a {
   text-decoration: inherit;
 }
 
-body, #root {
+body,
+#root {
   margin: 0;
   height: 100vh;
   width: 100%;
 }
-
