@@ -1,4 +1,5 @@
-import SideNavBar from '@/components/Shared/SideNavBar';
+
+import SideNavBar from '@/components/SideNav/SideNavBar';
 import { Box } from '@mui/material';
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 

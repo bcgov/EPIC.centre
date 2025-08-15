@@ -1,4 +1,8 @@
+import { PageLoader } from "@/components/PageLoader";
+
+
 import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 
 export const Route = createFileRoute("/")({
@@ -6,18 +10,18 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, signinRedirect } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated && !isLoading) {
+      signinRedirect();
+    }
+  }, [isAuthenticated, isLoading]);
 
   if(isAuthenticated) {
     return <Navigate to="/oidc-callback" />
   }
 
-  if(isLoading) {
-    return <h1>Loading...</h1>;
-  }
-
-  return (
-    <p>landing</p>
-  );
+  return <PageLoader/>
 }
 
