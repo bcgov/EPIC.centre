@@ -11,7 +11,6 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
           <AuthProvider {...OidcConfig}>
@@ -20,7 +19,6 @@ function App() {
         </ThemeProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
-    </>
   );
 }
 

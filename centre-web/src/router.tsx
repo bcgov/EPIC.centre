@@ -9,6 +9,7 @@ const router = createRouter({
     // authentication will initially be undefined
     // We'll be passing down the authentication state from within a React component
     authentication: undefined!,
+    queryClient: undefined!,
   },
 });
 

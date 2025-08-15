@@ -1,13 +1,21 @@
-import EAOAppBar from "@/components/Shared/EAOAppBar";
 import PageNotFound from "@/components/Shared/PageNotFound";
-import SideNavBar from "@/components/Shared/SideNavBar";
 import { Box } from "@mui/system";
-import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import {
+  CatchBoundary,
+  createRootRouteWithContext,
+  Outlet,
+  useNavigate,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { AuthContextProps } from "react-oidc-context";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { QueryClient } from "@tanstack/react-query";
+import { AppConfig } from "@/utils/config";
+import EAOAppBar from "@/components/Layout/EAOAppBar";
 
 type RouterContext = {
   authentication: AuthContextProps;
+  queryClient: QueryClient;
 };
 
 export const Route = createRootRouteWithContext<RouterContext>()({
@@ -16,21 +24,26 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function Layout() {
+  const isLocal = AppConfig.environment === "local";
+  const navigate = useNavigate();
+
   return (
-    <>
+    <CatchBoundary
+      getResetKey={() => "reset"}
+      onCatch={() => navigate({ to: "/error" })}
+    >
       <EAOAppBar />
-      <Box display={"flex"}>
-        <SideNavBar />
-        <Box
-          display={"flex"}
-          flexDirection={"column"}
-          flex={1}
-          padding={"1rem"}
-        >
-          <Outlet />
-        </Box>
+      <Box minHeight={"calc(100vh - 88px)"}>
+        <Outlet />
       </Box>
-      <TanStackRouterDevtools />
-    </>
+      {
+        isLocal && (
+          <>
+            <TanStackRouterDevtools position="bottom-left" />
+            <ReactQueryDevtools initialIsOpen={false} />
+          </>
+        )
+      }
+    </CatchBoundary>
   );
 }

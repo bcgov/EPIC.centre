@@ -14,24 +14,18 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as OidcCallbackImport } from './routes/oidc-callback'
+import { Route as LogoutImport } from './routes/logout'
+import { Route as ErrorImport } from './routes/error'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as IndexImport } from './routes/index'
-import { Route as EaoPlansIndexImport } from './routes/eao-plans/index'
-import { Route as EaoPlansPlanIdImport } from './routes/eao-plans/$planId'
-import { Route as AuthenticatedProfileImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedUsersIndexImport } from './routes/_authenticated/users/index'
+import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedLaunchpadIndexImport } from './routes/_authenticated/launchpad/index'
 
 // Create Virtual Routes
 
-const NewpageLazyImport = createFileRoute('/newpage')()
 const AboutLazyImport = createFileRoute('/about')()
 
 // Create/Update Routes
-
-const NewpageLazyRoute = NewpageLazyImport.update({
-  path: '/newpage',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/newpage.lazy').then((d) => d.Route))
 
 const AboutLazyRoute = AboutLazyImport.update({
   path: '/about',
@@ -40,6 +34,16 @@ const AboutLazyRoute = AboutLazyImport.update({
 
 const OidcCallbackRoute = OidcCallbackImport.update({
   path: '/oidc-callback',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LogoutRoute = LogoutImport.update({
+  path: '/logout',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ErrorRoute = ErrorImport.update({
+  path: '/error',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -53,25 +57,16 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const EaoPlansIndexRoute = EaoPlansIndexImport.update({
-  path: '/eao-plans/',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const EaoPlansPlanIdRoute = EaoPlansPlanIdImport.update({
-  path: '/eao-plans/$planId',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AuthenticatedProfileRoute = AuthenticatedProfileImport.update({
-  path: '/profile',
+const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
+  path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
-const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexImport.update({
-  path: '/users/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
+const AuthenticatedLaunchpadIndexRoute =
+  AuthenticatedLaunchpadIndexImport.update({
+    path: '/launchpad/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -91,6 +86,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedImport
       parentRoute: typeof rootRoute
     }
+    '/error': {
+      id: '/error'
+      path: '/error'
+      fullPath: '/error'
+      preLoaderRoute: typeof ErrorImport
+      parentRoute: typeof rootRoute
+    }
+    '/logout': {
+      id: '/logout'
+      path: '/logout'
+      fullPath: '/logout'
+      preLoaderRoute: typeof LogoutImport
+      parentRoute: typeof rootRoute
+    }
     '/oidc-callback': {
       id: '/oidc-callback'
       path: '/oidc-callback'
@@ -105,39 +114,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutLazyImport
       parentRoute: typeof rootRoute
     }
-    '/newpage': {
-      id: '/newpage'
-      path: '/newpage'
-      fullPath: '/newpage'
-      preLoaderRoute: typeof NewpageLazyImport
-      parentRoute: typeof rootRoute
-    }
-    '/_authenticated/profile': {
-      id: '/_authenticated/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthenticatedProfileImport
+    '/_authenticated/': {
+      id: '/_authenticated/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedIndexImport
       parentRoute: typeof AuthenticatedImport
     }
-    '/eao-plans/$planId': {
-      id: '/eao-plans/$planId'
-      path: '/eao-plans/$planId'
-      fullPath: '/eao-plans/$planId'
-      preLoaderRoute: typeof EaoPlansPlanIdImport
-      parentRoute: typeof rootRoute
-    }
-    '/eao-plans/': {
-      id: '/eao-plans/'
-      path: '/eao-plans'
-      fullPath: '/eao-plans'
-      preLoaderRoute: typeof EaoPlansIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/_authenticated/users/': {
-      id: '/_authenticated/users/'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof AuthenticatedUsersIndexImport
+    '/_authenticated/launchpad/': {
+      id: '/_authenticated/launchpad/'
+      path: '/launchpad'
+      fullPath: '/launchpad'
+      preLoaderRoute: typeof AuthenticatedLaunchpadIndexImport
       parentRoute: typeof AuthenticatedImport
     }
   }
@@ -148,14 +136,13 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren({
   IndexRoute,
   AuthenticatedRoute: AuthenticatedRoute.addChildren({
-    AuthenticatedProfileRoute,
-    AuthenticatedUsersIndexRoute,
+    AuthenticatedIndexRoute,
+    AuthenticatedLaunchpadIndexRoute,
   }),
+  ErrorRoute,
+  LogoutRoute,
   OidcCallbackRoute,
   AboutLazyRoute,
-  NewpageLazyRoute,
-  EaoPlansPlanIdRoute,
-  EaoPlansIndexRoute,
 })
 
 /* prettier-ignore-end */
@@ -168,11 +155,10 @@ export const routeTree = rootRoute.addChildren({
       "children": [
         "/",
         "/_authenticated",
+        "/error",
+        "/logout",
         "/oidc-callback",
-        "/about",
-        "/newpage",
-        "/eao-plans/$planId",
-        "/eao-plans/"
+        "/about"
       ]
     },
     "/": {
@@ -181,9 +167,15 @@ export const routeTree = rootRoute.addChildren({
     "/_authenticated": {
       "filePath": "_authenticated.tsx",
       "children": [
-        "/_authenticated/profile",
-        "/_authenticated/users/"
+        "/_authenticated/",
+        "/_authenticated/launchpad/"
       ]
+    },
+    "/error": {
+      "filePath": "error.tsx"
+    },
+    "/logout": {
+      "filePath": "logout.tsx"
     },
     "/oidc-callback": {
       "filePath": "oidc-callback.tsx"
@@ -191,21 +183,12 @@ export const routeTree = rootRoute.addChildren({
     "/about": {
       "filePath": "about.lazy.tsx"
     },
-    "/newpage": {
-      "filePath": "newpage.lazy.tsx"
-    },
-    "/_authenticated/profile": {
-      "filePath": "_authenticated/profile.tsx",
+    "/_authenticated/": {
+      "filePath": "_authenticated/index.tsx",
       "parent": "/_authenticated"
     },
-    "/eao-plans/$planId": {
-      "filePath": "eao-plans/$planId.tsx"
-    },
-    "/eao-plans/": {
-      "filePath": "eao-plans/index.tsx"
-    },
-    "/_authenticated/users/": {
-      "filePath": "_authenticated/users/index.tsx",
+    "/_authenticated/launchpad/": {
+      "filePath": "_authenticated/launchpad/index.tsx",
       "parent": "/_authenticated"
     }
   }
