@@ -15,8 +15,6 @@ import { OidcConfig } from "@/utils/config";
 import { useNavigate } from "@tanstack/react-router";
 import { BCDesignTokens } from "epic.theme";
 
-
-
 export default function AppBarActions() {
   const auth = useAuth();
 
@@ -42,42 +40,56 @@ export default function AppBarActions() {
     navigate({ to: path });
   };
 
-return (
+  return (
     <>
-        {auth.isAuthenticated ? (
-            <>
-                <Box id="menu-appbar" display="flex" alignItems="center">
-                    <Typography variant="body2" color="primary" onClick={handleClick} sx={{ cursor: "pointer" }}>
-                        Hi, {auth.user?.profile.given_name}
-                    </Typography>
-                    <IconButton size="small" onClick={handleClick}>
-                        <KeyboardArrowDownIcon fontSize="small" htmlColor={theme.palette.grey[900]} />
-                    </IconButton>
-                    <AccountCircleIcon fontSize="large" htmlColor={theme.palette.grey[900]} sx={{ ml: 0.5 }} />
-                </Box>
-                <Menu
-                    open={open}
-                    anchorEl={anchorEl}
-                    onClose={handleClose}
-                    anchorOrigin={{ vertical: "top", horizontal: "right" }}
-                    transformOrigin={{ vertical: "top", horizontal: "right" }}
-                >
-                    <MenuItem onClick={() => handleNavigate("/logout")}>Sign Out</MenuItem>
-                </Menu>
-            </>
-        ) : (
-            <Button
-                variant="text"
-                onClick={handleLogin}
-                sx={{
-                    color: BCDesignTokens.themeGray100,
-                    border: `2px solid ${theme.palette.grey[700]}`,
-                    visibility: open ? "hidden" : "visible",
-                }}
+      {auth.isAuthenticated ? (
+        <>
+          <Box id="menu-appbar" display="flex" alignItems="center">
+            <Typography
+              variant="body2"
+              color="primary"
+              onClick={handleClick}
+              sx={{ cursor: "pointer" }}
             >
-                Login
-            </Button>
-        )}
+              Hi, {auth.user?.profile.given_name}
+            </Typography>
+            <IconButton size="small" onClick={handleClick}>
+              <KeyboardArrowDownIcon
+                fontSize="small"
+                htmlColor={theme.palette.grey[900]}
+              />
+            </IconButton>
+            <AccountCircleIcon
+              fontSize="large"
+              htmlColor={theme.palette.grey[900]}
+              sx={{ ml: 0.5 }}
+            />
+          </Box>
+          <Menu
+            open={open}
+            anchorEl={anchorEl}
+            onClose={handleClose}
+            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+          >
+            <MenuItem onClick={() => handleNavigate("/logout")}>
+              Sign Out
+            </MenuItem>
+          </Menu>
+        </>
+      ) : (
+        <Button
+          variant="text"
+          onClick={handleLogin}
+          sx={{
+            color: BCDesignTokens.themeGray100,
+            border: `2px solid ${theme.palette.grey[700]}`,
+            visibility: open ? "hidden" : "visible",
+          }}
+        >
+          Login
+        </Button>
+      )}
     </>
-);
+  );
 }

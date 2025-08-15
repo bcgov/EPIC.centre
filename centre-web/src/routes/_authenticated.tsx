@@ -1,9 +1,8 @@
+import SideNavBar from "@/components/SideNav/SideNavBar";
+import { Box } from "@mui/material";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
-import SideNavBar from '@/components/SideNav/SideNavBar';
-import { Box } from '@mui/material';
-import { createFileRoute, Outlet } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/_authenticated')({
+export const Route = createFileRoute("/_authenticated")({
   beforeLoad: ({ context }) => {
     const { isAuthenticated, signinRedirect } = context.authentication;
     if (!isAuthenticated) {
@@ -11,16 +10,15 @@ export const Route = createFileRoute('/_authenticated')({
     }
   },
   component: AuthenticatedRoute,
-})
+});
 
 function AuthenticatedRoute() {
-
   return (
     <div>
       <Box flexDirection={"row"} display={"flex"}>
-            <SideNavBar />
-            <Outlet />
-          </Box>
+        <SideNavBar />
+        <Outlet />
+      </Box>
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import { PageLoader } from "@/components/PageLoader";
 
-
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
@@ -18,10 +17,9 @@ function Index() {
     }
   }, [isAuthenticated, isLoading]);
 
-  if(isAuthenticated) {
-    return <Navigate to="/oidc-callback" />
+  if (isAuthenticated) {
+    return <Navigate to="/oidc-callback" />;
   }
 
-  return <PageLoader/>
+  return <PageLoader />;
 }
-

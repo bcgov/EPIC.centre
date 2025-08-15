@@ -58,7 +58,7 @@ const BreadcrumbNav: React.FC = () => {
                 {title}
               </Link>
             );
-          }
+          },
         )}
       </Breadcrumbs>
     </Box>

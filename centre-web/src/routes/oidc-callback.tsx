@@ -16,9 +16,9 @@ function OidcCallback() {
     return <h1>Error: {error.message}</h1>;
   }
 
-  if(!isLoading && isAuthenticated) {
-    return <Navigate to="/launchpad"/>
+  if (!isLoading && isAuthenticated) {
+    return <Navigate to="/launchpad" />;
   }
 
-  return <Navigate to="/logout"/>
+  return <Navigate to="/logout" />;
 }

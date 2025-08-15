@@ -1,4 +1,3 @@
-
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useAuth } from "react-oidc-context";
 import ErrorPageContent from "@/components/ErrorPageContent";

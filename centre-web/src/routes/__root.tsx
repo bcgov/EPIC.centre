@@ -12,6 +12,8 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { QueryClient } from "@tanstack/react-query";
 import { AppConfig } from "@/utils/config";
 import EAOAppBar from "@/components/Layout/EAOAppBar";
+import { When } from "react-if";
+import Footer from "@/components/Layout/Footer";
 
 type RouterContext = {
   authentication: AuthContextProps;
@@ -36,14 +38,11 @@ function Layout() {
       <Box minHeight={"calc(100vh - 88px)"}>
         <Outlet />
       </Box>
-      {
-        isLocal && (
-          <>
-            <TanStackRouterDevtools position="bottom-left" />
-            <ReactQueryDevtools initialIsOpen={false} />
-          </>
-        )
-      }
+      <Footer />
+      <When condition={isLocal}>
+        <TanStackRouterDevtools position="bottom-left" />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </When>
     </CatchBoundary>
   );
 }
