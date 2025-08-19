@@ -1,0 +1,41 @@
+import { Box, Typography } from "@mui/material";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+
+export const Header = () => {
+  return (
+    <Box
+      sx={{
+        height: "81px",
+        backgroundColor: "#F1F8FE",
+      }}
+    >
+      <Box
+        sx={{
+          padding: "8px 16px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          justifyContent: "flex-start",
+          gap: "8px",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+          }}
+        >
+          <Typography variant="h6" component="div">
+            Document Search
+          </Typography>
+          <DragIndicatorIcon />
+        </Box>
+        <Typography variant="body2" width="100%">
+          Search all the documents in EPIC
+        </Typography>
+      </Box>
+    </Box>
+  );
+};

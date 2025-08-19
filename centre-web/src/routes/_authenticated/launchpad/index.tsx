@@ -1,3 +1,4 @@
+import { DocumentSearch } from "@/components/DocumentSearch";
 import { List as EpicTileList } from "@/components/LaunchAppTile/List";
 import { PageGrid } from "@/components/Shared/PageGrid";
 import { EpicApp } from "@/models/EpicApp";
@@ -13,7 +14,7 @@ function Launchpad() {
     app_id: 1,
     name: "EPIC.engage",
     description: "Public Engagement Application",
-    launch_url: "https://engage.eao.gov.bc.ca/",
+    launch_url: "https://dev.engage.eao.gov.bc.ca/",
     is_active: true,
     user: {
       access_level: "Super User",
@@ -22,6 +23,14 @@ function Launchpad() {
       bookmarks: [
         {
           label: "Yellowhead",
+          url: "https://engage.eao.gov.bc.ca/Yellowhead-EE",
+        },
+        {
+          label: "All engagements",
+          url: "https://engage.eao.gov.bc.ca/Yellowhead-EE",
+        },
+        {
+          label: "Canada LNG - All comments",
           url: "https://engage.eao.gov.bc.ca/Yellowhead-EE",
         },
       ],
@@ -33,7 +42,7 @@ function Launchpad() {
       app_id: 2,
       name: "EPIC.submit",
       description: "Document submission Tool for Proponents and Holders",
-      launch_url: "https://submit.eao.gov.bc.ca/",
+      launch_url: "https://dev.submit.eao.gov.bc.ca/login?from=/staff",
       is_active: true,
       user: {
         access_level: null,
@@ -45,7 +54,10 @@ function Launchpad() {
   ];
   return (
     <PageGrid>
-      <Grid item>
+      <Grid xs={12} item>
+        <DocumentSearch />
+      </Grid>
+      <Grid item xs={12}>
         <EpicTileList items={mockTiles} />
       </Grid>
     </PageGrid>

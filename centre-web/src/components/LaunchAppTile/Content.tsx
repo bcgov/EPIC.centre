@@ -2,6 +2,7 @@ import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { CentreLink } from "../Shared/CentreLink";
 import { EpicApp } from "@/models/EpicApp";
+import { BookmarkSection } from "./BookmarkSection";
 
 type LabeledItemProps = {
   label: string;
@@ -50,42 +51,7 @@ export const Content = ({ data }: ContentProps) => {
         >
           Open in new tab
         </Button>
-        <Stack
-          direction={"row"}
-          justifyContent={"space-between"}
-          alignItems={"center"}
-          width="100%"
-          padding="8px 0"
-        >
-          <Typography variant="h5" fontWeight={400}>
-            Bookmarks
-          </Typography>
-          <Button color="secondary">Add/Edit Bookmarks</Button>
-        </Stack>
-        <Box
-          sx={{
-            height: "97px",
-          }}
-        >
-          <Stack direction={"column"}>
-            {user.bookmarks && user.bookmarks.length > 0 ? (
-              user.bookmarks.map((bookmark, idx) => (
-                <CentreLink
-                  key={idx}
-                  onClick={() => window.open(bookmark.url, "_blank")}
-                >
-                  <Typography variant="h5" fontWeight={400} color={"inherit"}>
-                    {bookmark.label}
-                  </Typography>
-                </CentreLink>
-              ))
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                No bookmarks yet.
-              </Typography>
-            )}
-          </Stack>
-        </Box>
+        <BookmarkSection bookmarks={user.bookmarks} />
         <Box
           sx={{
             padding: "8px 0 12px 0",
