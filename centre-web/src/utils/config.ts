@@ -8,6 +8,7 @@ declare global {
       VITE_APP_URL: string;
       VITE_OIDC_AUTHORITY: string;
       VITE_CLIENT_ID: string;
+      VITE_DOCUMENT_SEARCH_URL: string;
     };
   }
 }
@@ -20,14 +21,20 @@ const APP_VERSION =
 const APP_TITLE =
   window._env_?.VITE_APP_TITLE || import.meta.env.VITE_APP_TITLE || "";
 const APP_URL = window._env_?.VITE_APP_URL || import.meta.env.VITE_APP_URL;
-const OIDC_AUTHORITY = window._env_?.VITE_OIDC_AUTHORITY || import.meta.env.VITE_OIDC_AUTHORITY;
-const CLIENT_ID = window._env_?.VITE_CLIENT_ID || import.meta.env.VITE_CLIENT_ID;
+const OIDC_AUTHORITY =
+  window._env_?.VITE_OIDC_AUTHORITY || import.meta.env.VITE_OIDC_AUTHORITY;
+const CLIENT_ID =
+  window._env_?.VITE_CLIENT_ID || import.meta.env.VITE_CLIENT_ID;
+const DOCUMENT_SEARCH_URL =
+  window._env_?.VITE_DOCUMENT_SEARCH_URL ||
+  import.meta.env.VITE_DOCUMENT_SEARCH_URL;
 
 export const AppConfig = {
   apiUrl: `${API_URL}`,
   environment: APP_ENVIRONMENT,
   version: APP_VERSION,
   appTitle: APP_TITLE,
+  documentSearchUrl: DOCUMENT_SEARCH_URL,
 };
 
 export const OidcConfig = {
