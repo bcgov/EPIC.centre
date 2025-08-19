@@ -1,3 +1,4 @@
+import { DocumentSearch } from "@/components/DocumentSearch";
 import { List as EpicTileList } from "@/components/LaunchAppTile/List";
 import { PageGrid } from "@/components/Shared/PageGrid";
 import { EpicApp } from "@/models/EpicApp";
@@ -45,7 +46,10 @@ function Launchpad() {
   ];
   return (
     <PageGrid>
-      <Grid item>
+      <Grid xs={12} item>
+        <DocumentSearch />
+      </Grid>
+      <Grid item xs={12}>
         <EpicTileList items={mockTiles} />
       </Grid>
     </PageGrid>
