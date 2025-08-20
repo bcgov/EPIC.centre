@@ -4,7 +4,6 @@ Manages the engagement
 """
 
 from marshmallow import EXCLUDE, Schema, fields
-from centre_api.models import User
 
 
 class UserSchema(Schema):

@@ -1,3 +1,4 @@
+import { PageLoader } from "@/components/PageLoader";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useAuth } from "react-oidc-context";
 
@@ -9,11 +10,11 @@ function OidcCallback() {
   const { isAuthenticated, isLoading, error } = useAuth();
 
   if (isLoading) {
-    return <h1>Redirecting, Please wait...</h1>;
+    return <PageLoader />;
   }
 
-  if (error?.message) {
-    return <h1>Error: {error.message}</h1>;
+  if (error) {
+    return <Navigate to="/error" />;
   }
 
   if (!isLoading && isAuthenticated) {

@@ -16,3 +16,6 @@
 
 from .db import db, ma, migrate
 from .user import User
+from .user_applications import UserApplication
+from .applications import Application
+from .bookmarks import Bookmark
