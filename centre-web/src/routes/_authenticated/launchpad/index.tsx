@@ -1,7 +1,8 @@
 import { DocumentSearch } from "@/components/DocumentSearch";
 import { List as EpicTileList } from "@/components/LaunchAppTile/List";
+import { LaunchAppListSkeleton } from "@/components/LaunchAppTile/ListSkeleton";
 import { PageGrid } from "@/components/Shared/PageGrid";
-import { EpicApp } from "@/models/EpicApp";
+import { useGetApplications } from "@/hooks/api/useApplications";
 import { Grid } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -10,55 +11,19 @@ export const Route = createFileRoute("/_authenticated/launchpad/")({
 });
 
 function Launchpad() {
-  const mockEngageTile = {
-    app_id: 1,
-    name: "EPIC.engage",
-    description: "Public Engagement Application",
-    launch_url: "https://dev.engage.eao.gov.bc.ca/",
-    is_active: true,
-    user: {
-      access_level: "Super User",
-      last_accessed: "2025-07-07",
-      custom_order: 2,
-      bookmarks: [
-        {
-          label: "Yellowhead",
-          url: "https://engage.eao.gov.bc.ca/Yellowhead-EE",
-        },
-        {
-          label: "All engagements",
-          url: "https://engage.eao.gov.bc.ca/Yellowhead-EE",
-        },
-        {
-          label: "Canada LNG - All comments",
-          url: "https://engage.eao.gov.bc.ca/Yellowhead-EE",
-        },
-      ],
-    },
-  };
-  const mockTiles: EpicApp[] = [
-    mockEngageTile,
-    {
-      app_id: 2,
-      name: "EPIC.submit",
-      description: "Document submission Tool for Proponents and Holders",
-      launch_url: "https://dev.submit.eao.gov.bc.ca/login?from=/staff",
-      is_active: true,
-      user: {
-        access_level: null,
-        last_accessed: null,
-        custom_order: null,
-        bookmarks: [],
-      },
-    },
-  ];
+  const { data: applications, isPending } = useGetApplications();
+
+  if (isPending) {
+    return <LaunchAppListSkeleton />;
+  }
+
   return (
     <PageGrid>
       <Grid xs={12} item>
         <DocumentSearch />
       </Grid>
       <Grid item xs={12}>
-        <EpicTileList items={mockTiles} />
+        <EpicTileList items={applications ?? []} />
       </Grid>
     </PageGrid>
   );
