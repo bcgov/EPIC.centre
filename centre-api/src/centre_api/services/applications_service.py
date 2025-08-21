@@ -1,5 +1,4 @@
 """Service for applications management."""
-from flask import jsonify
 
 from centre_api.models import Application as ApplicationModel
 

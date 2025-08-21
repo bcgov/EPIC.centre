@@ -77,11 +77,11 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    cpu: 500m
-    memory: 512Mi
-  requests:
-    cpu: 20m
+    cpu: 300m
     memory: 256Mi
+  requests:
+    cpu: 10m
+    memory: 156Mi
 
 persistentVolume:
   enabled: true
@@ -89,7 +89,7 @@ persistentVolume:
     - ReadWriteOnce
   annotations: {}
   mountPath: "/home/postgres/pgdata"
-  size: 333Mi
+  size: 100Mi
   storageClass: "netapp-block-standard"
 
 

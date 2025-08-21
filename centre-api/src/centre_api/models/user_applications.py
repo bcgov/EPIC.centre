@@ -9,6 +9,7 @@ from .db import db
 
 
 class UserApplication(BaseModel):
+    """Definition of the User Applications."""
     __tablename__ = "user_applications"
 
     id = db.Column(db.Integer, primary_key=True)
