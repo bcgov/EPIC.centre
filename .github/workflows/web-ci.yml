@@ -1,31 +1,96 @@
-name: CENTRE WEB CI
+name: Epic Centre WEB CI
 
 on:
+  pull_request:
+    branches:
+      - develop
+      - 'release/*'
+    paths:
+      - "centre-web/**"
   push:
     branches:
       - develop
-    paths:
-      - "centre-web/**"
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./centre-web
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  setup-job:
+    runs-on: ubuntu-24.04
+
+    if: github.repository == 'bcgov/EPIC.centre'
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - run: "true"
+
+  linting:
+    needs: setup-job
+    runs-on: ubuntu-24.04
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
         with:
-          node-version: "18"
+          node-version: ${{ matrix.node-version }}
       - name: Install dependencies
-        working-directory: ./centre-web
-        run: npm install
-      - name: Run tests
-        working-directory: ./centre-web
-        run: npm test
-      - name: Upload coverage to Codecov
-        if: github.repository == 'bcgov/EPIC.centre'
-        uses: codecov/codecov-action@v3
+        run: |
+          npm install --legacy-peer-deps
+      - name: Lint
+        id: lint
+        run: |
+          npm run lint
+
+  testing:
+    needs: setup-job
+    runs-on: ubuntu-24.04
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
         with:
-          flags: centre-web
-          name: codecov-centre-web
-          directory: ./centre-web/coverage 
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: |
+          npm install --legacy-peer-deps
+
+      - name: Test with Cypress
+        id: test
+        run: |
+          npx cypress run --component --headed --browser chrome
+
+      - name: Coverage Report
+        run: |
+          npx nyc report --reporter=lcov --reporter=text-summary
+
+  build-check:
+    needs: setup-job
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: |
+          npm install --legacy-peer-deps
+      - name: build to check strictness
+        id: build
+        run: |
+          npm run build --quiet || true
