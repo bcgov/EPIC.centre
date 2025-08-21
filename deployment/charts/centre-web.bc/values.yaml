@@ -2,11 +2,11 @@ image:
   tag: latest
 resources:
   cpu:
-    request: 500m
-    limit: 1500m
+    request: 200m
+    limit: 500m
   memory:
-    request: 2Gi
-    limit: 4Gi
+    request: 300Mi
+    limit: 400Mi
 repository:
   ref: develop
   url: https://github.com/bcgov/EPIC.centre.git

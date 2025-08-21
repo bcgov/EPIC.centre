@@ -1,15 +1,15 @@
 replicaCount: 1
 
 image:
-  repository: centre-api
+  repository: image-registry.openshift-image-registry.svc:5000/c72cba-tools/centre-api
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "dev"
 
 resources:
   cpu:
-    limit: 250m
-    request: 150m
+    limit: 100m
+    request: 75m
   memory:
     limit: 384Mi
     request: 256Mi
@@ -20,8 +20,6 @@ database:
     name: centre-patroni
     port: 5432
 
-
-
 service:
   type: ClusterIP
   port: 8080
@@ -30,21 +28,18 @@ service:
 auth:
   jwt:
     alg: RS256
-    aud: centre-web
+    aud: epic-centre
     cacheEnabled: true
-    issuer: https://test.loginproxy.gov.bc.ca/auth/realms/eao-epic
+    issuer: https://dev.loginproxy.gov.bc.ca/auth/realms/eao-epic
     cacheTimeout: "300"
-    wellKnownConfig: https://test.loginproxy.gov.bc.ca/auth/realms/eao-epic/.well-known/openid-configuration
+    wellKnownConfig: https://dev.loginproxy.gov.bc.ca/auth/realms/eao-epic/.well-known/openid-configuration
   keycloak:
-    uri: https://test.loginproxy.gov.bc.ca
-    realm:
+    uri: https://dev.loginproxy.gov.bc.ca
+    realm: eao-epic
     adminClientId:
     adminClientSecret:
 python:
   pythonBuffered: 1
   connectTimeout: 60
-cdogs:  
-  tokenEndpoint: https://test.loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token
-  apiEndpoint: https://cdogs-test.api.gov.bc.ca/api/v2
-  clientId:
-  clientSecret:
+cors:
+  origin: "https://dev.centre.eao.gov.bc.ca,"

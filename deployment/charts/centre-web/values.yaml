@@ -17,7 +17,7 @@ image:
 keycloak:
   url: "https://dev.loginproxy.gov.bc.ca"
   realm: eao-epic
-  client: centre-web
+  client: epic-centre
 service:
   port: 8080
 replicas:

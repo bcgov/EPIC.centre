@@ -27,11 +27,11 @@ objects:
           name: '${APP}:latest'
       resources:
         limits:
-          cpu: 1500m
-          memory: 4Gi
+          cpu: 150m
+          memory: 300Mi
         requests:
-          cpu: 500m
-          memory: 2Gi
+          cpu: 100m
+          memory: 200Mi
       successfulBuildsHistoryLimit: 5
       failedBuildsHistoryLimit: 5
       strategy:
@@ -54,7 +54,7 @@ parameters:
     value: centre-web
   - name: GITHUB_REPO
     description: "The github repo uri"
-    value: 'https://github.com/bcgov/EPIC-FLOW.git'
+    value: 'https://github.com/bcgov/EPIC.centre.git'
   - name: GITHUB_CONTEXT_DIR
     description: "The repository folder context"
     value: /centre-web

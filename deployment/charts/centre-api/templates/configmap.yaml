@@ -12,8 +12,7 @@ data:
   JWT_OIDC_JWKS_CACHE_TIMEOUT: "{{ .Values.auth.jwt.cacheTimeout }}"
   JWT_OIDC_WELL_KNOWN_CONFIG: {{ .Values.auth.jwt.wellKnownConfig }}
   PYTHONBUFFERED: "{{ .Values.python.pythonBuffered }}"
-  CDOGS_TOKEN_END_POINT: {{ .Values.cdogs.tokenEndpoint }}
-  CDOGS_API_ENDPOINT: {{ .Values.cdogs.apiEndpoint }}
   KEYCLOAK_BASE_URL: {{ .Values.auth.keycloak.uri }}
   KEYCLOAK_REALM_NAME: {{ .Values.auth.keycloak.realm }}
   CONNECT_TIMEOUT: "{{ .Values.python.connectTimeout }}"
+  CORS_ORIGIN: "{{ .Values.cors.origin }}"
