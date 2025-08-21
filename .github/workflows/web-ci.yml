@@ -1,15 +1,20 @@
-name: Epic Centre WEB CI
+name: Centre WEB CI
 
 on:
   pull_request:
     branches:
       - develop
-      - 'release/*'
     paths:
       - "centre-web/**"
   push:
     branches:
       - develop
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment (dev/test/prod)"
+        required: true
+        default: "dev"
 
 defaults:
   run:
@@ -18,7 +23,7 @@ defaults:
 
 jobs:
   setup-job:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     if: github.repository == 'bcgov/EPIC.centre'
 
@@ -28,7 +33,7 @@ jobs:
 
   linting:
     needs: setup-job
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
@@ -50,11 +55,7 @@ jobs:
 
   testing:
     needs: setup-job
-    runs-on: ubuntu-24.04
-
-    strategy:
-      matrix:
-        node-version: [18.x]
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v2
@@ -73,13 +74,29 @@ jobs:
         run: |
           npx cypress run --component --headed --browser chrome
 
+      # - name: Sets Codecov branch name
+      #   run: |
+      #     echo "CODECOV_BRANCH=PR_${{ github.head_ref }}" >> $GITHUB_ENV
+      #   if: github.event_name == 'pull_request'
+
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     flags: centre-web
+      #     name: codecov-centre-web
+      #     fail_ci_if_error: true
+      #     verbose: true
+      #     override_branch: ${{ env.CODECOV_BRANCH }}
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     directory: ./centre-web/coverage
+
       - name: Coverage Report
         run: |
           npx nyc report --reporter=lcov --reporter=text-summary
 
   build-check:
     needs: setup-job
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v2
