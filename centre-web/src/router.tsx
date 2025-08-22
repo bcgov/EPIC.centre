@@ -9,9 +9,9 @@ export default function RouterProviderWithAuthContext({
   router,
 }: RouterProviderWithAuthContextProps) {
   const authentication = useAuth();
+
   useEffect(() => {
     // the `return` is important - addAccessTokenExpiring() returns a cleanup function
-
     return authentication.events.addAccessTokenExpiring(() => {
       // eslint-disable-next-line no-console
       console.log("AccessTokenExpiring: Refreshing token");
