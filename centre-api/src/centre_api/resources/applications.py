@@ -33,7 +33,7 @@ class Users(Resource):
 
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description="Fetch all applications")
-    # @auth.require
+    @auth.require
     def get():
         """Fetch all applications."""
         applications = ApplicationsService.get_all()
