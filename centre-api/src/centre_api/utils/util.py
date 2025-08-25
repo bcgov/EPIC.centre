@@ -56,11 +56,9 @@ def snake2camelback(snake_dict: dict):
 def allowedorigins():
     """Return allowed origin."""
     _allowedcors = os.getenv('CORS_ORIGIN')
-    allowedcors = []
-    if _allowedcors and ',' in _allowedcors:
-        for entry in re.split(',', _allowedcors):
-            allowedcors.append(entry)
-    return allowedcors
+    if not _allowedcors:
+        return []
+    return [entry.strip() for entry in re.split(r',\s*', _allowedcors) if entry.strip()]
 
 
 class Singleton(type):
