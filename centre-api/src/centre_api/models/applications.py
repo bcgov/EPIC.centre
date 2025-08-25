@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 
 from centre_api.utils.token_info import TokenInfo
 
-from . import UserApplication
+from .user_applications import UserApplication
 from .base_model import BaseModel
 from .db import db
 
