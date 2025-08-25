@@ -17,10 +17,12 @@ from http import HTTPStatus
 
 from flask_restx import Namespace, Resource
 
+from centre_api.auth import auth
 from centre_api.services.applications_service import ApplicationsService
 from centre_api.utils.util import cors_preflight
+
 from .apihelper import Api as ApiHelper
-from centre_api.auth import auth
+
 
 API = Namespace("applications", description="Endpoints for User Management")
 """Custom exception messages
