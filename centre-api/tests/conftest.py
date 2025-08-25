@@ -12,74 +12,106 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Common setup and fixtures for the pytest suite used by this service."""
-import time
 from random import random
 
 import pytest
+from faker import Faker
 from flask_migrate import Migrate, upgrade
 from sqlalchemy import event, text
+from sqlalchemy.orm import sessionmaker, scoped_session
 
-from centre_api import create_app, setup_jwt_manager
+from centre_api import create_app
 from centre_api.auth import jwt as _jwt
+from centre_api.config import get_named_config
 from centre_api.models import db as _db
 
+fake = Faker()
+CONFIG = get_named_config("testing")
 
-@pytest.fixture(scope='session')
+
+@pytest.fixture(scope="session")
 def app():
     """Return a session-wide application configured in TEST mode."""
-    _app = create_app('testing')
+    _app = create_app(run_mode="testing")
+    with _app.app_context():
+        # Create the schema each time before the test starts
+        drop_schema_sql = text(
+            f"""              CREATE SCHEMA IF NOT EXISTS public;
+                             GRANT ALL ON SCHEMA public TO {CONFIG.DB_USER};
+                             GRANT ALL ON SCHEMA public TO public;
+                          """
+        )
 
+        sess = _db.session()
+        sess.execute(drop_schema_sql)
+        sess.commit()
+        upgrade()  # Apply migrations
+        yield _app
+        _db.session.remove()
     return _app
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(autouse=True)
+def app_context(app):
+    """Automatically push and pop the app context for every test."""
+    with app.app_context():
+        # g.jwt_oidc_token_info = TokenJWTClaims.default
+        yield
+
+
+@pytest.fixture(scope="function")
 def app_request():
     """Return a session-wide application configured in TEST mode."""
-    _app = create_app('testing')
-
+    _app = create_app(run_mode="testing")
     return _app
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def client(app):  # pylint: disable=redefined-outer-name
     """Return a session-wide Flask test client."""
-    return app.test_client()
+    with app.app_context():
+        c = app.test_client()
+        c.environ_base["CONTENT_TYPE"] = "application/json"
+        yield c
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def jwt():
     """Return a session-wide jwt manager."""
     return _jwt
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def client_ctx(app):  # pylint: disable=redefined-outer-name
     """Return session-wide Flask test client."""
     with app.test_client() as _client:
         yield _client
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def db(app):  # pylint: disable=redefined-outer-name, invalid-name
     """Return a session-wide initialised database.
 
     Drops schema, and recreate.
     """
     with app.app_context():
-        drop_schema_sql = """DROP SCHEMA public CASCADE;
+        # g.jwt_oidc_token_info = TokenJWTClaims.default
+        create_schema_sql = text(
+            f"""DROP SCHEMA public CASCADE;
                              CREATE SCHEMA public;
-                             GRANT ALL ON SCHEMA public TO postgres;
+                             GRANT ALL ON SCHEMA public TO {CONFIG.DB_USER};
                              GRANT ALL ON SCHEMA public TO public;
                           """
+        )
 
         sess = _db.session()
-        sess.execute(drop_schema_sql)
+        sess.execute(create_schema_sql)
         sess.commit()
 
         # ############################################
         # There are 2 approaches, an empty database, or the same one that the app will use
         #     create the tables
-        #     _db.create_all()
+        #  _db.create_all()
         # or
         # Use Alembic to load all of the DB revisions including supporting lookup data
         # This is the path we'll use in auth_api!!
@@ -91,75 +123,53 @@ def db(app):  # pylint: disable=redefined-outer-name, invalid-name
         return _db
 
 
-@pytest.fixture(scope='function')
-def session(app, db):  # pylint: disable=redefined-outer-name, invalid-name
-    """Return a function-scoped session."""
+@pytest.fixture(scope="function")
+def session(app, db):  # db is your _db from submit_api.models
+    """Return a function-scoped session with nested transaction."""
     with app.app_context():
-        conn = db.engine.connect()
-        txn = conn.begin()
+        # g.jwt_oidc_token_info = TokenJWTClaims.default
+        connection = db.engine.connect()
+        transaction = connection.begin()
 
-        options = dict(bind=conn, binds={})
-        sess = db.create_scoped_session(options=options)
+        # Use SQLAlchemy directly to create a scoped session
+        session_factory = sessionmaker(bind=connection)
+        scoped_sess = scoped_session(session_factory)
 
-        # establish  a SAVEPOINT just before beginning the test
-        # (http://docs.sqlalchemy.org/en/latest/orm/session_transaction.html#using-savepoint)
-        sess.begin_nested()
+        # Begin a nested transaction (savepoint)
+        scoped_sess.begin_nested()
 
-        @event.listens_for(sess(), 'after_transaction_end')
-        def restart_savepoint(sess2, trans):  # pylint: disable=unused-variable
-            # Detecting whether this is indeed the nested transaction of the test
-            if trans.nested and not trans._parent.nested:  # pylint: disable=protected-access
-                # Handle where test DOESN'T session.commit(),
-                sess2.expire_all()
-                sess.begin_nested()
+        # Restart nested transaction after each test transaction ends
+        @event.listens_for(scoped_sess(), "after_transaction_end")
+        def restart_savepoint(sess2, trans):
+            if trans.nested and not trans._parent.nested:
+                sess2.begin_nested()
 
-        db.session = sess
+        db.session = scoped_sess
 
-        sql = text('select 1')
-        sess.execute(sql)
+        yield scoped_sess
 
-        yield sess
-
-        # Cleanup
-        sess.remove()
-        # This instruction rollsback any commit that were executed in the tests.
-        txn.rollback()
-        conn.close()
+        scoped_sess.remove()
+        transaction.rollback()
+        connection.close()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_database(app, db):
+    """Clean up the database after all tests have been executed."""
+    yield
+    with app.app_context():
+        print("Cleaning up database...")
+        engine = db.engine
+        with engine.connect() as connection:
+            connection.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
+            connection.commit()
+        print("Database cleanup completed.")
+
+
+@pytest.fixture(scope="function")
 def client_id():
     """Return a unique client_id that can be used in tests."""
     _id = random.SystemRandom().getrandbits(0x58)
     #     _id = (base64.urlsafe_b64encode(uuid.uuid4().bytes)).replace('=', '')
 
-    return f'client-{_id}'
-
-
-@pytest.fixture(scope='session', autouse=True)
-def auto(docker_services, app):
-    """Spin up a keycloak instance and initialize jwt."""
-    if app.config['USE_TEST_KEYCLOAK_DOCKER']:
-        docker_services.start('keycloak')
-        docker_services.wait_for_service('keycloak', 8081)
-
-    setup_jwt_manager(app, _jwt)
-
-    if app.config['USE_DOCKER_MOCK']:
-        docker_services.start('proxy')
-        time.sleep(10)
-
-
-@pytest.fixture(scope='session')
-def docker_compose_files(pytestconfig):
-    """Get the docker-compose.yml absolute path."""
-    import os
-    return [
-        os.path.join(str(pytestconfig.rootdir), 'tests/docker', 'docker-compose.yml')
-    ]
-
-
-@pytest.fixture()
-def auth_mock(monkeypatch):
-    """Mock check_auth."""
-    pass
+    return f"client-{_id}"
