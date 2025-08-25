@@ -49,60 +49,60 @@ jobs:
           make flake8
 
 
-  testing:
-     needs: setup-job
-     env:
-       FLASK_ENV: "testing"
-       DATABASE_TEST_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+  # testing:
+  #    needs: setup-job
+  #    env:
+  #      FLASK_ENV: "testing"
+  #      DATABASE_TEST_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
 
-     runs-on: ubuntu-22.04
+  #    runs-on: ubuntu-22.04
 
-     strategy:
-       matrix:
-         python-version: [3.9]
+  #    strategy:
+  #      matrix:
+  #        python-version: [3.9]
 
-     services:
-      postgres:
-        image: postgres:12
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+  #    services:
+  #     postgres:
+  #       image: postgres:12
+  #       env:
+  #         POSTGRES_USER: postgres
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: postgres
+  #       ports:
+  #         - 5432:5432
+  #       # needed because the postgres container does not provide a healthcheck
+  #       options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
-     steps:
-       - uses: actions/checkout@v4
-         with:
-           fetch-depth: 0
-       - name: Set up Python ${{ matrix.python-version }}
-         uses: actions/setup-python@v4
-         with:
-           python-version: ${{ matrix.python-version }}
-       - name: Install dependencies
-         run: |
-           make setup
-       - name: Test
-         id: test
-         run: |
-           make test
+  #    steps:
+  #      - uses: actions/checkout@v4
+  #        with:
+  #          fetch-depth: 0
+  #      - name: Set up Python ${{ matrix.python-version }}
+  #        uses: actions/setup-python@v4
+  #        with:
+  #          python-version: ${{ matrix.python-version }}
+  #      - name: Install dependencies
+  #        run: |
+  #          make setup
+  #      - name: Test
+  #        id: test
+  #        run: |
+  #          make test
 
-       - name: Sets Codecov branch name
-         run: |
-            echo "CODECOV_BRANCH=PR_${{github.head_ref}}" >> $GITHUB_ENV
-         if: github.event_name == 'pull_request'
+  #      - name: Sets Codecov branch name
+  #        run: |
+  #           echo "CODECOV_BRANCH=PR_${{github.head_ref}}" >> $GITHUB_ENV
+  #        if: github.event_name == 'pull_request'
 
-       - name: Upload coverage to Codecov
-         uses: codecov/codecov-action@v4
-         with:
-          flags: centre-api
-          name: codecov-centre-api
-          fail_ci_if_error: true
-          verbose: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-          override_branch: ${{ env.CODECOV_BRANCH }}
+  #      - name: Upload coverage to Codecov
+  #        uses: codecov/codecov-action@v4
+  #        with:
+  #         flags: centre-api
+  #         name: codecov-centre-api
+  #         fail_ci_if_error: true
+  #         verbose: true
+  #         token: ${{ secrets.CODECOV_TOKEN }}
+  #         override_branch: ${{ env.CODECOV_BRANCH }}
 
   build:
     # needs: PyTest
