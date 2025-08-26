@@ -24,7 +24,7 @@ class UserSchema(Schema):
 
 
 class UserRequestSchema(Schema):
-    """User Request Schema"""
+    """User Request Schema."""
 
     class Meta:  # pylint: disable=too-few-public-methods
         """Exclude unknown fields in the deserialized output."""

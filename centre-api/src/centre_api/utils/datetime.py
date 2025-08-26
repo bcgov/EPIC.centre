@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Datetime object helper."""
-import pytz
-from flask import current_app
-
 from datetime import datetime
+
+from flask import current_app
+import pytz
 
 
 def local_datetime():

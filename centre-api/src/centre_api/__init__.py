@@ -6,9 +6,9 @@ This module is for the initiation of the flask app.
 import os
 from http import HTTPStatus
 
-import secure
 from flask import Flask, current_app, g, request
 from flask_cors import CORS
+import secure
 
 from centre_api.auth import jwt
 from centre_api.config import get_named_config
@@ -88,11 +88,11 @@ def create_app(run_mode=os.getenv('FLASK_ENV', 'development')):
 
     @app.errorhandler(Exception)
     def handle_error(err):
-        if run_mode != "production":
+        if run_mode != 'production':
             # To get stacktrace in local development for internal server errors
             raise err
         current_app.logger.error(str(err))
-        return "Internal server error", HTTPStatus.INTERNAL_SERVER_ERROR
+        return 'Internal server error', HTTPStatus.INTERNAL_SERVER_ERROR
 
     # Return App for run in run.py file
     return app

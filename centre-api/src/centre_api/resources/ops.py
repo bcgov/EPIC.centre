@@ -13,9 +13,9 @@
 # limitations under the License.
 """Endpoints to check and manage the health of the service."""
 from flask_restx import Namespace, Resource
-from sqlalchemy import exc, text
 
 from centre_api.models import db
+from sqlalchemy import exc, text
 
 
 API = Namespace('OPS', description='Service - OPS checks')

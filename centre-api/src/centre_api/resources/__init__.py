@@ -23,35 +23,33 @@ That are used to expose operational health information about the service, and me
 
 from flask import Blueprint
 
-
 from .apihelper import Api
-from .ops import API as OPS_API
-
 from .applications import API as APPLICATIONS_API
+from .ops import API as OPS_API
 
 __all__ = ('API_BLUEPRINT', 'OPS_BLUEPRINT')
 
 URL_PREFIX = '/api/'
 API_BLUEPRINT = Blueprint('API', __name__, url_prefix=URL_PREFIX)
-OPS_BLUEPRINT = Blueprint("API_OPS", __name__, url_prefix="/ops")
+OPS_BLUEPRINT = Blueprint('API_OPS', __name__, url_prefix='/ops')
 
 authorizations = {
-    'Bearer Auth': {
+    'bearer_auth': {
         'type': 'apiKey',
         'in': 'header',
         'name': 'Authorization',
-        'description': 'Add "Bearer " before your token'
+        'description': "Add 'Bearer ' before your token"
     }
 }
 
 API_OPS = Api(
     OPS_BLUEPRINT,
-    title="Service OPS API",
-    version="1.0",
-    description="The Core API for the Reports System",
+    title='Service OPS API',
+    version='1.0',
+    description='The Core API for the Reports System',
 )
 
-API_OPS.add_namespace(OPS_API, path="/")
+API_OPS.add_namespace(OPS_API, path='/')
 
 API = Api(
     API_BLUEPRINT,

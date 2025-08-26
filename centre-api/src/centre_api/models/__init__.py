@@ -15,7 +15,7 @@
 """This exports all of the models and schemas used by the application."""
 
 from .db import db, ma, migrate
-from .user import User
-from .user_applications import UserApplication
 from .applications import Application
 from .bookmarks import Bookmark
+from .user import User
+from .user_applications import UserApplication
