@@ -25,6 +25,7 @@ from centre_api.auth import jwt as _jwt
 from centre_api.config import get_named_config
 from centre_api.models import db as _db
 
+
 fake = Faker()
 CONFIG = get_named_config('testing')
 

@@ -4,8 +4,9 @@ Manages the application
 """
 from __future__ import annotations
 
-from centre_api.utils.token_info import TokenInfo
 from sqlalchemy.orm import joinedload
+
+from centre_api.utils.token_info import TokenInfo
 
 from .base_model import BaseModel
 from .db import db

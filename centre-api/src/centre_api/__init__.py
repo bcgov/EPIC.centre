@@ -6,9 +6,9 @@ This module is for the initiation of the flask app.
 import os
 from http import HTTPStatus
 
+import secure
 from flask import Flask, current_app, g, request
 from flask_cors import CORS
-import secure
 
 from centre_api.auth import jwt
 from centre_api.config import get_named_config
@@ -43,8 +43,7 @@ secure_headers = secure.Secure(
 
 def create_app(run_mode=os.getenv('FLASK_ENV', 'development')):
     """Create flask app."""
-    from centre_api.resources import (  # pylint: disable=import-outside-toplevel
-        API_BLUEPRINT, OPS_BLUEPRINT)
+    from centre_api.resources import API_BLUEPRINT, OPS_BLUEPRINT  # pylint: disable=import-outside-toplevel
 
     # Flask app initialize
     app = Flask(__name__)

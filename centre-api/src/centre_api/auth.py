@@ -15,8 +15,8 @@
 from functools import wraps
 
 from flask import g, request
-
 from flask_jwt_oidc import JwtManager
+
 
 jwt = (
     JwtManager()

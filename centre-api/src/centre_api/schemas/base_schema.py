@@ -13,8 +13,9 @@
 # limitations under the License.
 """Super class to handle all operations related to base schema."""
 
-from centre_api.models import ma
 from marshmallow import fields, post_dump
+
+from centre_api.models import ma
 
 
 class BaseSchema(ma.ModelSchema):  # pylint: disable=too-many-ancestors

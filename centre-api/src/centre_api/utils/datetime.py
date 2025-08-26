@@ -14,8 +14,8 @@
 """Datetime object helper."""
 from datetime import datetime
 
-from flask import current_app
 import pytz
+from flask import current_app
 
 
 def local_datetime():

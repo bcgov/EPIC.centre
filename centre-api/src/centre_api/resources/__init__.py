@@ -27,6 +27,7 @@ from .apihelper import Api
 from .applications import API as APPLICATIONS_API
 from .ops import API as OPS_API
 
+
 __all__ = ('API_BLUEPRINT', 'OPS_BLUEPRINT')
 
 URL_PREFIX = '/api/'

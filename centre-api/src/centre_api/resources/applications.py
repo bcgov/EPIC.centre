@@ -15,9 +15,9 @@
 
 from http import HTTPStatus
 
-from centre_api.auth import auth
 from flask_restx import Namespace, Resource
 
+from centre_api.auth import auth
 from centre_api.services.applications_service import ApplicationsService
 from centre_api.utils.util import cors_preflight
 

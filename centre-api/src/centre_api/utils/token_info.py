@@ -1,7 +1,7 @@
 """Helper for token decoding."""
-from centre_api.utils.user_context import UserContext, user_context
-
 from flask import g
+
+from centre_api.utils.user_context import UserContext, user_context
 
 
 class TokenInfo:
