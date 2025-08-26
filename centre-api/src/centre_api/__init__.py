@@ -43,8 +43,7 @@ secure_headers = secure.Secure(
 
 def create_app(run_mode=os.getenv('FLASK_ENV', 'development')):
     """Create flask app."""
-    from centre_api.resources import (  # pylint: disable=import-outside-toplevel
-        API_BLUEPRINT, OPS_BLUEPRINT)
+    from centre_api.resources import API_BLUEPRINT, OPS_BLUEPRINT  # pylint: disable=import-outside-toplevel
 
     # Flask app initialize
     app = Flask(__name__)
@@ -88,11 +87,11 @@ def create_app(run_mode=os.getenv('FLASK_ENV', 'development')):
 
     @app.errorhandler(Exception)
     def handle_error(err):
-        if run_mode != "production":
+        if run_mode != 'production':
             # To get stacktrace in local development for internal server errors
             raise err
         current_app.logger.error(str(err))
-        return "Internal server error", HTTPStatus.INTERNAL_SERVER_ERROR
+        return 'Internal server error', HTTPStatus.INTERNAL_SERVER_ERROR
 
     # Return App for run in run.py file
     return app

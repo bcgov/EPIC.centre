@@ -19,6 +19,7 @@ from sqlalchemy.ext.declarative import declared_attr
 
 from .db import db
 
+
 TENANT_ID = 'tenant_id'
 
 

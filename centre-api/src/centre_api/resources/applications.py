@@ -24,18 +24,18 @@ from centre_api.utils.util import cors_preflight
 from .apihelper import Api as ApiHelper
 
 
-API = Namespace("applications", description="Endpoints for User Management")
+API = Namespace('applications', description='Endpoints for User Management')
 """Custom exception messages
 """
 
 
-@cors_preflight("GET, OPTIONS, POST")
-@API.route("", methods=["POST", "GET", "OPTIONS"])
+@cors_preflight('GET, OPTIONS, POST')
+@API.route('', methods=['POST', 'GET', 'OPTIONS'])
 class Users(Resource):
     """Resource for managing applications."""
 
     @staticmethod
-    @ApiHelper.swagger_decorators(API, endpoint_description="Fetch all applications")
+    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all applications')
     @auth.require
     def get():
         """Fetch all applications."""

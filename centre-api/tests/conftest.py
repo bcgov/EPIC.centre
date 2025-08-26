@@ -18,21 +18,22 @@ import pytest
 from faker import Faker
 from flask_migrate import Migrate, upgrade
 from sqlalchemy import event, text
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from centre_api import create_app
 from centre_api.auth import jwt as _jwt
 from centre_api.config import get_named_config
 from centre_api.models import db as _db
 
+
 fake = Faker()
-CONFIG = get_named_config("testing")
+CONFIG = get_named_config('testing')
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def app():
     """Return a session-wide application configured in TEST mode."""
-    _app = create_app(run_mode="testing")
+    _app = create_app(run_mode='testing')
     with _app.app_context():
         # Create the schema each time before the test starts
         drop_schema_sql = text(
@@ -59,36 +60,36 @@ def app_context(app):
         yield
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope='function')
 def app_request():
     """Return a session-wide application configured in TEST mode."""
-    _app = create_app(run_mode="testing")
+    _app = create_app(run_mode='testing')
     return _app
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def client(app):  # pylint: disable=redefined-outer-name
     """Return a session-wide Flask test client."""
     with app.app_context():
         c = app.test_client()
-        c.environ_base["CONTENT_TYPE"] = "application/json"
+        c.environ_base['CONTENT_TYPE'] = 'application/json'
         yield c
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def jwt():
     """Return a session-wide jwt manager."""
     return _jwt
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def client_ctx(app):  # pylint: disable=redefined-outer-name
     """Return session-wide Flask test client."""
     with app.test_client() as _client:
         yield _client
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def db(app):  # pylint: disable=redefined-outer-name, invalid-name
     """Return a session-wide initialised database.
 
@@ -123,7 +124,7 @@ def db(app):  # pylint: disable=redefined-outer-name, invalid-name
         return _db
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope='function')
 def session(app, db):  # db is your _db from submit_api.models
     """Return a function-scoped session with nested transaction."""
     with app.app_context():
@@ -139,7 +140,7 @@ def session(app, db):  # db is your _db from submit_api.models
         scoped_sess.begin_nested()
 
         # Restart nested transaction after each test transaction ends
-        @event.listens_for(scoped_sess(), "after_transaction_end")
+        @event.listens_for(scoped_sess(), 'after_transaction_end')
         def restart_savepoint(sess2, trans):
             if trans.nested and not trans._parent.nested:
                 sess2.begin_nested()
@@ -153,23 +154,23 @@ def session(app, db):  # db is your _db from submit_api.models
         connection.close()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope='session', autouse=True)
 def cleanup_database(app, db):
     """Clean up the database after all tests have been executed."""
     yield
     with app.app_context():
-        print("Cleaning up database...")
+        print('Cleaning up database...')
         engine = db.engine
         with engine.connect() as connection:
-            connection.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
+            connection.execute(text('DROP SCHEMA public CASCADE; CREATE SCHEMA public;'))
             connection.commit()
-        print("Database cleanup completed.")
+        print('Database cleanup completed.')
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope='function')
 def client_id():
     """Return a unique client_id that can be used in tests."""
     _id = random.SystemRandom().getrandbits(0x58)
     #     _id = (base64.urlsafe_b64encode(uuid.uuid4().bytes)).replace('=', '')
 
-    return f"client-{_id}"
+    return f'client-{_id}'

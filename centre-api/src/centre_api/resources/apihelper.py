@@ -16,8 +16,10 @@
 to support swagger on http
 """
 from functools import wraps
+
 from flask import url_for
-from flask_restx import Api as BaseApi, fields
+from flask_restx import Api as BaseApi
+from flask_restx import fields
 from flask_restx.apidoc import apidoc
 from marshmallow import fields as ma_fields
 
@@ -28,18 +30,18 @@ class Api(BaseApi):
     @property
     def specs_url(self):
         """Return URL for endpoint."""
-        scheme = "http" if "3200" in self.base_url else "https"
-        return url_for(self.endpoint("specs"), _external=True, _scheme=scheme)
+        scheme = 'http' if '3200' in self.base_url else 'https'
+        return url_for(self.endpoint('specs'), _external=True, _scheme=scheme)
 
     @classmethod
     def swagger_decorators(cls, api, endpoint_description):
-        """Common decorators for the resources"""
+        """Decorate a resource with common decorators."""
 
         def decorator(func):
             @wraps(func)
             @api.doc(description=endpoint_description)
-            @api.response(401, "Unauthorized")
-            @api.response(500, "Internal Server Error")
+            @api.response(401, 'Unauthorized')
+            @api.response(500, 'Internal Server Error')
             def wrapper(*args, **kwargs):
                 return func(*args, **kwargs)
 
@@ -49,14 +51,7 @@ class Api(BaseApi):
 
     @classmethod
     def convert_ma_schema_to_restx_model(cls, api, schema, name):
-        """
-        Converts a Marshmallow schema to a Flask-RESTX model.
-
-        :param api: The Flask-RESTX API instance
-        :param schema: The Marshmallow schema instance
-        :param name: The name of the Flask-RESTX model
-        :return: A Flask-RESTX model
-        """
+        """Convert a Marshmallow schema to a Flask-RESTX model."""
         type_mapping = {
             ma_fields.Integer: fields.Integer,
             ma_fields.String: fields.String,
@@ -72,12 +67,13 @@ class Api(BaseApi):
             if restx_field:
                 model_fields[field_name] = restx_field(
                     required=field.required,
-                    description=field.metadata.get("description", ""),
+                    description=field.metadata.get('description', ''),
                 )
             # Add more field types as needed
 
         return api.model(name, model_fields)
 
-# Make a global change setting the URL prefix for the swaggerui at the module level
-# This solves the issue where the swaggerui does not pick up the url prefix
-apidoc.url_prefix = "/api/"
+
+# Make a global change setting the URL prefix for the swagger at the module level
+# This solves the issue where the swagger does not pick up the url prefix
+apidoc.url_prefix = '/api/'

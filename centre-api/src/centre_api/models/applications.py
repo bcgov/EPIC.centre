@@ -8,14 +8,15 @@ from sqlalchemy.orm import joinedload
 
 from centre_api.utils.token_info import TokenInfo
 
-from .user_applications import UserApplication
 from .base_model import BaseModel
 from .db import db
+from .user_applications import UserApplication
 
 
 class Application(BaseModel):
     """Definition of the User entity."""
-    __tablename__ = "applications"
+
+    __tablename__ = 'applications'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)

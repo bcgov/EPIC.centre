@@ -19,7 +19,7 @@ BusinessException - error, status_code - Business rules error
 error - a description of the error {code / description: classname / full text}
 status_code - where possible use HTTP Error Codes
 """
-from werkzeug.exceptions import UnprocessableEntity, Forbidden, NotFound, BadRequest, Conflict
+from werkzeug.exceptions import BadRequest, Conflict, Forbidden, NotFound, UnprocessableEntity
 from werkzeug.wrappers.response import Response
 
 
@@ -44,7 +44,7 @@ class ResourceExistsError(Conflict):
 
 
 class BadRequestError(BadRequest):
-    """Exception raised when there are issues with the api input"""
+    """Exception raised when there are issues with the api input."""
 
     def __init__(self, message, *args, **kwargs):
         """Return a valid BadRequestError."""
@@ -54,7 +54,7 @@ class BadRequestError(BadRequest):
 
 
 class ResourceNotFoundError(NotFound):
-    """Exception raised when resource not found"""
+    """Exception raised when resource not found."""
 
     def __init__(self, message, *args, **kwargs):
         """Return a valid ResourceExistsError."""
@@ -64,7 +64,7 @@ class ResourceNotFoundError(NotFound):
 
 
 class PermissionDeniedError(Forbidden):
-    """Exception raised when resource not found"""
+    """Exception raised when resource not found."""
 
     def __init__(self, message, *args, **kwargs):
         """Return a valid ResourceExistsError."""
@@ -74,7 +74,7 @@ class PermissionDeniedError(Forbidden):
 
 
 class UnprocessableEntityError(UnprocessableEntity):
-    """Exception raised when resource is not processable"""
+    """Exception raised when resource is not processable."""
 
     def __init__(self, message, *args, **kwargs):
         """Return a valid UnprocessableEntityError."""
