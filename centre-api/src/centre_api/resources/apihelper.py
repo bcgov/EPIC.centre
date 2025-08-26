@@ -36,6 +36,7 @@ class Api(BaseApi):
     @classmethod
     def swagger_decorators(cls, api, endpoint_description):
         """Decorate a resource with common decorators."""
+
         def decorator(func):
             @wraps(func)
             @api.doc(description=endpoint_description)
@@ -73,7 +74,6 @@ class Api(BaseApi):
         return api.model(name, model_fields)
 
 
-
-# Make a global change setting the URL prefix for the swaggerui at the module level
-# This solves the issue where the swaggerui does not pick up the url prefix
+# Make a global change setting the URL prefix for the swagger at the module level
+# This solves the issue where the swagger does not pick up the url prefix
 apidoc.url_prefix = '/api/'
