@@ -1,12 +1,21 @@
 import { Bookmark } from "@/models/EpicApp";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import { CentreLink } from "../Shared/CentreLink";
+import { useModal } from "../Modals/modalStore";
+import { AddBookmark } from "./AddBookmark";
 
 type BookmarkSectionProps = {
   bookmarks: Array<Bookmark>;
+  name: string;
 };
 
-export const BookmarkSection = ({ bookmarks }: BookmarkSectionProps) => {
+export const BookmarkSection = ({ bookmarks, name }: BookmarkSectionProps) => {
+  const { setOpen: setModalOpen } = useModal();
+
+  const handleAddEditBookmarks = () => {
+    setModalOpen(<AddBookmark app_name={name} bookmarks={bookmarks} />);
+  };
+
   return (
     <Box sx={{ width: "100%" }}>
       <Stack
@@ -19,7 +28,9 @@ export const BookmarkSection = ({ bookmarks }: BookmarkSectionProps) => {
         <Typography variant="h5" fontWeight={400}>
           Bookmarks
         </Typography>
-        <Button color="secondary">Add/Edit Bookmarks</Button>
+        <Button color="secondary" onClick={handleAddEditBookmarks}>
+          Add/Edit Bookmarks
+        </Button>
       </Stack>
       <Box
         sx={{

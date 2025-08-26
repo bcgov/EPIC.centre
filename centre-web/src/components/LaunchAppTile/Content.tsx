@@ -29,7 +29,7 @@ type ContentProps = {
   data: EpicApp;
 };
 export const Content = ({ data }: ContentProps) => {
-  const { user, launch_url } = data;
+  const { user, launch_url, name } = data;
   return (
     <Box sx={{ height: "331px" }}>
       <Box
@@ -51,7 +51,7 @@ export const Content = ({ data }: ContentProps) => {
         >
           Open in new tab
         </Button>
-        <BookmarkSection bookmarks={user.bookmarks} />
+        <BookmarkSection bookmarks={user.bookmarks} name={name} />
         <Box
           sx={{
             padding: "8px 0 12px 0",
