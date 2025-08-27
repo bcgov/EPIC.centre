@@ -5,7 +5,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import ControlledTextField from "../Shared/ControlledInput/ControlledTextField";
 import { modalStyle } from "../Shared/Modals/constants";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useModal } from "../Shared/Modals/modalStore";
 import { useUpdateBookmarks } from "@/hooks/api/useUserApplications";
 import { LoadingButton } from "../Shared/LoadingButton";

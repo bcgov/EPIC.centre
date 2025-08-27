@@ -15,7 +15,7 @@ function Index() {
     if (!isAuthenticated && !isLoading) {
       signinRedirect();
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, signinRedirect]);
 
   if (isAuthenticated) {
     return <Navigate to="/oidc-callback" />;

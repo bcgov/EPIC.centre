@@ -1,6 +1,6 @@
 """Service for applications management."""
 
-from centre_api.models import Application as ApplicationModel, UserApplication
+from centre_api.models import UserApplication
 from centre_api.utils.token_info import TokenInfo
 
 
