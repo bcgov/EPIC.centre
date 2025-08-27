@@ -90,9 +90,9 @@ jobs:
       #     token: ${{ secrets.CODECOV_TOKEN }}
       #     directory: ./centre-web/coverage
 
-      - name: Coverage Report
-        run: |
-          npx nyc report --reporter=lcov --reporter=text-summary
+      # - name: Coverage Report
+      #   run: |
+      #     npx nyc report --reporter=lcov --reporter=text-summary
 
   build-check:
     needs: setup-job
