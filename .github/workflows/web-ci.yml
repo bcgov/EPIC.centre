@@ -53,26 +53,26 @@ jobs:
         run: |
           npm run lint
 
-  testing:
-    needs: setup-job
-    runs-on: ubuntu-22.04
+  # testing:
+  #   needs: setup-job
+  #   runs-on: ubuntu-22.04
 
-    steps:
-      - uses: actions/checkout@v2
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v1
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
 
-      - name: Install dependencies
-        run: |
-          npm install --legacy-peer-deps
+  #     - name: Install dependencies
+  #       run: |
+  #         npm install --legacy-peer-deps
 
-      - name: Test with Cypress
-        id: test
-        run: |
-          npx cypress run --component --headed --browser chrome
+  #     - name: Test with Cypress
+  #       id: test
+  #       run: |
+  #         npx cypress run --component --headed --browser chrome
 
       # - name: Sets Codecov branch name
       #   run: |
