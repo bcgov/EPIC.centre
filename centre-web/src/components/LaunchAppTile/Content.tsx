@@ -1,6 +1,5 @@
 import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { CentreLink } from "../Shared/CentreLink";
 import { EpicApp } from "@/models/EpicApp";
 import { BookmarkSection } from "./BookmarkSection";
 
@@ -26,10 +25,10 @@ const LabeledItem = ({ label, children }: LabeledItemProps) => {
 };
 
 type ContentProps = {
-  data: EpicApp;
+  epicApp: EpicApp;
 };
-export const Content = ({ data }: ContentProps) => {
-  const { user, launch_url } = data;
+export const Content = ({ epicApp }: ContentProps) => {
+  const { user, launch_url } = epicApp;
   return (
     <Box sx={{ height: "331px" }}>
       <Box
@@ -51,7 +50,7 @@ export const Content = ({ data }: ContentProps) => {
         >
           Open in new tab
         </Button>
-        <BookmarkSection bookmarks={user.bookmarks} />
+        <BookmarkSection epicApp={epicApp} />
         <Box
           sx={{
             padding: "8px 0 12px 0",

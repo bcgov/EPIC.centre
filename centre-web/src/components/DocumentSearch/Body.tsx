@@ -78,7 +78,7 @@ export const Body = () => {
             backgroundColor: "#D1CFCD",
           }}
         />
-        <BookmarkSection bookmarks={mockBookmarks} />
+        <BookmarkSection bookmarks={mockBookmarks} name="Document Search" />
       </Box>
     </Box>
   );

@@ -9,7 +9,7 @@ export const List = ({ items }: ListProps) => {
   return (
     <Grid container spacing={4} direction={"row"}>
       {items.map((item) => (
-        <Grid item key={item.app_id}>
+        <Grid item key={item.id}>
           <LaunchAppTile item={item} />
         </Grid>
       ))}

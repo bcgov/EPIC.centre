@@ -22,9 +22,9 @@ from centre_api.services.applications_service import ApplicationsService
 from centre_api.utils.util import cors_preflight
 
 from .apihelper import Api as ApiHelper
+from ..schemas.application import ApplicationSchema
 
-
-API = Namespace('applications', description='Endpoints for User Management')
+API = Namespace('applications', description='Endpoints for applications management')
 """Custom exception messages
 """
 
@@ -40,4 +40,4 @@ class Users(Resource):
     def get():
         """Fetch all applications."""
         applications = ApplicationsService.get_all()
-        return applications, HTTPStatus.OK
+        return ApplicationSchema(many=True).dump(applications), HTTPStatus.OK
