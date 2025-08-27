@@ -4,6 +4,7 @@ export type Bookmark = {
 };
 
 export type UserEpicAppData = {
+  user_auth_guid: string;
   access_level: string | null; // e.g. "Super User", "Viewer", null if no access yet
   last_accessed: string | null; // ISO datetime
   custom_order: number | null; // position in launchpad, null = default
@@ -11,7 +12,7 @@ export type UserEpicAppData = {
 };
 
 export type EpicApp = {
-  app_id: number;
+  id: number;
   name: string;
   description: string;
   launch_url: string;

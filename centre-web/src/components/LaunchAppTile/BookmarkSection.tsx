@@ -1,19 +1,20 @@
-import { Bookmark } from "@/models/EpicApp";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { EpicApp } from "@/models/EpicApp";
+import { Box, Button, Stack, Tooltip, Typography } from "@mui/material";
 import { CentreLink } from "../Shared/CentreLink";
-import { useModal } from "../Modals/modalStore";
+import { useModal } from "../Shared/Modals/modalStore";
 import { AddBookmark } from "./AddBookmark";
 
 type BookmarkSectionProps = {
-  bookmarks: Array<Bookmark>;
-  name: string;
+  epicApp: EpicApp;
 };
 
-export const BookmarkSection = ({ bookmarks, name }: BookmarkSectionProps) => {
+export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
   const { setOpen: setModalOpen } = useModal();
 
+  const bookmarks = epicApp?.user?.bookmarks || [];
+
   const handleAddEditBookmarks = () => {
-    setModalOpen(<AddBookmark app_name={name} bookmarks={bookmarks} />);
+    setModalOpen(<AddBookmark epicApp={epicApp} />);
   };
 
   return (
@@ -40,18 +41,25 @@ export const BookmarkSection = ({ bookmarks, name }: BookmarkSectionProps) => {
         <Stack direction={"column"} spacing={1}>
           {bookmarks && bookmarks.length > 0
             ? bookmarks.map((bookmark) => (
-                <CentreLink
-                  key={bookmark.label}
-                  onClick={() => window.open(bookmark.url, "_blank")}
-                >
-                  <Typography
-                    variant="body1"
-                    fontWeight={400}
-                    color={"inherit"}
+                <Tooltip title={bookmark.label} key={bookmark.label}>
+                  <CentreLink
+                    key={bookmark.label}
+                    onClick={() => window.open(bookmark.url, "_blank")}
                   >
-                    {bookmark.label}
-                  </Typography>
-                </CentreLink>
+                    <Typography
+                      variant="body1"
+                      fontWeight={400}
+                      color={"inherit"}
+                      sx={{
+                        overflow: "clip",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {bookmark.label}
+                    </Typography>
+                  </CentreLink>
+                </Tooltip>
               ))
             : null}
         </Stack>

@@ -8,7 +8,8 @@ import { theme } from "@/styles/theme";
 import RouterProviderWithAuthContext from "@/router";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
-import ModalProvider from "./components/Modals/ModalProvider";
+import ModalProvider from "./components/Shared/Modals/ModalProvider";
+import SnackBarProvider from "./components/Shared/Snackbar/SnackBarProvider";
 
 function App() {
   const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <AuthProvider {...OidcConfig}>
           <ModalProvider />
+          <SnackBarProvider />
           <RouterProviderWithAuthContext router={router} />
         </AuthProvider>
       </ThemeProvider>

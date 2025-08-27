@@ -15,7 +15,7 @@ export const LaunchAppTile = ({ item }: LaunchAppTileProps) => {
       }}
     >
       <Header data={item} />
-      <Content data={item} />
+      <Content epicApp={item} />
     </Paper>
   );
 };

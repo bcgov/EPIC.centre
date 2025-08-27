@@ -4,8 +4,6 @@ Manages the application
 """
 from __future__ import annotations
 
-from sqlalchemy.orm import joinedload
-
 from centre_api.utils.token_info import TokenInfo
 
 from .base_model import BaseModel
@@ -32,7 +30,6 @@ class Application(BaseModel):
             db.session.query(Application, UserApplication)
             .outerjoin(UserApplication,
                        (Application.id == UserApplication.app_id) & (UserApplication.user_auth_guid == user_auth_id))
-            .options(joinedload(UserApplication.bookmarks))  # eager load bookmarks
             .all()
         )
 

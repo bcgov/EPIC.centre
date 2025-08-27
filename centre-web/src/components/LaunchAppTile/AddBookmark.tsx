@@ -1,12 +1,17 @@
-import { Bookmark } from "@/models/EpicApp";
+import { Bookmark, EpicApp } from "@/models/EpicApp";
 import { Box, Divider, Grid, Typography, Button, Stack } from "@mui/material";
 import { FormProvider, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import ControlledTextField from "../Shared/ControlledInput/ControlledTextField";
-import { modalStyle } from "../Modals/constants";
-import { useEffect } from "react";
-import { useModal } from "../Modals/modalStore";
+import { modalStyle } from "../Shared/Modals/constants";
+import { useEffect, useState } from "react";
+import { useModal } from "../Shared/Modals/modalStore";
+import { useUpdateBookmarks } from "@/hooks/api/useUserApplications";
+import { LoadingButton } from "../Shared/LoadingButton";
+import { useGetApplications } from "@/hooks/api/useApplications";
+import { isAxiosError } from "axios";
+import { notify } from "../Shared/Snackbar/snackbarStore";
 
 const bookmarkSchema = yup.object().shape({
   bookmarks: yup
@@ -53,13 +58,14 @@ const getDefaultValues = (bookmarks: Bookmark[] = []): BookmarkSchema => ({
 });
 
 type BookmarkFormProps = {
-  bookmarks: Bookmark[];
+  epicApp: EpicApp;
 };
 
-const BookmarkForm = ({ bookmarks }: BookmarkFormProps) => {
+const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
+  const [isPending, setIsPending] = useState(false);
   const { setClose: setModalClose } = useModal();
   const methods = useForm({
-    defaultValues: getDefaultValues(bookmarks),
+    defaultValues: getDefaultValues(epicApp.user.bookmarks),
     resolver: yupResolver(bookmarkSchema),
     mode: "onSubmit",
   });
@@ -69,15 +75,29 @@ const BookmarkForm = ({ bookmarks }: BookmarkFormProps) => {
     formState: { errors },
   } = methods;
 
-  useEffect(() => {
-    if (errors) {
-      console.log("Form errors:", errors);
-    }
-  }, [errors]);
+  const { mutateAsync: updateBookmarks } = useUpdateBookmarks();
+  const { refetch } = useGetApplications();
 
-  const onSubmit = (data: BookmarkSchema) => {
-    // handle form submission
-    console.log(data);
+  const onSubmit = async (data: BookmarkSchema) => {
+    setIsPending(true);
+    try {
+      await updateBookmarks({
+        app_id: epicApp.id,
+        bookmarks: data.bookmarks,
+      });
+      await refetch();
+
+      notify.success("Bookmarks updated successfully");
+    } catch (error) {
+      let errorMessage = "An unexpected error occurred";
+      if (isAxiosError(error)) {
+        errorMessage = error.response?.data?.message || errorMessage;
+      }
+      notify.error(errorMessage);
+    } finally {
+      setIsPending(false);
+      setModalClose();
+    }
   };
 
   return (
@@ -113,9 +133,13 @@ const BookmarkForm = ({ bookmarks }: BookmarkFormProps) => {
               <Button variant="outlined" onClick={() => setModalClose()}>
                 Close
               </Button>
-              <Button type="submit" variant="contained">
+              <LoadingButton
+                type="submit"
+                variant="contained"
+                loading={isPending}
+              >
                 Save
-              </Button>
+              </LoadingButton>
             </Stack>
           </Grid>
         </Grid>
@@ -125,10 +149,9 @@ const BookmarkForm = ({ bookmarks }: BookmarkFormProps) => {
 };
 
 type AddBookmark = {
-  app_name: string;
-  bookmarks: Bookmark[];
+  epicApp: EpicApp;
 };
-export const AddBookmark = ({ app_name, bookmarks }: AddBookmark) => {
+export const AddBookmark = ({ epicApp }: AddBookmark) => {
   return (
     <Box
       sx={{
@@ -140,7 +163,7 @@ export const AddBookmark = ({ app_name, bookmarks }: AddBookmark) => {
     >
       <Grid container rowGap="10px">
         <Grid item xs={12}>
-          <Typography variant="h3">{app_name} Bookmarks</Typography>
+          <Typography variant="h3">{epicApp.name} Bookmarks</Typography>
         </Grid>
         <Grid item xs={12}>
           <Divider
@@ -158,11 +181,11 @@ export const AddBookmark = ({ app_name, bookmarks }: AddBookmark) => {
               mt: "16px",
             }}
           >
-            Add any link you would like to bookmark in the {app_name} card.
+            Add any link you would like to bookmark in the {epicApp.name} card.
           </Typography>
         </Grid>
         <Grid item xs={12}>
-          <BookmarkForm bookmarks={bookmarks} />
+          <BookmarkForm epicApp={epicApp} />
         </Grid>
       </Grid>
     </Box>
