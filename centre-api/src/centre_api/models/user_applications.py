@@ -16,6 +16,6 @@ class UserApplication(BaseModel):
     access_level = db.Column(db.String(50))
     last_accessed = db.Column(db.DateTime)
     sort_order = db.Column(db.Integer, default=0, nullable=False)
+    bookmarks = db.Column(db.JSON, nullable=True, default=[])
 
     app = db.relationship('Application', backref='user_applications')
-    bookmarks = db.relationship('Bookmark', backref='user_applications', cascade='all, delete')
