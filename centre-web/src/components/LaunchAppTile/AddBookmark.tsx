@@ -1,5 +1,13 @@
 import { Bookmark, EpicApp } from "@/models/EpicApp";
-import { Box, Divider, Grid, Typography, Button, Stack } from "@mui/material";
+import {
+  Box,
+  Divider,
+  Grid,
+  Typography,
+  Button,
+  Stack,
+  IconButton,
+} from "@mui/material";
 import { FormProvider, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -12,6 +20,7 @@ import { LoadingButton } from "../Shared/LoadingButton";
 import { useGetApplications } from "@/hooks/api/useApplications";
 import { isAxiosError } from "axios";
 import { notify } from "../Shared/Snackbar/snackbarStore";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 const bookmarkSchema = yup.object().shape({
   bookmarks: yup
@@ -33,8 +42,8 @@ const bookmarkSchema = yup.object().shape({
               return this.createError({
                 path: `${context.path}.${urlFilled ? "label" : "url"}`,
                 message: urlFilled
-                  ? "Label is required if the URL is filled"
-                  : "URL is required if the Link Name is filled",
+                  ? "Please enter a name for your link"
+                  : "Please enter a URL",
               });
             }
             return true;
@@ -75,7 +84,7 @@ const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
     formState: { errors },
   } = methods;
 
-  const { mutateAsync: updateBookmarks } = useUpdateBookmarks();
+  const { mutateAsync: updateBookmarks, isError } = useUpdateBookmarks();
   const { refetch } = useGetApplications();
 
   const onSubmit = async (data: BookmarkSchema) => {
@@ -89,11 +98,15 @@ const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
 
       notify.success("Bookmarks updated successfully");
     } catch (error) {
-      let errorMessage = "An unexpected error occurred";
-      if (isAxiosError(error)) {
-        errorMessage = error.response?.data?.message || errorMessage;
+      const defaultMessage = "Failed to update bookmarks";
+      if (isError) {
+        notify.error(defaultMessage);
+      } else if (isAxiosError(error)) {
+        const errorMessage = error.response?.data?.message || defaultMessage;
+        notify.error(errorMessage);
+      } else {
+        notify.error(defaultMessage);
       }
-      notify.error(errorMessage);
     } finally {
       setIsPending(false);
       setModalClose();
@@ -102,11 +115,22 @@ const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        aria-label="Add or edit bookmarks form"
+      >
         <Grid item container rowGap={"10px"}>
           {[0, 1, 2].map((idx) => (
-            <Grid item container columnSpacing={2} key={idx} padding={"8px 0"}>
-              <Grid item xs={12} md={6} key={idx}>
+            <Grid
+              key={idx}
+              item
+              container
+              columnSpacing={2}
+              padding={"8px 0"}
+              alignItems="flex-end"
+              justifyContent={"center"}
+            >
+              <Grid item xs={12} md={6}>
                 <ControlledTextField
                   name={`bookmarks.${idx}.url`}
                   label={`URL`}
@@ -114,9 +138,10 @@ const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
                   error={!!errors.bookmarks?.[idx]?.url}
                   helperText={errors.bookmarks?.[idx]?.url?.message}
                   sx={{ marginBottom: 0 }}
+                  inputProps={{ "aria-label": `Bookmark ${idx + 1} URL` }}
                 />
               </Grid>
-              <Grid item xs={12} md={6} key={idx}>
+              <Grid item xs={12} md={5}>
                 <ControlledTextField
                   name={`bookmarks.${idx}.label`}
                   label={`Link Name`}
@@ -124,19 +149,38 @@ const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
                   error={!!errors.bookmarks?.[idx]?.label}
                   helperText={errors.bookmarks?.[idx]?.label?.message}
                   sx={{ marginBottom: 0 }}
+                  inputProps={{ "aria-label": `Bookmark ${idx + 1} Link Name` }}
                 />
+              </Grid>
+              <Grid item xs={12} md={1}>
+                <IconButton
+                  aria-label="Clear third bookmark"
+                  onClick={() => {
+                    methods.setValue(`bookmarks.${idx}.url`, "");
+                    methods.setValue(`bookmarks.${idx}.label`, "");
+                  }}
+                  color="error"
+                  sx={{ minWidth: 0, padding: "6px" }}
+                >
+                  <DeleteOutlineIcon />
+                </IconButton>
               </Grid>
             </Grid>
           ))}{" "}
           <Grid item xs={12} container justifyContent="flex-end">
             <Stack direction="row" spacing={"8px"} mt="16px">
-              <Button variant="outlined" onClick={() => setModalClose()}>
+              <Button
+                variant="outlined"
+                onClick={() => setModalClose()}
+                aria-label="Close bookmarks form"
+              >
                 Close
               </Button>
               <LoadingButton
                 type="submit"
                 variant="contained"
                 loading={isPending}
+                aria-label="Save bookmarks"
               >
                 Save
               </LoadingButton>
@@ -160,10 +204,16 @@ export const AddBookmark = ({ epicApp }: AddBookmark) => {
         width: "810px",
         overflowY: "none",
       }}
+      aria-label={`${epicApp.name} Bookmarks Modal`}
     >
       <Grid container rowGap="10px">
         <Grid item xs={12}>
-          <Typography variant="h3">{epicApp.name} Bookmarks</Typography>
+          <Typography
+            variant="h3"
+            aria-label={`${epicApp.name} Bookmarks Title`}
+          >
+            {epicApp.name} Bookmarks
+          </Typography>
         </Grid>
         <Grid item xs={12}>
           <Divider
@@ -171,6 +221,7 @@ export const AddBookmark = ({ epicApp }: AddBookmark) => {
               width: "702px",
               backgroundColor: "#D1CFCD",
             }}
+            aria-label="Bookmarks divider"
           />
         </Grid>
         <Grid item>
@@ -180,6 +231,7 @@ export const AddBookmark = ({ epicApp }: AddBookmark) => {
               fontWeight: "bold",
               mt: "16px",
             }}
+            aria-label="Bookmarks instructions"
           >
             Add any link you would like to bookmark in the {epicApp.name} card.
           </Typography>
