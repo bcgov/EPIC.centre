@@ -1,8 +1,10 @@
+"""Enums for the application."""
 from enum import Enum
 
 
 class EpicAppName(Enum):
     """Enum representing Epic application names."""
+
     CONDITION_REPOSITORY = 'condition_repository'
     EPIC_COMPLIANCE = 'epic_compliance'
     DOCUMENT_SEARCH = 'document_search'
@@ -14,6 +16,7 @@ class EpicAppName(Enum):
 
 class EpicAppClientName(Enum):
     """Enum representing Epic client names."""
+
     CONDITION_REPOSITORY = 'epic-condition'
     EPIC_COMPLIANCE = 'epic-compliance'
     EPIC_TRACK = 'epictrack-web'
