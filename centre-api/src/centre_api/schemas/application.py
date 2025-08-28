@@ -13,6 +13,7 @@ class ApplicationSchema(Schema):
 
     id = fields.Int(required=True)
     name = fields.Str(required=True)
+    title = fields.Str(required=True)
     description = fields.Str(allow_none=True)
     launch_url = fields.Str(required=True)
     is_active = fields.Bool(required=True)

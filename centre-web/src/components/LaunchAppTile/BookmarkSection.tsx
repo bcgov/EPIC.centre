@@ -5,7 +5,7 @@ import { useModal } from "../Shared/Modals/modalStore";
 import { AddBookmark } from "./AddBookmark";
 
 type BookmarkSectionProps = {
-  epicApp: EpicApp;
+  epicApp?: EpicApp;
 };
 
 export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
@@ -14,6 +14,7 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
   const bookmarks = epicApp?.user?.bookmarks || [];
 
   const handleAddEditBookmarks = () => {
+    if (!epicApp) return;
     setModalOpen(<AddBookmark epicApp={epicApp} />);
   };
 

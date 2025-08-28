@@ -14,8 +14,19 @@ export type UserEpicAppData = {
 export type EpicApp = {
   id: number;
   name: string;
+  title: string;
   description: string;
   launch_url: string;
   is_active: boolean;
   user: UserEpicAppData;
 };
+
+export enum EpicAppName {
+  CONDITION_REPOSITORY = "condition_repository",
+  EPIC_COMPLIANCE = "epic_compliance",
+  DOCUMENT_SEARCH = "document_search",
+  EPIC_TRACK = "epic_track",
+  EPIC_PUBLIC = "epic_public",
+  EPIC_SUBMIT = "epic_submit",
+  EPIC_ENGAGE = "epic_engage",
+}
