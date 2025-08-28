@@ -6,7 +6,7 @@ type HeaderProps = {
   data: EpicApp;
 };
 export const Header = ({ data }: HeaderProps) => {
-  const { name, description } = data;
+  const { title, description } = data;
   return (
     <Box
       sx={{
@@ -33,7 +33,7 @@ export const Header = ({ data }: HeaderProps) => {
           }}
         >
           <Typography variant="h6" component="div">
-            {name}
+            {title}
           </Typography>
           <DragIndicatorIcon />
         </Box>

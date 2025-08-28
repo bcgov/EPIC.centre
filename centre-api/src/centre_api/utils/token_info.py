@@ -28,5 +28,6 @@ class TokenInfo:
             'email_address': token_info.get('email', None),
             'username': token_info.get('preferred_username', None),
             'identity_provider': token_info.get('identity_provider', ''),
+            'resource_access': token_info.get('resource_access', {}),
         }
         return user_data

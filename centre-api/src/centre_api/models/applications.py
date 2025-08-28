@@ -17,6 +17,7 @@ class Application(BaseModel):
     __tablename__ = 'applications'
 
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     launch_url = db.Column(db.Text, nullable=False)

@@ -70,7 +70,7 @@ export const Body = ({ epicApp }: DocumentSearchBodyProps) => {
           }}
         />
         <Box width={"100%"}>
-          {epicApp && <BookmarkSection epicApp={epicApp} />}
+          <BookmarkSection epicApp={epicApp} />
         </Box>
       </Box>
     </Box>
