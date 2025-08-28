@@ -2,22 +2,24 @@ from enum import Enum
 
 
 class EpicAppName(Enum):
-    CONDITION_REPOSITORY = "condition_repository"
-    EPIC_COMPLIANCE = "epic_compliance"
-    DOCUMENT_SEARCH = "document_search"
-    EPIC_TRACK = "epic_track"
-    EPIC_PUBLIC = "epic_public"
-    EPIC_SUBMIT = "epic_submit"
-    EPIC_ENGAGE = "epic_engage"
+    """Enum representing Epic application names."""
+    CONDITION_REPOSITORY = 'condition_repository'
+    EPIC_COMPLIANCE = 'epic_compliance'
+    DOCUMENT_SEARCH = 'document_search'
+    EPIC_TRACK = 'epic_track'
+    EPIC_PUBLIC = 'epic_public'
+    EPIC_SUBMIT = 'epic_submit'
+    EPIC_ENGAGE = 'epic_engage'
 
 
 class EpicAppClientName(Enum):
-    CONDITION_REPOSITORY = "epic-condition"
-    EPIC_COMPLIANCE = "epic-compliance"
-    EPIC_TRACK = "epictrack-web"
-    EPIC_PUBLIC = "epic-public"
-    EPIC_SUBMIT = "epic-submit"
-    EPIC_ENGAGE = "epic-engage"
+    """Enum representing Epic client names."""
+    CONDITION_REPOSITORY = 'epic-condition'
+    EPIC_COMPLIANCE = 'epic-compliance'
+    EPIC_TRACK = 'epictrack-web'
+    EPIC_PUBLIC = 'epic-public'
+    EPIC_SUBMIT = 'epic-submit'
+    EPIC_ENGAGE = 'epic-engage'
 
 
 CLIENT_NAME_TO_APP_NAME_MAP = {
