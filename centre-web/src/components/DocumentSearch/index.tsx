@@ -1,8 +1,12 @@
 import { Paper } from "@mui/material";
 import { Header } from "./Header";
 import { Body } from "./Body";
+import { EpicApp } from "@/models/EpicApp";
 
-export const DocumentSearch = () => {
+type DocumentSearch = {
+  epicApp?: EpicApp;
+};
+export const DocumentSearch = ({ epicApp }: DocumentSearch) => {
   return (
     <Paper
       elevation={3}
@@ -11,7 +15,7 @@ export const DocumentSearch = () => {
       }}
     >
       <Header />
-      <Body />
+      <Body epicApp={epicApp} />
     </Paper>
   );
 };

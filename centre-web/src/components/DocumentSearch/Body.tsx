@@ -1,11 +1,15 @@
 import { Box, Button, Divider, TextField } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { BookmarkSection } from "../LaunchAppTile/BookmarkSection";
-import { Bookmark } from "@/models/EpicApp";
+import { EpicApp } from "@/models/EpicApp";
 import { useState } from "react";
 import { AppConfig } from "@/utils/config";
 
-export const Body = () => {
+type DocumentSearchBodyProps = {
+  epicApp?: EpicApp;
+};
+
+export const Body = ({ epicApp }: DocumentSearchBodyProps) => {
   const [searchText, setSearchText] = useState("");
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,20 +23,7 @@ export const Body = () => {
       "_blank",
     );
   };
-  const mockBookmarks: Bookmark[] = [
-    {
-      label: "Cariboo Gold Project -  Schedule B",
-      url: "https://example.com/bookmark1",
-    },
-    {
-      label: "Inspection Record - 2025-06-11 - 20250038_IR001",
-      url: "https://example.com/bookmark2",
-    },
-    {
-      label: "Fee Order - For Inspection 2025-04-29 - 20250023_IR001",
-      url: "https://example.com/bookmark3",
-    },
-  ];
+
   return (
     <Box
       sx={{
@@ -78,7 +69,9 @@ export const Body = () => {
             backgroundColor: "#D1CFCD",
           }}
         />
-        <BookmarkSection bookmarks={mockBookmarks} name="Document Search" />
+        <Box width={"100%"}>
+          {epicApp && <BookmarkSection epicApp={epicApp} />}
+        </Box>
       </Box>
     </Box>
   );
