@@ -12,7 +12,7 @@ class ApplicationsService:
         """Get all users."""
         user_data = TokenInfo.get_user_data()
         resource_access = user_data.get('resource_access', {})
-        accessed_clients = [key for key in resource_access.keys()]
+        accessed_clients = list(resource_access.keys())
 
         accessed_apps = {CLIENT_NAME_TO_APP_NAME_MAP[client] for client in accessed_clients
                          if client in CLIENT_NAME_TO_APP_NAME_MAP}
