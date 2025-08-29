@@ -1,16 +1,14 @@
-import { Grid, GridProps } from "@mui/material";
+import { Box, BoxProps } from "@mui/material";
 
-export const PageGrid = ({ children, ...rest }: GridProps) => {
+export const PageContainer = ({ children, ...rest }: BoxProps) => {
   return (
-    <Grid
-      container
-      spacing={2}
+    <Box
       sx={{
         padding: "36px 24px",
       }}
       {...rest}
     >
       {children}
-    </Grid>
+    </Box>
   );
 };

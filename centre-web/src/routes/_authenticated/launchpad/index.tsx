@@ -1,7 +1,7 @@
 import { DocumentSearch } from "@/components/DocumentSearch";
 import { List as EpicTileList } from "@/components/LaunchAppTile/List";
 import { LaunchAppListSkeleton } from "@/components/LaunchAppTile/ListSkeleton";
-import { PageGrid } from "@/components/Shared/PageGrid";
+import { PageContainer } from "@/components/Shared/PageGrid";
 import { useGetApplications } from "@/hooks/api/useApplications";
 import { EpicAppName } from "@/models/EpicApp";
 import { Grid } from "@mui/material";
@@ -30,13 +30,15 @@ function Launchpad() {
   }
 
   return (
-    <PageGrid>
-      <Grid item xs={12}>
-        <DocumentSearch epicApp={documentSearchApp} />
+    <PageContainer>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <DocumentSearch epicApp={documentSearchApp} />
+        </Grid>
+        <Grid item xs={12}>
+          <EpicTileList items={otherApps} />
+        </Grid>
       </Grid>
-      <Grid item xs={12}>
-        <EpicTileList items={otherApps} />
-      </Grid>
-    </PageGrid>
+    </PageContainer>
   );
 }
