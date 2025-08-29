@@ -1,34 +1,14 @@
-import { Box, Button, Divider, Stack, Typography } from "@mui/material";
+import { Box, Button, Divider } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { EpicApp } from "@/models/EpicApp";
 import { BookmarkSection } from "./BookmarkSection";
-
-type LabeledItemProps = {
-  label: string;
-  children: React.ReactNode;
-};
-
-const LabeledItem = ({ label, children }: LabeledItemProps) => {
-  return (
-    <Stack
-      direction="row"
-      alignItems="center"
-      justifyContent={"space-between"}
-      spacing={2}
-    >
-      <Typography variant="body2" color="text.secondary">
-        {label}:
-      </Typography>
-      {children}
-    </Stack>
-  );
-};
+import { AccessLogSection } from "./AccessLogSection";
 
 type ContentProps = {
   epicApp: EpicApp;
 };
 export const Content = ({ epicApp }: ContentProps) => {
-  const { user, launch_url } = epicApp;
+  const { launch_url } = epicApp;
   return (
     <Box sx={{ height: "331px" }}>
       <Box
