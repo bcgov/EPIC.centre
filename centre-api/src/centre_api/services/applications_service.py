@@ -9,7 +9,7 @@ class ApplicationsService:
 
     @classmethod
     def get_all(cls):
-        """Get all users."""
+        """Get all apps."""
         user_data = TokenInfo.get_user_data()
         resource_access = user_data.get('resource_access', {})
         accessed_clients = list(resource_access.keys())
@@ -41,4 +41,31 @@ class ApplicationsService:
                 }
             }
             for app, user_app in apps
+        ]
+
+    @classmethod
+    def get_request_catalog(cls):
+        """Get request access catalog."""
+        apps = ApplicationModel.get_all()
+        exception_apps = {EpicAppName.CONDITION_REPOSITORY.value, EpicAppName.EPIC_COMPLIANCE.value,
+                          EpicAppName.DOCUMENT_SEARCH.value}
+        filtered_apps = [(app, user_app) for app, user_app in apps if app.name not in exception_apps]
+        return [
+            {
+                'id': app.id,
+                'name': app.name,
+                'title': app.title,
+                'description': app.description,
+                'launch_url': app.launch_url,
+                'is_active': app.is_active,
+                'user': {
+                    'user_auth_guid': user_app.user_auth_guid if user_app else None,
+                    'access_level': user_app.access_level if user_app else None,
+                    'last_accessed': user_app.last_accessed.isoformat() if (
+                        user_app and user_app.last_accessed) else None,
+                    'sort_order': user_app.sort_order if user_app else None,
+                    'bookmarks': user_app.bookmarks if user_app else []
+                }
+            }
+            for app, user_app in filtered_apps
         ]
