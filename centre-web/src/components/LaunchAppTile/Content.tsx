@@ -1,34 +1,14 @@
-import { Box, Button, Divider, Stack, Typography } from "@mui/material";
+import { Box, Button, Divider } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { EpicApp } from "@/models/EpicApp";
 import { BookmarkSection } from "./BookmarkSection";
-
-type LabeledItemProps = {
-  label: string;
-  children: React.ReactNode;
-};
-
-const LabeledItem = ({ label, children }: LabeledItemProps) => {
-  return (
-    <Stack
-      direction="row"
-      alignItems="center"
-      justifyContent={"space-between"}
-      spacing={2}
-    >
-      <Typography variant="body2" color="text.secondary">
-        {label}:
-      </Typography>
-      {children}
-    </Stack>
-  );
-};
+import { AccessLogSection } from "./AccessLogSection";
 
 type ContentProps = {
   epicApp: EpicApp;
 };
 export const Content = ({ epicApp }: ContentProps) => {
-  const { user, launch_url } = epicApp;
+  const { launch_url } = epicApp;
   return (
     <Box sx={{ height: "331px" }}>
       <Box
@@ -63,21 +43,8 @@ export const Content = ({ epicApp }: ContentProps) => {
             }}
           />
         </Box>
-        <Box
-          sx={{
-            width: "185px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-            padding: "0 8px",
-          }}
-        >
-          <LabeledItem label="Access Level">
-            <Typography variant="body2">{user.access_level ?? ""}</Typography>
-          </LabeledItem>
-          <LabeledItem label="Last Accessed">
-            <Typography variant="body2">{user.last_accessed ?? ""}</Typography>
-          </LabeledItem>
+        <Box sx={{ width: "100%" }}>
+          <AccessLogSection user={epicApp.user} />
         </Box>
       </Box>
     </Box>

@@ -41,3 +41,17 @@ class Users(Resource):
         """Fetch all applications."""
         applications = ApplicationsService.get_all()
         return ApplicationSchema(many=True).dump(applications), HTTPStatus.OK
+
+
+@API.route('/request-catalog', methods=['GET'])
+class CatalogApplications(Resource):
+    """Resource for applications that can be requested."""
+
+    @staticmethod
+    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch applications that are'
+                                                            ' available to request access to')
+    @auth.require
+    def get():
+        """Fetch apps the user can request access to."""
+        applications = ApplicationsService.get_request_catalog()
+        return ApplicationSchema(many=True).dump(applications), HTTPStatus.OK

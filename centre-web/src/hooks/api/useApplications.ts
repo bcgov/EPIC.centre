@@ -15,3 +15,16 @@ export const useGetApplications = () => {
     queryFn: getApplications,
   });
 };
+
+const getRequestCatalogApplications = () => {
+  return centreRequest<EpicApp[]>({
+    url: `applications/request-catalog`,
+  });
+};
+
+export const useGetRequestCatalogApplications = () => {
+  return useQuery({
+    queryKey: [QUERY_KEY.REQUEST_CATALOG],
+    queryFn: getRequestCatalogApplications,
+  });
+};
