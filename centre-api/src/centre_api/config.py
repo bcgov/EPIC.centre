@@ -86,6 +86,9 @@ class _Config():  # pylint: disable=too-few-public-methods
     KEYCLOAK_ADMIN_USERNAME = os.getenv('MET_ADMIN_CLIENT_ID')
     KEYCLOAK_ADMIN_SECRET = os.getenv('MET_ADMIN_CLIENT_SECRET')
 
+    APP_NAME = os.getenv('APP_NAME')
+    DST_EMAIL = os.getenv('DST_EMAIL')
+
 
 class DevConfig(_Config):  # pylint: disable=too-few-public-methods
     """Dev Config."""

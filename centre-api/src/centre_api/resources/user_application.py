@@ -21,8 +21,9 @@ from centre_api.auth import auth
 from centre_api.services.user_application_service import UserApplicationsService
 from centre_api.utils.util import cors_preflight
 
-from .apihelper import Api as ApiHelper
 from ..schemas.user_application import UserApplicationSchema
+from .apihelper import Api as ApiHelper
+
 
 API = Namespace('user-applications', description='Endpoints for user applications management')
 """Custom exception messages

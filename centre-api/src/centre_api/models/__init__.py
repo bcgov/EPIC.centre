@@ -16,6 +16,6 @@
 
 from .applications import Application
 from .db import db, ma, migrate
+from .email_queue import EmailQueue
 from .user import User
 from .user_applications import UserApplication
-from .email_queue import EmailQueue
