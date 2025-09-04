@@ -1,6 +1,12 @@
 """Service for applications management."""
+import datetime
+import os
+
+from submit_api.models.db import session_scope
+
+from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import CLIENT_NAME_TO_APP_NAME_MAP, EpicAppName
-from centre_api.models import Application as ApplicationModel
+from centre_api.models import Application as ApplicationModel, EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.utils.token_info import TokenInfo
 
@@ -68,6 +74,22 @@ class ApplicationsService:
         ]
 
     @classmethod
+    def _queue_access_request_submitted_email(cls, session):
+        """Queue access request submitted email."""
+        user_details = TokenInfo.get_user_data()
+        email_queue = EmailQueue(
+            template_name=EmailQueueTemplate.ACCESS_REQUEST_SUBMITTED_CONFIRMATION.value,
+            payload={
+                'recipients': [user_details.get('email_address')],
+                'user_name': f"{user_details.get('first_name', '')} {user_details.get('last_name', '')}".strip(),
+                'application_name': os.getenv('APP_NAME', 'EPIC.centre'),
+                'requested_at': datetime.datetime.utcnow(),
+                'sender': os.getenv('DST_EMAIL')
+            },
+        )
+        session.add(email_queue)
+
+    @classmethod
     def create_access_request(cls, app_id: int):
         """Create an access request for the given app_id."""
         user_auth_id = TokenInfo.get_id()
@@ -79,9 +101,14 @@ class ApplicationsService:
         existing_request = AccessRequestsModal.query.filter_by(app_id=app_id, user_auth_guid=user_auth_id).first()
         if existing_request:
             return existing_request
+        with session_scope() as session:
+            # Queue the email within the same transaction
+            new_request = AccessRequestsModal(app_id=app_id, user_auth_guid=user_auth_id)
+            session.add(new_request)
+            session.flush()
+            cls._queue_access_request_submitted_email(session)
+            session.commit()
 
-        new_request = AccessRequestsModal(app_id=app_id, user_auth_guid=user_auth_id)
-        new_request.save()
         return new_request
 
     @classmethod
