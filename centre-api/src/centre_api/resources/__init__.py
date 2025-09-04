@@ -25,8 +25,8 @@ from flask import Blueprint
 
 from .apihelper import Api
 from .applications import API as APPLICATIONS_API
-from .user_application import API as USER_APPLICATION_API
 from .ops import API as OPS_API
+from .user_application import API as USER_APPLICATION_API
 
 
 __all__ = ('API_BLUEPRINT', 'OPS_BLUEPRINT')

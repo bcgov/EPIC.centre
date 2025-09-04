@@ -2,12 +2,12 @@
 import datetime
 import os
 
-from centre_api.models.db import session_scope
-
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import CLIENT_NAME_TO_APP_NAME_MAP, EpicAppName
-from centre_api.models import Application as ApplicationModel, EmailQueue
+from centre_api.models import Application as ApplicationModel
+from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
+from centre_api.models.db import session_scope
 from centre_api.utils.token_info import TokenInfo
 
 
