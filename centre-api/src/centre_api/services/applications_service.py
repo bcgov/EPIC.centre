@@ -2,7 +2,7 @@
 import datetime
 import os
 
-from submit_api.models.db import session_scope
+from centre_api.models.db import session_scope
 
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import CLIENT_NAME_TO_APP_NAME_MAP, EpicAppName
