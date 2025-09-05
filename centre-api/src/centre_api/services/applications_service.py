@@ -8,7 +8,7 @@ from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.models.db import session_scope
-from centre_api.utils.datetime_util import local_datetime, convert_utc_to_local_str, utc_datetime
+from centre_api.utils.datetime_util import convert_utc_to_local_str
 from centre_api.utils.token_info import TokenInfo
 
 
