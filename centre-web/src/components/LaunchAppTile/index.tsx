@@ -2,6 +2,7 @@ import { Paper } from "@mui/material";
 import { Header } from "./Header";
 import { Content } from "./Content";
 import { EpicApp } from "@/models/EpicApp";
+import { BCDesignTokens } from "epic.theme";
 
 type LaunchAppTileProps = {
   item: EpicApp;
@@ -9,9 +10,10 @@ type LaunchAppTileProps = {
 export const LaunchAppTile = ({ item }: LaunchAppTileProps) => {
   return (
     <Paper
-      elevation={3}
+      elevation={2}
       sx={{
         width: "345px",
+        boxShadow: BCDesignTokens.surfaceShadowMedium,
       }}
     >
       <Header data={item} />

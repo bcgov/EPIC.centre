@@ -1,7 +1,7 @@
 import { Paper } from "@mui/material";
 import { RequestAccessCatalog } from "@/models/EpicApp";
-import { Header } from "../LaunchAppTile/Header";
 import { Body } from "./Body";
+import { Header } from "./Header";
 
 type RequestAccessTileProps = {
   data: RequestAccessCatalog;

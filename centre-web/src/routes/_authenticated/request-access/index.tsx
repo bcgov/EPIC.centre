@@ -32,7 +32,7 @@ function RequestAccess() {
           </Typography>
         </Grid>
         <Grid item xs={12} mt="32px">
-          <Typography variant="body1">
+          <Typography variant="body1" fontWeight={"bold"}>
             You will receive an email when your request has been processed.
           </Typography>
         </Grid>

@@ -204,15 +204,15 @@ export const AddBookmark = ({ epicApp }: AddBookmark) => {
         width: "810px",
         overflowY: "none",
       }}
-      aria-label={`${epicApp.name} Bookmarks Modal`}
+      aria-label={`${epicApp.title} Bookmarks Modal`}
     >
       <Grid container rowGap="10px">
         <Grid item xs={12}>
           <Typography
             variant="h3"
-            aria-label={`${epicApp.name} Bookmarks Title`}
+            aria-label={`${epicApp.title} Bookmarks Title`}
           >
-            {epicApp.name} Bookmarks
+            {epicApp.title} Bookmarks
           </Typography>
         </Grid>
         <Grid item xs={12}>
