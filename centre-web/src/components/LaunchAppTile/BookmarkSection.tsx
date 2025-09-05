@@ -1,8 +1,35 @@
 import { EpicApp } from "@/models/EpicApp";
-import { Box, Button, Stack, Tooltip, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  ButtonProps,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import { CentreLink } from "../Shared/CentreLink";
 import { useModal } from "../Shared/Modals/modalStore";
 import { AddBookmark } from "./AddBookmark";
+import { BCDesignTokens } from "epic.theme";
+
+const AddBookmarkButton = (props: ButtonProps) => {
+  const { sx, ...otherProps } = props;
+  return (
+    <Button
+      {...otherProps}
+      sx={{
+        ...(sx ?? {}),
+        height: "32px",
+        fontSize: "12px",
+        padding: "12px 8px",
+        color: BCDesignTokens.themePrimaryBlue,
+        border: `2px solid ${BCDesignTokens.themePrimaryBlue}`,
+      }}
+    >
+      Add/Edit Bookmarks
+    </Button>
+  );
+};
 
 type BookmarkSectionProps = {
   epicApp?: EpicApp;
@@ -30,9 +57,7 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
         <Typography variant="h5" fontWeight={400}>
           Bookmarks
         </Typography>
-        <Button color="secondary" onClick={handleAddEditBookmarks}>
-          Add/Edit Bookmarks
-        </Button>
+        <AddBookmarkButton color="secondary" onClick={handleAddEditBookmarks} />
       </Stack>
       <Box
         sx={{
