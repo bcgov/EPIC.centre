@@ -1,6 +1,4 @@
 import { Box, Typography } from "@mui/material";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import { BCDesignTokens } from "epic.theme";
 
 type HeaderProps = {
   data: {
@@ -38,7 +36,6 @@ export const Header = ({ data }: HeaderProps) => {
           <Typography variant="h6" component="div">
             {title}
           </Typography>
-          <DragIndicatorIcon htmlColor={BCDesignTokens.themeGray80} />
         </Box>
         <Typography variant="body2" width="100%">
           {description}
