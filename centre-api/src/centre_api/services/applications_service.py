@@ -8,6 +8,7 @@ from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.models.db import session_scope
+from centre_api.utils.datetime_util import local_datetime, convert_utc_to_local_str, utc_datetime
 from centre_api.utils.token_info import TokenInfo
 
 
@@ -74,16 +75,20 @@ class ApplicationsService:
         ]
 
     @classmethod
-    def _queue_access_request_submitted_email(cls, session):
+    def _queue_access_request_submitted_email(cls, session, app):
         """Queue access request submitted email."""
         user_details = TokenInfo.get_user_data()
+        now = datetime.datetime.utcnow()
+        requested_at = convert_utc_to_local_str(now)
         email_queue = EmailQueue(
             template_name=EmailQueueTemplate.ACCESS_REQUEST_SUBMITTED_CONFIRMATION.value,
             payload={
                 'recipients': [user_details.get('email_address')],
                 'user_name': f"{user_details.get('first_name', '')} {user_details.get('last_name', '')}".strip(),
-                'application_name': os.getenv('APP_NAME', 'EPIC.centre'),
-                'requested_at': datetime.datetime.utcnow(),
+                'application_name': app.title,
+                'application_url': app.launch_url,
+                'epic_centre_link': f"{os.getenv('EPIC_CENTRE_WEB_URL')}/request-access",
+                'requested_at': requested_at,
                 'sender': os.getenv('DST_EMAIL')
             },
         )
@@ -106,7 +111,7 @@ class ApplicationsService:
             new_request = AccessRequestsModal(app_id=app_id, user_auth_guid=user_auth_id)
             session.add(new_request)
             session.flush()
-            cls._queue_access_request_submitted_email(session)
+            cls._queue_access_request_submitted_email(session, app)
             session.commit()
 
         return new_request
