@@ -88,6 +88,7 @@ class _Config():  # pylint: disable=too-few-public-methods
 
     APP_NAME = os.getenv('APP_NAME')
     DST_EMAIL = os.getenv('DST_EMAIL')
+    EPIC_CENTRE_WEB_URL = os.getenv('EPIC_CENTRE_WEB_URL', 'http://localhost:5173')
 
 
 class DevConfig(_Config):  # pylint: disable=too-few-public-methods

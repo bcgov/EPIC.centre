@@ -32,18 +32,13 @@ def utc_datetime():
     return now
 
 
-def convert_and_format_to_utc_str(date_val: datetime, dt_format='%Y-%m-%d %H:%M:%S', timezone_override=None):
-    """Convert a datetime object to UTC and format it as a string."""
-    tz_name = timezone_override or current_app.config['LEGISLATIVE_TIMEZONE']
-    tz_local = pytz.timezone(tz_name)
+def convert_utc_to_local_str(utc_dt: datetime, dt_format='%Y-%m-%d %I:%M %p %Z', timezone_override=None):
+    """Convert a  UTC datetime to local timezone and format it."""
+    utc_dt = pytz.utc.localize(utc_dt)
 
-    # Assume the input datetime is in the local time zone
-    date_val = tz_local.localize(date_val)
+    tz_name = timezone_override or current_app.config.get('LEGISLATIVE_TIMEZONE', 'US/Pacific')
+    local_tz = pytz.timezone(tz_name)
+    local_dt = utc_dt.astimezone(local_tz)
 
-    # Convert to UTC
-    date_val_utc = date_val.astimezone(pytz.UTC)
-
-    # Format as a string
-    utc_datetime_str = date_val_utc.strftime(dt_format)
-
-    return utc_datetime_str
+    # Step 3: Format
+    return local_dt.strftime(dt_format)
