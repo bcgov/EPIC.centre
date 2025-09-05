@@ -33,9 +33,7 @@ def utc_datetime():
 
 
 def convert_utc_to_local_str(utc_dt: datetime, dt_format='%Y-%m-%d %I:%M %p %Z', timezone_override=None):
-    """
-    Convert a  UTC datetime to local timezone and format it.
-    """
+    """Convert a  UTC datetime to local timezone and format it."""
     utc_dt = pytz.utc.localize(utc_dt)
 
     tz_name = timezone_override or current_app.config.get('LEGISLATIVE_TIMEZONE', 'US/Pacific')
