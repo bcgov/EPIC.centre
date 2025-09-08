@@ -95,6 +95,26 @@ class ApplicationsService:
         session.add(email_queue)
 
     @classmethod
+    def _queue_access_request_received_dst_email(cls, session, app):
+        """Queue access request submitted email."""
+        user_details = TokenInfo.get_user_data()
+        now = datetime.datetime.utcnow()
+        requested_at = convert_utc_to_local_str(now)
+        email_queue = EmailQueue(
+            template_name=EmailQueueTemplate.ACCESS_REQUEST_RECEIVED_NOTIFICATION.value,
+            payload={
+                'recipients': [os.getenv('DST_EMAIL')],
+                'user_name': f"{user_details.get('first_name', '')} {user_details.get('last_name', '')}".strip(),
+                'user_email': user_details.get('email_address'),
+                'application_name': app.title,
+                'auth_link': f"{os.getenv('EPIC_CENTRE_WEB_URL')}/request-access",
+                'requested_at': requested_at,
+                'sender': os.getenv('DST_EMAIL')
+            },
+        )
+        session.add(email_queue)
+
+    @classmethod
     def create_access_request(cls, app_id: int):
         """Create an access request for the given app_id."""
         user_auth_id = TokenInfo.get_id()
@@ -112,6 +132,7 @@ class ApplicationsService:
             session.add(new_request)
             session.flush()
             cls._queue_access_request_submitted_email(session, app)
+            cls._queue_access_request_received_dst_email(session, app)
             session.commit()
 
         return new_request
