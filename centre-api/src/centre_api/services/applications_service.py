@@ -105,6 +105,7 @@ class ApplicationsService:
             payload={
                 'recipients': [os.getenv('DST_EMAIL')],
                 'user_name': f"{user_details.get('first_name', '')} {user_details.get('last_name', '')}".strip(),
+                'user_email': user_details.get('email_address'),
                 'application_name': app.title,
                 'auth_link': f"{os.getenv('EPIC_CENTRE_WEB_URL')}/request-access",
                 'requested_at': requested_at,
