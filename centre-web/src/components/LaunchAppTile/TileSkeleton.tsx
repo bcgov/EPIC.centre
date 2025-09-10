@@ -1,11 +1,19 @@
 import { Box, Paper, Skeleton, Stack } from "@mui/material";
+import { BCDesignTokens } from "epic.theme";
 
 // LaunchAppTile Skeleton (refined)
 export const LaunchAppTileSkeleton = () => {
   return (
     <Paper elevation={3} sx={{ width: 345 }}>
       {/* Header Skeleton */}
-      <Box sx={{ height: 110, backgroundColor: "#F1F8FE", p: 2, mb: 1 }}>
+      <Box
+        sx={{
+          height: 110,
+          backgroundColor: BCDesignTokens.surfaceColorBackgroundLightBlue,
+          p: 2,
+          mb: 1,
+        }}
+      >
         <Skeleton variant="text" width="60%" height={32} />
         <Skeleton variant="text" width="80%" height={20} sx={{ mt: 1 }} />
       </Box>

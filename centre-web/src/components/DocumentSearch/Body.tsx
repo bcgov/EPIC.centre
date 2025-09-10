@@ -4,6 +4,7 @@ import { BookmarkSection } from "../LaunchAppTile/BookmarkSection";
 import { EpicApp } from "@/models/EpicApp";
 import { useState } from "react";
 import { AppConfig } from "@/utils/config";
+import { BCDesignTokens } from "epic.theme";
 
 type DocumentSearchBodyProps = {
   epicApp?: EpicApp;
@@ -66,7 +67,7 @@ export const Body = ({ epicApp }: DocumentSearchBodyProps) => {
         <Divider
           sx={{
             width: "100%",
-            backgroundColor: "#D1CFCD",
+            backgroundColor: BCDesignTokens.themeGray50,
           }}
         />
         <Box width={"100%"}>

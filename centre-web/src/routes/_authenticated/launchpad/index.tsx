@@ -4,7 +4,7 @@ import { LaunchAppListSkeleton } from "@/components/LaunchAppTile/ListSkeleton";
 import { PageContainer } from "@/components/Shared/PageGrid";
 import { useGetApplications } from "@/hooks/api/useApplications";
 import { EpicAppName } from "@/models/EpicApp";
-import { Grid } from "@mui/material";
+import { Box } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 
@@ -31,14 +31,16 @@ function Launchpad() {
 
   return (
     <PageContainer>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <DocumentSearch epicApp={documentSearchApp} />
-        </Grid>
-        <Grid item xs={12}>
-          <EpicTileList items={otherApps} />
-        </Grid>
-      </Grid>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+        }}
+      >
+        <DocumentSearch epicApp={documentSearchApp} />
+        <EpicTileList items={otherApps} />
+      </Box>
     </PageContainer>
   );
 }

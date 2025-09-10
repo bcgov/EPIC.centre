@@ -1,17 +1,18 @@
 import { Box, Typography } from "@mui/material";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import { BCDesignTokens } from "epic.theme";
 
 export const Header = () => {
   return (
     <Box
       sx={{
         height: "81px",
-        backgroundColor: "#F1F8FE",
+        backgroundColor: BCDesignTokens.surfaceColorBackgroundLightBlue,
       }}
     >
       <Box
         sx={{
-          padding: "8px 16px",
+          padding: "4px 16px",
           display: "flex",
           flexDirection: "column",
           alignItems: "flex-start",

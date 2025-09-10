@@ -89,7 +89,7 @@ export const Body = ({ data }: BodyProps) => {
         <Divider
           sx={{
             width: "320px",
-            backgroundColor: "#D1CFCD",
+            backgroundColor: BCDesignTokens.themeGray50,
           }}
           aria-label="Bookmarks divider"
         />

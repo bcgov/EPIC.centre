@@ -1,4 +1,5 @@
 import { Stack, Typography } from "@mui/material";
+import { BCDesignTokens } from "epic.theme";
 import React from "react";
 
 type LabeledItemProps = {
@@ -14,7 +15,7 @@ export const LabeledItem = ({ label, children }: LabeledItemProps) => {
       justifyContent={"space-between"}
       spacing={2}
     >
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" color={BCDesignTokens.themeGray80}>
         {label}:
       </Typography>
       {children}

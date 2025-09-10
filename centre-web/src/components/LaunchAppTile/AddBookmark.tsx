@@ -21,6 +21,7 @@ import { useGetApplications } from "@/hooks/api/useApplications";
 import { isAxiosError } from "axios";
 import { notify } from "../Shared/Snackbar/snackbarStore";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { BCDesignTokens } from "epic.theme";
 
 const bookmarkSchema = yup.object().shape({
   bookmarks: yup
@@ -219,7 +220,7 @@ export const AddBookmark = ({ epicApp }: AddBookmark) => {
           <Divider
             sx={{
               width: "702px",
-              backgroundColor: "#D1CFCD",
+              backgroundColor: BCDesignTokens.themeGray50,
             }}
             aria-label="Bookmarks divider"
           />
@@ -233,7 +234,7 @@ export const AddBookmark = ({ epicApp }: AddBookmark) => {
             }}
             aria-label="Bookmarks instructions"
           >
-            Add any link you would like to bookmark in the {epicApp.name} card.
+            Add any link you would like to bookmark in the {epicApp.title} card.
           </Typography>
         </Grid>
         <Grid item xs={12}>

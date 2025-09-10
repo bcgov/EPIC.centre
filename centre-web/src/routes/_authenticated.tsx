@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_authenticated")({
     if (!isAuthenticated) {
       signinRedirect({
         extraQueryParams: {
-          kc_idp_hint: OidcConfig.kc_idp_hint,
+          kc_idp_hint: OidcConfig.extraQueryParams?.kc_idp_hint || "",
         },
       });
     }
