@@ -4,7 +4,7 @@ import { LaunchAppListSkeleton } from "@/components/LaunchAppTile/ListSkeleton";
 import { PageContainer } from "@/components/Shared/PageGrid";
 import { useGetApplications } from "@/hooks/api/useApplications";
 import { EpicAppName } from "@/models/EpicApp";
-import { Box, Grid } from "@mui/material";
+import { Box } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 
