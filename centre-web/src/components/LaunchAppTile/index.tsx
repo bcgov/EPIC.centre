@@ -13,6 +13,7 @@ export const LaunchAppTile = ({ item }: LaunchAppTileProps) => {
       elevation={2}
       sx={{
         width: "345px",
+        height: "386px",
         boxShadow: BCDesignTokens.surfaceShadowMedium,
       }}
     >

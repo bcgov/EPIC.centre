@@ -3,6 +3,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { EpicApp } from "@/models/EpicApp";
 import { BookmarkSection } from "./BookmarkSection";
 import { AccessLogSection } from "./AccessLogSection";
+import { BCDesignTokens } from "epic.theme";
 
 type ContentProps = {
   epicApp: EpicApp;
@@ -10,14 +11,13 @@ type ContentProps = {
 export const Content = ({ epicApp }: ContentProps) => {
   const { launch_url } = epicApp;
   return (
-    <Box sx={{ height: "331px" }}>
+    <Box>
       <Box
         sx={{
           padding: "16px 12px 12px 12px",
           display: "flex",
           flexDirection: "column",
           alignItems: "flex-start",
-          gap: "8px",
         }}
       >
         <Button
@@ -39,7 +39,7 @@ export const Content = ({ epicApp }: ContentProps) => {
           <Divider
             sx={{
               width: "320px",
-              backgroundColor: "#D1CFCD",
+              backgroundColor: BCDesignTokens.themeGray50,
             }}
           />
         </Box>

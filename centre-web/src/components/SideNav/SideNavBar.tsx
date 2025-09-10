@@ -2,7 +2,6 @@ import { Box, List } from "@mui/material";
 import Routes from "./Routes";
 
 export default function SideNavBar() {
-
   return (
     <div style={{ height: "100%" }}>
       <Box

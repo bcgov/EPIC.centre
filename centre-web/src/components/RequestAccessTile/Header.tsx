@@ -1,4 +1,6 @@
 import { Box, Typography } from "@mui/material";
+import { BCDesignTokens } from "epic.theme";
+import LinesEllipsis from "react-lines-ellipsis";
 
 type HeaderProps = {
   data: {
@@ -11,13 +13,13 @@ export const Header = ({ data }: HeaderProps) => {
   return (
     <Box
       sx={{
-        height: "110px",
-        backgroundColor: "#F1F8FE",
+        height: "100px",
+        backgroundColor: BCDesignTokens.surfaceColorBackgroundLightBlue,
       }}
     >
       <Box
         sx={{
-          padding: "8px 16px",
+          padding: "4px 16px",
           display: "flex",
           flexDirection: "column",
           alignItems: "flex-start",
@@ -38,7 +40,13 @@ export const Header = ({ data }: HeaderProps) => {
           </Typography>
         </Box>
         <Typography variant="body2" width="100%">
-          {description}
+          <LinesEllipsis
+            text={description}
+            maxLine={2}
+            ellipsis="..."
+            trimRight
+            basedOn="letters"
+          />
         </Typography>
       </Box>
     </Box>
