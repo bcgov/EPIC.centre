@@ -37,6 +37,7 @@ CLIENT_NAME_TO_APP_NAME_MAP = {
 
 class EpicGroups(Enum):
     """Enum representing Epic group names."""
+
     COMPLIANCE = 'COMPLIANCE'
     CONDITION_REPO = 'CONDITION-REPO'
     SUBMIT = 'SUBMIT'
@@ -45,6 +46,7 @@ class EpicGroups(Enum):
 
 class EpicAdminSubGroups(Enum):
     """Enum representing Epic admin subgroup names."""
+
     ADMIN = 'ADMIN'
     EAO_MANAGER = 'EAO_MANAGER'
     INSTANCE_ADMIN = 'INSTANCE_ADMIN'

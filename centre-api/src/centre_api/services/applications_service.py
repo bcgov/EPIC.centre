@@ -103,7 +103,6 @@ class ApplicationsService:
         members = AuthApiService.get_group_members(group_name, sub_group_name)
         return members
 
-
     @classmethod
     def _queue_access_request_notification_app_admin(cls, session, app):
         admins = cls.get_app_admins(app.name)

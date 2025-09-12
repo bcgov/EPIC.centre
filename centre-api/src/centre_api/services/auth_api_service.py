@@ -26,18 +26,18 @@ class AuthApiService:
         """Get members of group."""
         try:
             headers = {
-                "Content-Type": "application/json",
-                "Authorization": g.authorization_header,
+                'Content-Type': 'application/json',
+                'Authorization': g.authorization_header,
             }
 
-            url = f"{os.getenv('AUTH_API')}/api/users/groups/{group_name}/members"
+            url = f'{os.getenv("AUTH_API")}/api/users/groups/{group_name}/members'
             if sub_group_name:
-                url += f"?sub_group_name={sub_group_name}"
+                url += f'?sub_group_name={sub_group_name}'
 
             timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
             response = requests.get(url, headers=headers, timeout=timeout)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            current_app.logger.error(f"Error fetching group members: {e}")
+            current_app.logger.error(f'Error fetching group members: {e}')
             return []
