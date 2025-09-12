@@ -100,14 +100,11 @@ class ApplicationsService:
     @classmethod
     def get_app_admins(cls, app_name: str):
         """Get app admin details."""
-        try:
-            group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
-            sub_group_name = GROUP_MAP.get(group_name)
-            members = AuthApiService.get_group_members(group_name, sub_group_name)
-            return members
-        except Exception as e:
-            current_app.logger.error(f'An error occurred in get_app_admins: {e}')
-            return []
+        group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
+        sub_group_name = GROUP_MAP.get(group_name)
+        members = AuthApiService.get_group_members(group_name, sub_group_name)
+        return members
+
 
     @classmethod
     def _queue_access_request_notification_app_admin(cls, session, app):

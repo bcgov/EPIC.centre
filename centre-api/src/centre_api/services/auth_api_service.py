@@ -24,16 +24,20 @@ class AuthApiService:
     @staticmethod
     def get_group_members(group_name, sub_group_name=None):
         """Get members of group."""
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": g.authorization_header,
-        }
+        try:
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": g.authorization_header,
+            }
 
-        url = f"{os.getenv('AUTH_API')}/api/users/groups/{group_name}/members"
-        if sub_group_name:
-            url += f"?sub_group_name={sub_group_name}"
+            url = f"{os.getenv('AUTH_API')}/api/users/groups/{group_name}/members"
+            if sub_group_name:
+                url += f"?sub_group_name={sub_group_name}"
 
-        timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
-        response = requests.get(url, headers=headers, timeout=timeout)
-        response.raise_for_status()
-        return response.json()
+            timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
+            response = requests.get(url, headers=headers, timeout=timeout)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            current_app.logger.error(f"Error fetching group members: {e}")
+            return []
