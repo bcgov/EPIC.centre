@@ -2,10 +2,8 @@
 import datetime
 import os
 
-from flask import current_app
-
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
-from centre_api.enums.epic_app import CLIENT_NAME_TO_APP_NAME_MAP, EpicAppName, APP_NAME_TO_GROUP_MAP, GROUP_MAP
+from centre_api.enums.epic_app import APP_NAME_TO_GROUP_MAP, CLIENT_NAME_TO_APP_NAME_MAP, GROUP_MAP, EpicAppName
 from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
