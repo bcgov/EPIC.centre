@@ -3,11 +3,12 @@ import datetime
 import os
 
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
-from centre_api.enums.epic_app import CLIENT_NAME_TO_APP_NAME_MAP, EpicAppName
+from centre_api.enums.epic_app import APP_NAME_TO_GROUP_MAP, CLIENT_NAME_TO_APP_NAME_MAP, GROUP_MAP, EpicAppName
 from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.models.db import session_scope
+from centre_api.services.auth_api_service import AuthApiService
 from centre_api.utils.datetime_util import convert_utc_to_local_str
 from centre_api.utils.token_info import TokenInfo
 
@@ -95,6 +96,37 @@ class ApplicationsService:
         session.add(email_queue)
 
     @classmethod
+    def get_app_admins(cls, app_name: str):
+        """Get app admin details."""
+        group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
+        sub_group_name = GROUP_MAP.get(group_name)
+        members = AuthApiService.get_group_members(group_name, sub_group_name)
+        return members
+
+    @classmethod
+    def _queue_access_request_notification_app_admin(cls, session, app):
+        admins = cls.get_app_admins(app.name)
+        if not admins:
+            return
+        user_details = TokenInfo.get_user_data()
+        now = datetime.datetime.utcnow()
+        requested_at = convert_utc_to_local_str(now)
+        recipients = [admin.get('email') for admin in admins if admin.get('email')]
+        email_queue = EmailQueue(
+            template_name=EmailQueueTemplate.ACCESS_REQUEST_RECEIVED_NOTIFICATION.value,
+            payload={
+                'recipients': recipients,
+                'user_name': f"{user_details.get('first_name', '')} {user_details.get('last_name', '')}".strip(),
+                'user_email': user_details.get('email_address'),
+                'application_name': app.title,
+                'auth_link': f"{os.getenv('EPIC_CENTRE_WEB_URL')}",
+                'requested_at': requested_at,
+                'sender': os.getenv('DST_EMAIL')
+            },
+        )
+        session.add(email_queue)
+
+    @classmethod
     def _queue_access_request_received_dst_email(cls, session, app):
         """Queue access request submitted email."""
         user_details = TokenInfo.get_user_data()
@@ -133,6 +165,7 @@ class ApplicationsService:
             session.flush()
             cls._queue_access_request_submitted_email(session, app)
             cls._queue_access_request_received_dst_email(session, app)
+            cls._queue_access_request_notification_app_admin(session, app)
             session.commit()
 
         return new_request

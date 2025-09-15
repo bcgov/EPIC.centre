@@ -33,3 +33,35 @@ CLIENT_NAME_TO_APP_NAME_MAP = {
     EpicAppClientName.EPIC_SUBMIT.value: EpicAppName.EPIC_SUBMIT.value,
     EpicAppClientName.EPIC_ENGAGE.value: EpicAppName.EPIC_ENGAGE.value,
 }
+
+
+class EpicGroups(Enum):
+    """Enum representing Epic group names."""
+
+    COMPLIANCE = 'COMPLIANCE'
+    CONDITION_REPO = 'CONDITION-REPO'
+    SUBMIT = 'SUBMIT'
+    TRACK = 'TRACK'
+
+
+class EpicAdminSubGroups(Enum):
+    """Enum representing Epic admin subgroup names."""
+
+    ADMIN = 'ADMIN'
+    EAO_MANAGER = 'EAO_MANAGER'
+    INSTANCE_ADMIN = 'INSTANCE_ADMIN'
+
+
+GROUP_MAP = {
+    EpicGroups.COMPLIANCE.value: EpicAdminSubGroups.ADMIN.value,
+    EpicGroups.CONDITION_REPO.value: EpicAdminSubGroups.ADMIN.value,
+    EpicGroups.SUBMIT.value: EpicAdminSubGroups.EAO_MANAGER.value,
+    EpicGroups.TRACK.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
+}
+
+APP_NAME_TO_GROUP_MAP = {
+    EpicAppName.EPIC_COMPLIANCE.value: EpicGroups.COMPLIANCE.value,
+    EpicAppName.CONDITION_REPOSITORY.value: EpicGroups.CONDITION_REPO.value,
+    EpicAppName.EPIC_SUBMIT.value: EpicGroups.SUBMIT.value,
+    EpicAppName.EPIC_TRACK.value: EpicGroups.TRACK.value,
+}

@@ -78,17 +78,17 @@ class _Config():  # pylint: disable=too-few-public-methods
 
     # Service account details
     KEYCLOAK_BASE_URL = os.getenv('KEYCLOAK_BASE_URL')
-    KEYCLOAK_REALMNAME = os.getenv('KEYCLOAK_REALMNAME', 'centre')
+    KEYCLOAK_REALM_NAME = os.getenv('KEYCLOAK_REALM_NAME')
     KEYCLOAK_SERVICE_ACCOUNT_ID = os.getenv('MET_ADMIN_CLIENT_ID')
     KEYCLOAK_SERVICE_ACCOUNT_SECRET = os.getenv('MET_ADMIN_CLIENT_SECRET')
-    # TODO separate out clients for APIs and user management.
-    # TODO API client wont need user management roles in keycloak.
-    KEYCLOAK_ADMIN_USERNAME = os.getenv('MET_ADMIN_CLIENT_ID')
-    KEYCLOAK_ADMIN_SECRET = os.getenv('MET_ADMIN_CLIENT_SECRET')
+    KEYCLOAK_ADMIN_CLIENT = os.getenv('KEYCLOAK_ADMIN_CLIENT')
+    KEYCLOAK_ADMIN_SECRET = os.getenv('KEYCLOAK_ADMIN_SECRET')
 
     APP_NAME = os.getenv('APP_NAME')
     DST_EMAIL = os.getenv('DST_EMAIL')
     EPIC_CENTRE_WEB_URL = os.getenv('EPIC_CENTRE_WEB_URL', 'http://localhost:5173')
+
+    AUTH_API = os.getenv('AUTH_API', 'http://localhost:8080')
 
 
 class DevConfig(_Config):  # pylint: disable=too-few-public-methods
