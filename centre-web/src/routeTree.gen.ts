@@ -11,6 +11,7 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as UnauthenticatedImport } from './routes/unauthenticated'
 import { Route as OidcCallbackImport } from './routes/oidc-callback'
 import { Route as LogoutImport } from './routes/logout'
 import { Route as ErrorImport } from './routes/error'
@@ -19,8 +20,14 @@ import { Route as IndexImport } from './routes/index'
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedRequestAccessIndexImport } from './routes/_authenticated/request-access/index'
 import { Route as AuthenticatedLaunchpadIndexImport } from './routes/_authenticated/launchpad/index'
+import { Route as AuthenticatedRequestAccessAuthIndexImport } from './routes/_authenticated/request-access/auth/index'
 
 // Create/Update Routes
+
+const UnauthenticatedRoute = UnauthenticatedImport.update({
+  path: '/unauthenticated',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const OidcCallbackRoute = OidcCallbackImport.update({
   path: '/oidc-callback',
@@ -64,6 +71,12 @@ const AuthenticatedLaunchpadIndexRoute =
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 
+const AuthenticatedRequestAccessAuthIndexRoute =
+  AuthenticatedRequestAccessAuthIndexImport.update({
+    path: '/request-access/auth/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -103,6 +116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OidcCallbackImport
       parentRoute: typeof rootRoute
     }
+    '/unauthenticated': {
+      id: '/unauthenticated'
+      path: '/unauthenticated'
+      fullPath: '/unauthenticated'
+      preLoaderRoute: typeof UnauthenticatedImport
+      parentRoute: typeof rootRoute
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
@@ -124,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRequestAccessIndexImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/request-access/auth/': {
+      id: '/_authenticated/request-access/auth/'
+      path: '/request-access/auth'
+      fullPath: '/request-access/auth'
+      preLoaderRoute: typeof AuthenticatedRequestAccessAuthIndexImport
+      parentRoute: typeof AuthenticatedImport
+    }
   }
 }
 
@@ -135,10 +162,12 @@ export const routeTree = rootRoute.addChildren({
     AuthenticatedIndexRoute,
     AuthenticatedLaunchpadIndexRoute,
     AuthenticatedRequestAccessIndexRoute,
+    AuthenticatedRequestAccessAuthIndexRoute,
   }),
   ErrorRoute,
   LogoutRoute,
   OidcCallbackRoute,
+  UnauthenticatedRoute,
 })
 
 /* prettier-ignore-end */
@@ -153,7 +182,8 @@ export const routeTree = rootRoute.addChildren({
         "/_authenticated",
         "/error",
         "/logout",
-        "/oidc-callback"
+        "/oidc-callback",
+        "/unauthenticated"
       ]
     },
     "/": {
@@ -164,7 +194,8 @@ export const routeTree = rootRoute.addChildren({
       "children": [
         "/_authenticated/",
         "/_authenticated/launchpad/",
-        "/_authenticated/request-access/"
+        "/_authenticated/request-access/",
+        "/_authenticated/request-access/auth/"
       ]
     },
     "/error": {
@@ -176,6 +207,9 @@ export const routeTree = rootRoute.addChildren({
     "/oidc-callback": {
       "filePath": "oidc-callback.tsx"
     },
+    "/unauthenticated": {
+      "filePath": "unauthenticated.tsx"
+    },
     "/_authenticated/": {
       "filePath": "_authenticated/index.tsx",
       "parent": "/_authenticated"
@@ -186,6 +220,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_authenticated/request-access/": {
       "filePath": "_authenticated/request-access/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/request-access/auth/": {
+      "filePath": "_authenticated/request-access/auth/index.tsx",
       "parent": "/_authenticated"
     }
   }
