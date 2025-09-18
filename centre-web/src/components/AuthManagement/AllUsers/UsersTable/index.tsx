@@ -12,7 +12,7 @@ type UsersTableProps = {
 
 export const UsersTable = ({ users, isLoading, isError }: UsersTableProps) => {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   // Paginate users client-side
   const paginatedUsers = users.slice(
