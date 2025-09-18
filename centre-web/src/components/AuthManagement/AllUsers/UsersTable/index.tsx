@@ -35,6 +35,7 @@ export const UsersTable = () => {
             users={paginatedUsers}
             isLoading={isLoading}
             isError={isError}
+            rowsPerPage={rowsPerPage}
           />
         </Table>
       </TableContainer>
