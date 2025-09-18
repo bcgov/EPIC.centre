@@ -8,6 +8,7 @@ type TableBodyProps = {
   isLoading: boolean;
   isError: boolean;
   rowsPerPage: number;
+  searchText: string;
 };
 
 export const UsersTableBody: React.FC<TableBodyProps> = ({
@@ -15,27 +16,44 @@ export const UsersTableBody: React.FC<TableBodyProps> = ({
   isLoading,
   isError,
   rowsPerPage,
+  searchText,
 }) => {
   if (isLoading) {
     return (
-      <TableRow>
-        <CentreTableCell colSpan={3}>
-          <Stack direction="column" alignItems="center">
-            Loading...
-            <LinearProgress sx={{ width: "100%" }} />
-          </Stack>
-        </CentreTableCell>
-      </TableRow>
+      <TableBody>
+        <TableRow>
+          <CentreTableCell colSpan={3}>
+            <Stack direction="column" alignItems="center">
+              Loading...
+              <LinearProgress sx={{ width: "100%" }} />
+            </Stack>
+          </CentreTableCell>
+        </TableRow>
+      </TableBody>
     );
   }
 
   if (isError) {
     return (
-      <TableRow>
-        <CentreTableCell colSpan={3} align="center">
-          Error loading users
-        </CentreTableCell>
-      </TableRow>
+      <TableBody>
+        <TableRow>
+          <CentreTableCell colSpan={3} align="center">
+            Error loading users
+          </CentreTableCell>
+        </TableRow>
+      </TableBody>
+    );
+  }
+
+  if (users.length === 0) {
+    return (
+      <TableBody>
+        <TableRow>
+          <CentreTableCell colSpan={3} align="center">
+            No users found matching '{searchText}'
+          </CentreTableCell>
+        </TableRow>
+      </TableBody>
     );
   }
 

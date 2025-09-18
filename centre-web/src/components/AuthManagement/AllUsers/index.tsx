@@ -50,7 +50,12 @@ export const AllUsers = () => {
         </Stack>
       </Grid>
       <Grid item xs={12}>
-        <UsersTable users={users} isLoading={isLoading} isError={isError} />
+        <UsersTable
+          users={users}
+          isLoading={isLoading}
+          isError={isError}
+          searchText={searchText}
+        />
       </Grid>
     </Grid>
   );
