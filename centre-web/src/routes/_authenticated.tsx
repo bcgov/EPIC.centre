@@ -1,13 +1,17 @@
+import { PageLoader } from "@/components/PageLoader";
 import SideNavBar from "@/components/SideNav/SideNavBar";
 import { OidcConfig } from "@/utils/config";
 import { Box } from "@mui/material";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
+import { useAuth } from "react-oidc-context";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: ({ context }) => {
-    const { isAuthenticated, signinRedirect } = context.authentication;
-    if (!isAuthenticated) {
+    const { isAuthenticated, signinRedirect, isLoading } =
+      context.authentication;
+    if (!isAuthenticated && !isLoading) {
       signinRedirect({
+        redirect_uri: window.location.href,
         extraQueryParams: {
           kc_idp_hint: OidcConfig.extraQueryParams?.kc_idp_hint || "",
         },
@@ -18,6 +22,16 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedRoute() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <PageLoader />;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/unauthenticated" />;
+  }
+
   return (
     <div>
       <Box flexDirection={"row"} display={"flex"}>

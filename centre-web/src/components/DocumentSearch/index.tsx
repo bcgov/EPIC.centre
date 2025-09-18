@@ -12,7 +12,7 @@ export const DocumentSearch = ({ epicApp }: DocumentSearch) => {
     <Paper
       elevation={2}
       sx={{
-        width: "100%",
+        maxWidth: "1070px",
         boxShadow: BCDesignTokens.surfaceShadowMedium,
       }}
     >

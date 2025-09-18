@@ -65,3 +65,5 @@ APP_NAME_TO_GROUP_MAP = {
     EpicAppName.EPIC_SUBMIT.value: EpicGroups.SUBMIT.value,
     EpicAppName.EPIC_TRACK.value: EpicGroups.TRACK.value,
 }
+
+GROUP_TO_APP_NAME_MAP = {v: k for k, v in APP_NAME_TO_GROUP_MAP.items()}

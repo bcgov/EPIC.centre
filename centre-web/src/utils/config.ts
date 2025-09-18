@@ -35,6 +35,7 @@ export const AppConfig = {
   version: APP_VERSION,
   appTitle: APP_TITLE,
   documentSearchUrl: DOCUMENT_SEARCH_URL,
+  clientId: CLIENT_ID,
 };
 
 export const OidcConfig = {
