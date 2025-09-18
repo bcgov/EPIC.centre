@@ -1,8 +1,6 @@
 import { BCDesignTokens } from "epic.theme";
 import { MainListItem } from "./MainListItem";
-import PermissionsGate from "../Shared/PermissionGate";
 import { SubListItem } from "./SubListItem";
-import { EpicCentreRoles } from "@/models/Roles";
 
 export default function Routes() {
   return (
@@ -20,7 +18,6 @@ export default function Routes() {
           path: "/request-access",
         }}
       />
-      {/* <PermissionsGate scopes={[EpicCentreRoles.manage_requests]}> */}
       <SubListItem
         key={`sub-list-auth-management`}
         route={{
@@ -28,7 +25,6 @@ export default function Routes() {
           path: `/request-access/auth`,
         }}
       />
-      {/* </PermissionsGate> */}
     </>
   );
 }

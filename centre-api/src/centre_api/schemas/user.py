@@ -8,6 +8,7 @@ from marshmallow import Schema, fields, post_dump
 
 class UserSchema(Schema):
     """Schema for serializing user data without exposing internal fields like 'groups'."""
+
     id = fields.UUID()
     first_name = fields.Str()
     last_name = fields.Str()
@@ -17,5 +18,6 @@ class UserSchema(Schema):
 
     @post_dump
     def sort_apps(self, data, **kwargs):  # pylint: disable=unused-argument
-        data["apps"] = sorted(data.get("apps", []))
+        """Ensure the apps list is sorted."""
+        data['apps'] = sorted(data.get('apps', []))
         return data

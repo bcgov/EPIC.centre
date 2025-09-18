@@ -6,7 +6,7 @@ import {
 } from "@/components/Shared/CentreTabs/CentreTab";
 import { CentreTabPanel } from "@/components/Shared/CentreTabs/CentreTabPanel";
 import { PageContainer } from "@/components/Shared/PageGrid";
-import { Box, Grid, Paper, Tabs, Typography } from "@mui/material";
+import { Box, Grid, Paper, Typography } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 import { BCDesignTokens } from "epic.theme";
 import { useState } from "react";
