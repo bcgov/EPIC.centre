@@ -20,9 +20,9 @@ class UserService:
     """Service for handling user-related operations."""
 
     @classmethod
-    def get_users(cls):
+    def get_users(cls, search_text: str = None):
         """Retrieve users and enrich them with application access information."""
-        users = AuthApiService.get_users()
+        users = AuthApiService.get_users(search_text)
         return [cls._enrich_user_with_apps(user) for user in users]
 
     @staticmethod

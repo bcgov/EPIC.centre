@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Box, Grid, Paper, Typography } from "@mui/material";
+
 import { AllUsers } from "@/components/AuthManagement/AllUsers";
 import { NewRequests } from "@/components/AuthManagement/NewRequests";
 import {
@@ -6,68 +10,60 @@ import {
 } from "@/components/Shared/CentreTabs/CentreTab";
 import { CentreTabPanel } from "@/components/Shared/CentreTabs/CentreTabPanel";
 import { PageContainer } from "@/components/Shared/PageGrid";
-import { Box, Grid, Paper, Typography } from "@mui/material";
-import { createFileRoute } from "@tanstack/react-router";
 import { BCDesignTokens } from "epic.theme";
-import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/request-access/auth/")({
   component: AuthRequestAccess,
 });
 
 function AuthRequestAccess() {
-  const [value, setValue] = useState(0);
+  const TAB_HASHES = ["new-requests", "all-users"] as const;
 
-  const handleChange = (_: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
+  function getTabIndexFromHash(hash: string): number {
+    const cleanHash = hash.replace("#", "");
+    const idx = TAB_HASHES.indexOf(cleanHash as (typeof TAB_HASHES)[number]);
+    return idx === -1 ? 0 : idx;
+  }
+  const [tabIndex, setTabIndex] = useState(() =>
+    getTabIndexFromHash(window.location.hash),
+  );
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    setTabIndex(newValue);
+    window.location.hash = TAB_HASHES[newValue];
   };
+
   return (
     <PageContainer>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Paper elevation={1}>
-            <Box
-              sx={{
-                padding: "12px 24px",
-              }}
-            >
-              <Typography variant="h3" fontWeight={"bold"}>
+            <Box sx={{ padding: "12px 24px" }}>
+              <Typography variant="h3" fontWeight="bold">
                 EPIC.auth
               </Typography>
             </Box>
-            <Box
-              sx={{
-                padding: "12px",
-              }}
-            >
+
+            <Box sx={{ padding: 2 }}>
               <Box
                 sx={{
-                  padding: "16px",
+                  p: 2,
                   border: `1px solid ${BCDesignTokens.surfaceColorBorderDefault}`,
                 }}
               >
                 <CentreTabs
-                  value={value}
-                  onChange={handleChange}
+                  value={tabIndex}
+                  onChange={handleTabChange}
                   TabIndicatorProps={{ sx: { display: "none" } }}
                 >
-                  <CentreTab
-                    label="New Access Requests"
-                    sx={{
-                      width: "205px",
-                    }}
-                  />
-                  <CentreTab
-                    label="All Users"
-                    sx={{
-                      width: "105px",
-                    }}
-                  />
+                  <CentreTab label="New Access Requests" sx={{ width: 205 }} />
+                  <CentreTab label="All Users" sx={{ width: 105 }} />
                 </CentreTabs>
-                <CentreTabPanel value={value} index={0}>
+
+                <CentreTabPanel value={tabIndex} index={0}>
                   <NewRequests />
                 </CentreTabPanel>
-                <CentreTabPanel value={value} index={1}>
+                <CentreTabPanel value={tabIndex} index={1}>
                   <AllUsers />
                 </CentreTabPanel>
               </Box>

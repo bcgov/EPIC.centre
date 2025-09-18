@@ -1,13 +1,18 @@
 import { Box, Table, TableContainer, TablePagination } from "@mui/material";
 import UsersTableHead from "./TableHead";
-import { useGetUsers } from "@/hooks/api/useUsers";
 import React, { useState } from "react";
 import { UsersTableBody } from "./TableBody";
+import { CentreUser } from "@/models/CentreUser";
 
-export const UsersTable = () => {
-  const { data: users = [], isLoading, isError } = useGetUsers();
+type UsersTableProps = {
+  users: Array<CentreUser>;
+  isLoading: boolean;
+  isError: boolean;
+};
+
+export const UsersTable = ({ users, isLoading, isError }: UsersTableProps) => {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   // Paginate users client-side
   const paginatedUsers = users.slice(
@@ -35,6 +40,7 @@ export const UsersTable = () => {
             users={paginatedUsers}
             isLoading={isLoading}
             isError={isError}
+            rowsPerPage={rowsPerPage}
           />
         </Table>
       </TableContainer>
