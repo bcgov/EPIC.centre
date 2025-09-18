@@ -32,7 +32,9 @@ export const UsersTableBody: React.FC<TableBodyProps> = ({
   if (isError) {
     return (
       <TableRow>
-        <CentreTableCell colSpan={3}>Error loading users</CentreTableCell>
+        <CentreTableCell colSpan={3} align="center">
+          Error loading users
+        </CentreTableCell>
       </TableRow>
     );
   }
