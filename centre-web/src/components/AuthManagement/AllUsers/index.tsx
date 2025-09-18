@@ -54,7 +54,7 @@ export const AllUsers = () => {
           users={users}
           isLoading={isLoading}
           isError={isError}
-          searchText={searchText}
+          searchText={queryParams.search || ""}
         />
       </Grid>
     </Grid>
