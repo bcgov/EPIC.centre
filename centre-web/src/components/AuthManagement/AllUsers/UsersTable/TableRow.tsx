@@ -1,29 +1,9 @@
 import { CentreLink } from "@/components/Shared/CentreLink";
 import { CentreTableCell } from "@/components/Shared/CentreTable";
 import { CentreUser } from "@/models/CentreUser";
-import { Box, Stack, TableRow } from "@mui/material";
-import { BCDesignTokens } from "epic.theme";
+import { Stack, TableRow } from "@mui/material";
 import { getAppChipTitle } from "../../utils";
-
-type AppChipProps = {
-  appName: string;
-};
-const AppChip = ({ appName }: AppChipProps) => (
-  <Box
-    sx={{
-      display: "flex",
-      alignItems: "center",
-      padding: "2px 8px",
-      borderRadius: "2px",
-      height: "24px",
-      border: BCDesignTokens.supportBorderColorInfo,
-      backgroundColor: BCDesignTokens.surfaceColorPrimaryButtonDefault,
-      color: BCDesignTokens.surfaceColorBackgroundWhite,
-    }}
-  >
-    {appName}
-  </Box>
-);
+import { AppChip } from "@/components/Shared/AppChip";
 
 type Props = {
   readonly user: CentreUser;

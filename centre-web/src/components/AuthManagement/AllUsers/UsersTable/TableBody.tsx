@@ -1,6 +1,6 @@
 import React from "react";
 import UsersTableRow from "./TableRow";
-import { TableBody, TableRow } from "@mui/material";
+import { LinearProgress, Stack, TableBody, TableRow } from "@mui/material";
 import { CentreTableCell } from "@/components/Shared/CentreTable";
 
 type TableBodyProps = {
@@ -19,7 +19,12 @@ export const UsersTableBody: React.FC<TableBodyProps> = ({
   if (isLoading) {
     return (
       <TableRow>
-        <CentreTableCell colSpan={3}>Loading...</CentreTableCell>
+        <CentreTableCell colSpan={3}>
+          <Stack direction="column" alignItems="center">
+            Loading...
+            <LinearProgress sx={{ width: "100%" }} />
+          </Stack>
+        </CentreTableCell>
       </TableRow>
     );
   }
