@@ -27,6 +27,7 @@ from .apihelper import Api
 from .applications import API as APPLICATIONS_API
 from .ops import API as OPS_API
 from .user_application import API as USER_APPLICATION_API
+from .users import API as USERS_API
 
 
 __all__ = ('API_BLUEPRINT', 'OPS_BLUEPRINT')
@@ -65,3 +66,4 @@ API = Api(
 
 API.add_namespace(APPLICATIONS_API)
 API.add_namespace(USER_APPLICATION_API)
+API.add_namespace(USERS_API)

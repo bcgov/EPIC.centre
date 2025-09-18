@@ -1,5 +1,6 @@
 import { Button, Grid, Stack, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import { UsersTable } from "./UsersTable";
 
 export const AllUsers = () => {
   return (
@@ -30,6 +31,9 @@ export const AllUsers = () => {
             <SearchIcon sx={{ height: "30px", width: "30px" }} />
           </Button>
         </Stack>
+      </Grid>
+      <Grid item xs={12}>
+        <UsersTable />
       </Grid>
     </Grid>
   );
