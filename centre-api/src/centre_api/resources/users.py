@@ -40,6 +40,6 @@ class Users(Resource):
     @auth.require
     def get():
         """Fetch all users."""
-        search_text = request.args.get("search", None)
+        search_text = request.args.get('search', None)
         users = UserService.get_users(search_text)
         return UserSchema(many=True).dump(users), HTTPStatus.OK

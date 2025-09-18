@@ -4,7 +4,6 @@ import { QUERY_KEY } from "./constants";
 import { CentreUser } from "@/models/CentreUser";
 
 const getUsers = (search?: string) => {
-  console.log("Fetching users with search:", search);
   return centreRequest<CentreUser[]>({
     url: `users`,
     params: search ? { search } : undefined,
