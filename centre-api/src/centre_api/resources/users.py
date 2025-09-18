@@ -15,6 +15,7 @@
 
 from http import HTTPStatus
 
+from flask import request
 from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
@@ -39,5 +40,6 @@ class Users(Resource):
     @auth.require
     def get():
         """Fetch all users."""
-        users = UserService.get_users()
+        search_text = request.args.get("search", None)
+        users = UserService.get_users(search_text)
         return UserSchema(many=True).dump(users), HTTPStatus.OK

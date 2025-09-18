@@ -13,6 +13,7 @@
 # limitations under the License.
 """auth admin functions."""
 import os
+from urllib.parse import urlencode
 
 import requests
 from flask import current_app, g
@@ -43,20 +44,29 @@ class AuthApiService:
             return []
 
     @staticmethod
-    def get_users():
-        """Get users."""
+    def get_users(search_text: str = None):
+        """Fetch users from the Auth API, optionally filtered by search text."""
         try:
+            base_url = f'{os.getenv("AUTH_API")}/api/users'
+            query_params = {'include_groups': 'true'}
+
+            if search_text:
+                query_params['search'] = search_text
+
+            query_string = urlencode(query_params)
+            url = f'{base_url}?{query_string}'
+
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': g.authorization_header,
             }
 
-            include_groups = 'true'
-            url = f'{os.getenv("AUTH_API")}/api/users?include_groups={include_groups}'
             timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
             response = requests.get(url, headers=headers, timeout=timeout)
             response.raise_for_status()
+
             return response.json()
-        except requests.RequestException as e:
-            current_app.logger.error(f'Error fetching users: {e}')
+
+        except requests.RequestException as error:
+            current_app.logger.error(f'Error fetching users: {error}')
             return []
