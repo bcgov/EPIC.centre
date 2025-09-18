@@ -8,9 +8,15 @@ type UsersTableProps = {
   users: Array<CentreUser>;
   isLoading: boolean;
   isError: boolean;
+  searchText: string;
 };
 
-export const UsersTable = ({ users, isLoading, isError }: UsersTableProps) => {
+export const UsersTable = ({
+  users,
+  isLoading,
+  isError,
+  searchText,
+}: UsersTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -41,6 +47,7 @@ export const UsersTable = ({ users, isLoading, isError }: UsersTableProps) => {
             isLoading={isLoading}
             isError={isError}
             rowsPerPage={rowsPerPage}
+            searchText={searchText}
           />
         </Table>
       </TableContainer>
