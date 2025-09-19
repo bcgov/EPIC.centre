@@ -6,6 +6,7 @@ const EpicAppNameToChipTitleMap = {
   [EpicAppName.EPIC_TRACK]: "EPIC.track",
   [EpicAppName.EPIC_SUBMIT]: "EPIC.submit",
   [EpicAppName.EPIC_ENGAGE]: "EPIC.engage",
+  [EpicAppName.EPIC_PUBLIC]: "EPIC.public",
 };
 
 export const getAppChipTitle = (appName: string): string => {

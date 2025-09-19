@@ -37,8 +37,13 @@ function AuthRequestAccess() {
     <PageContainer>
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Paper elevation={1}>
-            <Box sx={{ padding: "12px 24px" }}>
+          <Paper elevation={3}>
+            <Box
+              sx={{
+                padding: "12px 24px",
+                borderBottom: `1px solid ${BCDesignTokens.surfaceColorBorderDefault}`,
+              }}
+            >
               <Typography variant="h3" fontWeight="bold">
                 EPIC.auth
               </Typography>

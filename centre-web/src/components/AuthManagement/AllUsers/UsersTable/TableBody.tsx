@@ -2,9 +2,10 @@ import React from "react";
 import UsersTableRow from "./TableRow";
 import { LinearProgress, Stack, TableBody, TableRow } from "@mui/material";
 import { CentreTableCell } from "@/components/Shared/CentreTable";
+import { CentreUser } from "@/models/CentreUser";
 
 type TableBodyProps = {
-  users: Array<any>;
+  users: Array<CentreUser>;
   isLoading: boolean;
   isError: boolean;
   rowsPerPage: number;
@@ -50,7 +51,9 @@ export const UsersTableBody: React.FC<TableBodyProps> = ({
       <TableBody>
         <TableRow>
           <CentreTableCell colSpan={3} align="center">
-            No users found matching '{searchText}'
+            {searchText
+              ? `No users found matching "${searchText}"`
+              : "No users found"}
           </CentreTableCell>
         </TableRow>
       </TableBody>
