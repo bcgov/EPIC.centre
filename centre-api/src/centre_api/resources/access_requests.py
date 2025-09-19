@@ -19,7 +19,6 @@ from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
 from centre_api.resources.apihelper import Api as ApiHelper
-from centre_api.schemas.application import ApplicationSchema
 from centre_api.services.access_requests import AccessRequestsService
 from centre_api.utils.util import cors_preflight
 
