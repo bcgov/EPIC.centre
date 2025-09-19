@@ -44,11 +44,11 @@ class AuthApiService:
             return []
 
     @staticmethod
-    def get_users(search_text: str = None):
+    def get_users(search_text: str = None, include_groups: bool = True):
         """Fetch users from the Auth API, optionally filtered by search text."""
         try:
             base_url = f'{os.getenv("AUTH_API")}/api/users'
-            query_params = {'include_groups': 'true'}
+            query_params = {'include_groups': 'true' if include_groups else 'false'}
 
             if search_text:
                 query_params['search'] = search_text

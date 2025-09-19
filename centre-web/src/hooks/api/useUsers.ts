@@ -3,19 +3,19 @@ import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEY } from "./constants";
 import { CentreUser } from "@/models/CentreUser";
 
-const getUsers = (search?: string) => {
+type GetUsersParams = {
+  search?: string;
+};
+const getUsers = (params: GetUsersParams) => {
   return centreRequest<CentreUser[]>({
     url: `users`,
-    params: search ? { search } : undefined,
+    params,
   });
 };
 
-type UseGetUsersParams = {
-  search?: string;
-};
-export const useGetUsers = ({ search }: UseGetUsersParams = {}) => {
+export const useGetUsers = (params: GetUsersParams = {}) => {
   return useQuery({
-    queryKey: [QUERY_KEY.USERS, search],
-    queryFn: () => getUsers(search),
+    queryKey: [QUERY_KEY.USERS, params.search],
+    queryFn: () => getUsers(params),
   });
 };

@@ -11,36 +11,33 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""API endpoints for managing an user resource."""
+"""API endpoints for managing a access requests."""
 
 from http import HTTPStatus
 
-from flask import request
 from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
 from centre_api.resources.apihelper import Api as ApiHelper
-from centre_api.schemas.user import UserSchema
-from centre_api.services.user_service import UserService
+from centre_api.schemas.application import ApplicationSchema
+from centre_api.services.access_requests import AccessRequestsService
 from centre_api.utils.util import cors_preflight
 
 
-API = Namespace('users', description='Endpoints for applications management')
+API = Namespace('access-requests', description='Endpoints for access requests management')
 """Custom exception messages
 """
 
 
 @cors_preflight('GET, OPTIONS')
-@API.route('', methods=['GET', 'OPTIONS'])
-class Users(Resource):
-    """Resource for fetching users."""
+@API.route('/status/<status>', methods=['GET', 'OPTIONS'])
+class Applications(Resource):
+    """Resource for managing access requests."""
 
     @staticmethod
-    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all users')
+    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all access requests')
     @auth.require
-    def get():
-        """Fetch all users."""
-        search_text = request.args.get('search', None)
-        include_groups = request.args.get('include_groups', 'true').lower() == 'true'
-        users = UserService.get_users(search_text, include_groups)
-        return UserSchema(many=True).dump(users), HTTPStatus.OK
+    def get(status):
+        """Fetch all access requests."""
+        access_requests = AccessRequestsService.get_all_by_status(status)
+        return access_requests, HTTPStatus.OK
