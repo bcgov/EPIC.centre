@@ -23,15 +23,15 @@ class AccessRequests(BaseModel):
     def to_dict(self):
         """Convert AccessRequests ORM object to dictionary."""
         return {
-            "id": self.id,
-            "app_id": self.app_id,
-            "user_auth_guid": self.user_auth_guid,
-            "status": self.status.value,
-            "created_date": self.created_date.isoformat() if self.created_date else None,
-            "updated_date": self.updated_date.isoformat() if self.updated_date else None,
-            "created_by": self.created_by,
-            "updated_by": self.updated_by,
-            "app": self.app.to_dict() if self.app else None
+            'id': self.id,
+            'app_id': self.app_id,
+            'user_auth_guid': self.user_auth_guid,
+            'status': self.status.value,
+            'created_date': self.created_date.isoformat() if self.created_date else None,
+            'updated_date': self.updated_date.isoformat() if self.updated_date else None,
+            'created_by': self.created_by,
+            'updated_by': self.updated_by,
+            'app': self.app.to_dict() if self.app else None
         }
 
     @classmethod
@@ -42,10 +42,8 @@ class AccessRequests(BaseModel):
     @classmethod
     def get_all_by_status(cls, status: str):
         """Return all access requests matching the given status."""
-
         if status not in {e.value for e in AccessRequestsStatusEnum}:
             raise ValueError(
                 f"Invalid status '{status}'"
             )
-
         return cls.query.filter_by(status=status).all()

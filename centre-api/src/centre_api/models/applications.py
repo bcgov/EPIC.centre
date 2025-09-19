@@ -26,16 +26,16 @@ class Application(BaseModel):
     def to_dict(self):
         """Convert Application ORM object to dictionary."""
         return {
-            "id": self.id,
-            "title": self.title,
-            "name": self.name,
-            "description": self.description,
-            "launch_url": self.launch_url,
-            "is_active": self.is_active,
-            "created_date": self.created_date.isoformat() if self.created_date else None,
-            "updated_date": self.updated_date.isoformat() if self.updated_date else None,
-            "created_by": self.created_by,
-            "updated_by": self.updated_by
+            'id': self.id,
+            'title': self.title,
+            'name': self.name,
+            'description': self.description,
+            'launch_url': self.launch_url,
+            'is_active': self.is_active,
+            'created_date': self.created_date.isoformat() if self.created_date else None,
+            'updated_date': self.updated_date.isoformat() if self.updated_date else None,
+            'created_by': self.created_by,
+            'updated_by': self.updated_by
         }
 
     @classmethod
