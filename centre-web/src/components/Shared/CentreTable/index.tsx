@@ -1,4 +1,9 @@
-import { TableCell, TableCellProps } from "@mui/material";
+import {
+  TableCell,
+  TableCellProps,
+  TableHead,
+  TableHeadProps,
+} from "@mui/material";
 import { BCDesignTokens } from "epic.theme";
 
 export const CentreTableHeadCell = (props: TableCellProps) => {
@@ -46,5 +51,23 @@ export const CentreTableCell = (props: TableCellProps) => {
     >
       {children}
     </TableCell>
+  );
+};
+
+export const CentreTableHead = (props: TableHeadProps) => {
+  const { children, sx, ...rest } = props;
+  return (
+    <TableHead
+      sx={{
+        border: 0,
+        ".MuiTableCell-root": {
+          p: BCDesignTokens.layoutPaddingXsmall,
+        },
+        ...sx,
+      }}
+      {...rest}
+    >
+      {children}
+    </TableHead>
   );
 };

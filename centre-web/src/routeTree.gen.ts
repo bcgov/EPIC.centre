@@ -21,6 +21,7 @@ import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index
 import { Route as AuthenticatedRequestAccessIndexImport } from './routes/_authenticated/request-access/index'
 import { Route as AuthenticatedLaunchpadIndexImport } from './routes/_authenticated/launchpad/index'
 import { Route as AuthenticatedRequestAccessAuthIndexImport } from './routes/_authenticated/request-access/auth/index'
+import { Route as AuthenticatedRequestAccessAuthUsersUserIdImport } from './routes/_authenticated/request-access/auth/users/$userId'
 
 // Create/Update Routes
 
@@ -74,6 +75,12 @@ const AuthenticatedLaunchpadIndexRoute =
 const AuthenticatedRequestAccessAuthIndexRoute =
   AuthenticatedRequestAccessAuthIndexImport.update({
     path: '/request-access/auth/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
+const AuthenticatedRequestAccessAuthUsersUserIdRoute =
+  AuthenticatedRequestAccessAuthUsersUserIdImport.update({
+    path: '/request-access/auth/users/$userId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 
@@ -151,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRequestAccessAuthIndexImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/request-access/auth/users/$userId': {
+      id: '/_authenticated/request-access/auth/users/$userId'
+      path: '/request-access/auth/users/$userId'
+      fullPath: '/request-access/auth/users/$userId'
+      preLoaderRoute: typeof AuthenticatedRequestAccessAuthUsersUserIdImport
+      parentRoute: typeof AuthenticatedImport
+    }
   }
 }
 
@@ -163,6 +177,7 @@ export const routeTree = rootRoute.addChildren({
     AuthenticatedLaunchpadIndexRoute,
     AuthenticatedRequestAccessIndexRoute,
     AuthenticatedRequestAccessAuthIndexRoute,
+    AuthenticatedRequestAccessAuthUsersUserIdRoute,
   }),
   ErrorRoute,
   LogoutRoute,
@@ -195,7 +210,8 @@ export const routeTree = rootRoute.addChildren({
         "/_authenticated/",
         "/_authenticated/launchpad/",
         "/_authenticated/request-access/",
-        "/_authenticated/request-access/auth/"
+        "/_authenticated/request-access/auth/",
+        "/_authenticated/request-access/auth/users/$userId"
       ]
     },
     "/error": {
@@ -224,6 +240,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_authenticated/request-access/auth/": {
       "filePath": "_authenticated/request-access/auth/index.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/request-access/auth/users/$userId": {
+      "filePath": "_authenticated/request-access/auth/users/$userId.tsx",
       "parent": "/_authenticated"
     }
   }
