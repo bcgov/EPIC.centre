@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """user functions."""
+from collections import defaultdict
+
 from centre_api.enums.epic_app import GROUP_TO_APP_NAME_MAP
 from centre_api.services.auth_api_service import AuthApiService
 
@@ -34,7 +36,6 @@ class UserService:
     @staticmethod
     def _enrich_user_with_apps(user):
         """Enrich a single user dictionary with app names and highest level roles based on their groups."""
-        from collections import defaultdict
 
         app_roles = defaultdict(lambda: {"level": float('-inf'), "role": None})
 

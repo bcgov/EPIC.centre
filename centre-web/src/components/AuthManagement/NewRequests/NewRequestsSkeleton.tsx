@@ -33,7 +33,6 @@ export const NewAccessRequestsSkeleton = () => {
             </TableHead>
             <TableBody>
               {[...Array(3)].map((_, i) => (
-                /* eslint-disable-next-line react/no-array-index-key,sonarqube(typescript:S6479) */
                 <TableRow key={i}>
                   <TableCell>
                     <Skeleton variant="text" width={120} />

@@ -48,7 +48,7 @@ class Users(Resource):
 
 @cors_preflight('GET, OPTIONS')
 @API.route('/username/<username>', methods=['GET', 'OPTIONS'])
-class Users(Resource):
+class User(Resource):
     """Resource for fetching users."""
 
     @staticmethod
