@@ -8,9 +8,9 @@ class AccessRequestsService:
     """Access requests service."""
 
     @classmethod
-    def get_all_by_status(cls, status):
+    def get_all(cls, args):
         """Return all access requests by status, enriched with user details."""
-        access_requests = AccessRequestsModal.get_all_by_status(status)
+        access_requests = AccessRequestsModal.get_all(args)
         serialized_requests = [req.to_dict() for req in access_requests]
         enriched_requests = cls._enrich_with_user_details(serialized_requests)
         return enriched_requests
@@ -23,12 +23,18 @@ class AccessRequestsService:
         for req in requests:
             user = user_map.get(req['user_auth_guid'])
             if user:
-                req['user'] = {
-                    'username': user.get('username'),
-                    'email': user.get('email_address'),
-                    'first_name': user.get('first_name'),
-                    'last_name': user.get('last_name'),
-                }
-            else:
-                req['user_details'] = None
+                req['user'] = user
         return requests
+
+    @classmethod
+    def get_user_access_requests(cls, user_auth_guid, args):
+        """Return all access requests for a specific user, enriched with user details."""
+        access_requests = AccessRequestsModal.get_all({
+            **args,
+            'user_auth_guid': user_auth_guid
+        })
+        user = AuthApiService.get_user_by_id(user_auth_guid)
+        serialized_requests = [req.to_dict() for req in access_requests]
+        for req in serialized_requests:
+            req['user'] = user
+        return serialized_requests

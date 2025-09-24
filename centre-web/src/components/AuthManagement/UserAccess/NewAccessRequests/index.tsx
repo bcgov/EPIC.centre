@@ -1,0 +1,32 @@
+import { Grid, Typography } from "@mui/material";
+import { NewRequestsTable } from "./NewRequestsTable";
+import { CentreUser } from "@/models/CentreUser";
+import { useUserAccessRequests } from "@/hooks/api/useAccessRequests";
+import { NewAccessRequestsSkeleton } from "../../NewRequests/NewRequestsSkeleton";
+
+type NewAccessRequestsProps = {
+  user?: CentreUser;
+};
+export const NewAccessRequests = ({ user }: NewAccessRequestsProps) => {
+  const { data: requests = [], isPending } = useUserAccessRequests({
+    user_auth_guid: user?.id || "",
+    enabled: !!user?.id,
+  });
+
+  if (isPending) {
+    return <NewAccessRequestsSkeleton />;
+  }
+
+  return (
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <Typography variant="h5" fontWeight={"normal"}>
+          New Access Requests
+        </Typography>
+      </Grid>
+      <Grid item xs={12}>
+        <NewRequestsTable requests={requests} />
+      </Grid>
+    </Grid>
+  );
+};

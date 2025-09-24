@@ -15,6 +15,7 @@
 
 from http import HTTPStatus
 
+from flask import request
 from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
@@ -29,14 +30,30 @@ API = Namespace('access-requests', description='Endpoints for access requests ma
 
 
 @cors_preflight('GET, OPTIONS')
-@API.route('/status/<status>', methods=['GET', 'OPTIONS'])
-class Applications(Resource):
+@API.route('', methods=['GET', 'OPTIONS'])
+class AccessRequests(Resource):
     """Resource for managing access requests."""
 
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all access requests')
     @auth.require
-    def get(status):
+    def get():
         """Fetch all access requests."""
-        access_requests = AccessRequestsService.get_all_by_status(status)
+        args = request.args.to_dict()
+        access_requests = AccessRequestsService.get_all(args)
+        return access_requests, HTTPStatus.OK
+
+
+@cors_preflight('GET, OPTIONS')
+@API.route('/users/<user_auth_guid>', methods=['GET', 'OPTIONS'])
+class UserAccessRequests(Resource):
+    """Resource for managing user access requests."""
+
+    @staticmethod
+    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all access requests')
+    @auth.require
+    def get(user_auth_guid):
+        """Fetch all access requests."""
+        args = request.args.to_dict()
+        access_requests = AccessRequestsService.get_user_access_requests(user_auth_guid, args)
         return access_requests, HTTPStatus.OK

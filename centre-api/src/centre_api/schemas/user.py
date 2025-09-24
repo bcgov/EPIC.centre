@@ -3,7 +3,7 @@
 This module defines the schema for the user entity.
 """
 
-from marshmallow import Schema, fields, post_dump
+from marshmallow import Schema, fields
 
 
 class UserSchema(Schema):
@@ -14,10 +14,6 @@ class UserSchema(Schema):
     last_name = fields.Str()
     email = fields.Email(attribute='email_address')
     username = fields.Str()
-    apps = fields.List(fields.Str())
-
-    @post_dump
-    def sort_apps(self, data, **kwargs):  # pylint: disable=unused-argument
-        """Ensure the apps list is sorted."""
-        data['apps'] = sorted(data.get('apps', []))
-        return data
+    apps = fields.List(fields.Dict())
+    enabled = fields.Bool()
+    groups = fields.List(fields.Dict())

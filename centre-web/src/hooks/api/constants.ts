@@ -3,4 +3,5 @@ export const QUERY_KEY = Object.freeze({
   REQUEST_CATALOG: "request-catalog",
   USERS: "users",
   ACCESS_REQUESTS: "access-requests",
+  USER: "user",
 });
