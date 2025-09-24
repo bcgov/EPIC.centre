@@ -17,3 +17,18 @@ export function GreenBadge({ label }: BadgeProps) {
     />
   );
 }
+
+export function GreyBadge({ label }: BadgeProps) {
+  return (
+    <Chip
+      sx={{
+        borderRadius: 1,
+        border: `1px solid ${BCDesignTokens.surfaceColorBorderMedium}`,
+        background: BCDesignTokens.surfaceColorSecondaryButtonDisabled,
+        height: "24px",
+        color: BCDesignTokens.typographyColorPrimary,
+      }}
+      label={label}
+    />
+  );
+}

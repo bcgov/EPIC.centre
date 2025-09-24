@@ -44,3 +44,19 @@ class Users(Resource):
         include_groups = request.args.get('include_groups', 'true').lower() == 'true'
         users = UserService.get_users(search_text, include_groups)
         return UserSchema(many=True).dump(users), HTTPStatus.OK
+
+
+@cors_preflight('GET, OPTIONS')
+@API.route('/username/<username>', methods=['GET', 'OPTIONS'])
+class Users(Resource):
+    """Resource for fetching users."""
+
+    @staticmethod
+    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all users')
+    @auth.require
+    def get(username):
+        """Fetch a user by username."""
+        user = UserService.get_user_by_username(username)
+        if not user:
+            return {'message': 'User not found'}, HTTPStatus.NOT_FOUND
+        return UserSchema().dump(user), HTTPStatus.OK

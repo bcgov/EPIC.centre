@@ -5,7 +5,7 @@ import { Grid } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
-  "/_authenticated/request-access/auth/users/$userId",
+  "/_authenticated/request-access/auth/users/$username",
 )({
   component: AuthRequestAccess,
 });

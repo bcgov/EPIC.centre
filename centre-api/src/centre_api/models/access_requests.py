@@ -35,9 +35,16 @@ class AccessRequests(BaseModel):
         }
 
     @classmethod
-    def get_all_requests_by_user(cls, user_auth_guid):
+    def get_all_requests_by_user(cls, user_auth_guid, status: str = None):
         """Get all access requests by user."""
-        return cls.query.filter_by(user_auth_guid=user_auth_guid).all()
+        query = cls.query.filter_by(user_auth_guid=user_auth_guid)
+        if status:
+            if status not in {e.value for e in AccessRequestsStatusEnum}:
+                raise ValueError(
+                    f"Invalid status '{status}'"
+                )
+            query = query.filter_by(status=status)
+        return query.all()
 
     @classmethod
     def get_all_by_status(cls, status: str):
@@ -47,3 +54,18 @@ class AccessRequests(BaseModel):
                 f"Invalid status '{status}'"
             )
         return cls.query.filter_by(status=status).all()
+
+    @classmethod
+    def get_all(cls, filters: dict = None):
+        """Return all access requests."""
+        query = cls.query
+        if status := filters.get('status'):
+            if status not in {e.value for e in AccessRequestsStatusEnum}:
+                raise ValueError(
+                    f"Invalid status '{status}'"
+                )
+            query = query.filter_by(status=status)
+
+        if user_auth_guid := filters.get('user_auth_guid'):
+            query = query.filter_by(user_auth_guid=user_auth_guid)
+        return query.all()

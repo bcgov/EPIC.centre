@@ -14,8 +14,8 @@ export default function UsersTableRow({ user }: Props) {
 
   const handleEditAccess = () => {
     navigate({
-      to: "/request-access/auth/users/$userId",
-      params: { userId: user.id },
+      to: "/request-access/auth/users/$username",
+      params: { username: user.username },
     });
   };
 
@@ -25,7 +25,7 @@ export default function UsersTableRow({ user }: Props) {
       <CentreTableCell sx={{ height: "35px" }}>
         <Stack direction="row" spacing={1} flexWrap="wrap">
           {user.apps.map((app) => (
-            <AppChip key={app} appName={getAppChipTitle(app)} />
+            <AppChip key={app.name} appName={getAppChipTitle(app.name)} />
           ))}
         </Stack>
       </CentreTableCell>

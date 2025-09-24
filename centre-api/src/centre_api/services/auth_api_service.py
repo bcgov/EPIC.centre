@@ -70,3 +70,43 @@ class AuthApiService:
         except requests.RequestException as error:
             current_app.logger.error(f'Error fetching users: {error}')
             return []
+
+    @staticmethod
+    def get_user_by_id(user_auth_guid):
+        """Fetch a single user by username from the Auth API."""
+        try:
+            base_url = f'{os.getenv("AUTH_API")}/api/users/guid/{user_auth_guid}?group_brief_representation=false'
+
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': g.authorization_header,
+            }
+
+            timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
+            response = requests.get(base_url, headers=headers, timeout=timeout)
+            response.raise_for_status()
+
+            return response.json()
+        except requests.RequestException as error:
+            current_app.logger.error(f'Error fetching user by username: {error}')
+            raise error
+
+    @staticmethod
+    def get_user_by_username(username):
+        """Fetch a single user by username from the Auth API."""
+        try:
+            base_url = f'{os.getenv("AUTH_API")}/api/users/{username}?group_brief_representation=false'
+
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': g.authorization_header,
+            }
+
+            timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
+            response = requests.get(base_url, headers=headers, timeout=timeout)
+            response.raise_for_status()
+
+            return response.json()
+        except requests.RequestException as error:
+            current_app.logger.error(f'Error fetching user by username: {error}')
+            raise error

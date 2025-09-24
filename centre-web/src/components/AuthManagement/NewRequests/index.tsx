@@ -14,8 +14,10 @@ export const NewRequests = () => {
     isLoading,
     isError,
   } = useAccessRequests({
-    status: AccessRequestStatus.PENDING,
-    params: queryParams,
+    params: {
+      status: AccessRequestStatus.PENDING,
+      ...queryParams,
+    },
   });
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {

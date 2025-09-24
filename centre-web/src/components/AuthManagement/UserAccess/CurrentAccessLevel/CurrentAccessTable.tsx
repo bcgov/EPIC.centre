@@ -4,38 +4,49 @@ import {
   CentreTableHead,
   CentreTableHeadCell,
 } from "@/components/Shared/CentreTable";
+import { CentreUser } from "@/models/CentreUser";
 import { Table, TableBody, TableContainer, TableRow } from "@mui/material";
+import { getAppChipTitle } from "../../utils";
 
-export const CurrentAccessTable = () => {
-  const mockRequests = [
-    { application: "App A", access: "Read" },
-    { application: "App B", access: "Write" },
-    { application: "App C", access: "Admin" },
-    { application: "App D", access: "Read" },
-    { application: "App E", access: "Write" },
-    { application: "App F", access: "Admin" },
-    { application: "App G", access: "Read" },
-  ];
+type CurrentAccessTableProps = {
+  user?: CentreUser;
+};
+export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
+  const apps = user?.apps || [];
   return (
     <TableContainer>
       <Table>
         <CentreTableHead>
           <TableRow>
-            <CentreTableHeadCell>Application</CentreTableHeadCell>
-            <CentreTableHeadCell>Access</CentreTableHeadCell>
-            <CentreTableHeadCell>Actions</CentreTableHeadCell>
+            <CentreTableHeadCell sx={{ width: "30%" }}>
+              Application
+            </CentreTableHeadCell>
+            <CentreTableHeadCell sx={{ width: "30%" }}>
+              Current Access Level
+            </CentreTableHeadCell>
+            <CentreTableHeadCell sx={{ width: "40%" }}>
+              Actions
+            </CentreTableHeadCell>
           </TableRow>
         </CentreTableHead>
         <TableBody>
-          {mockRequests.map((request, index) => (
-            <TableRow key={request.application + index}>
-              <CentreTableCell>{request.application}</CentreTableCell>
-              <CentreTableCell>{request.access}</CentreTableCell>
-              <CentreTableCell>
-                <CentreLink>Edit Access</CentreLink>
+          {apps.length > 0 ? (
+            apps.map((app) => (
+              <TableRow key={app.name}>
+                <CentreTableCell>{getAppChipTitle(app.name)}</CentreTableCell>
+                <CentreTableCell>{app.role}</CentreTableCell>
+                <CentreTableCell>
+                  <CentreLink>Edit Access</CentreLink>
+                </CentreTableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <CentreTableCell align="center" colSpan={3}>
+                No Existing access.
               </CentreTableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </TableContainer>

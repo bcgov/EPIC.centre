@@ -1,4 +1,5 @@
 import { CentreUser } from "./CentreUser";
+import { EpicApp } from "./EpicApp";
 
 export enum AccessRequestStatus {
   PENDING = "PENDING",
@@ -16,6 +17,7 @@ export type AccessRequest = {
   created_by: string | null;
   updated_by: string | null;
   user: Partial<CentreUser>;
+  app: EpicApp;
 };
 
 export type GroupedRequestsType = {

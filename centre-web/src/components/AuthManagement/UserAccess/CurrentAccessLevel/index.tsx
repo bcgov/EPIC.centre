@@ -1,7 +1,11 @@
 import { Grid, Typography } from "@mui/material";
 import { CurrentAccessTable } from "./CurrentAccessTable";
+import { CentreUser } from "@/models/CentreUser";
 
-export const CurrentAccessLevel = () => {
+type CurrentAccessLevelProps = {
+  user?: CentreUser;
+};
+export const CurrentAccessLevel = ({ user }: CurrentAccessLevelProps) => {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
@@ -10,7 +14,7 @@ export const CurrentAccessLevel = () => {
         </Typography>
       </Grid>
       <Grid item xs={12}>
-        <CurrentAccessTable />
+        <CurrentAccessTable user={user} />
       </Grid>
     </Grid>
   );
