@@ -3,7 +3,7 @@
 This module defines the schema for the user entity.
 """
 
-from marshmallow import Schema, fields, post_dump
+from marshmallow import Schema, fields
 
 
 class UserSchema(Schema):

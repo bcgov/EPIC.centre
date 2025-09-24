@@ -36,7 +36,6 @@ class UserService:
     @staticmethod
     def _enrich_user_with_apps(user):
         """Enrich a single user dictionary with app names and highest level roles based on their groups."""
-
         app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None})
 
         for group in user.get('groups', []):
