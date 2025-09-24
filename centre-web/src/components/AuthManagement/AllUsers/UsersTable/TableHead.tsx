@@ -13,13 +13,11 @@ export default function UsersTableHead() {
       }}
     >
       <TableRow>
-        <CentreTableHeadCell sx={{ width: "20%" }}>
-          User Name
-        </CentreTableHeadCell>
-        <CentreTableHeadCell sx={{ width: "65%" }}>
+        <CentreTableHeadCell>User Name</CentreTableHeadCell>
+        {/* <CentreTableHeadCell sx={{ width: "65%" }}>
           Application
-        </CentreTableHeadCell>
-        <CentreTableHeadCell sx={{ width: "15%" }}>Action</CentreTableHeadCell>
+        </CentreTableHeadCell> */}
+        <CentreTableHeadCell>Action</CentreTableHeadCell>
       </TableRow>
     </TableHead>
   );

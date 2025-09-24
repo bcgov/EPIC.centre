@@ -1,9 +1,7 @@
 import { CentreLink } from "@/components/Shared/CentreLink";
 import { CentreTableCell } from "@/components/Shared/CentreTable";
 import { CentreUser } from "@/models/CentreUser";
-import { Stack, TableRow } from "@mui/material";
-import { getAppChipTitle } from "../../utils";
-import { AppChip } from "@/components/Shared/AppChip";
+import { TableRow } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
 
 type Props = {
@@ -22,13 +20,13 @@ export default function UsersTableRow({ user }: Props) {
   return (
     <TableRow>
       <CentreTableCell>{`${user.last_name ?? ""}, ${user.first_name ?? ""}`}</CentreTableCell>
-      <CentreTableCell sx={{ height: "35px" }}>
+      {/* <CentreTableCell sx={{ height: "35px" }}>
         <Stack direction="row" spacing={1} flexWrap="wrap">
           {user.apps.map((app) => (
             <AppChip key={app.name} appName={getAppChipTitle(app.name)} />
           ))}
         </Stack>
-      </CentreTableCell>
+      </CentreTableCell> */}
       <CentreTableCell>
         <CentreLink onClick={handleEditAccess}>View/Edit Access</CentreLink>
       </CentreTableCell>

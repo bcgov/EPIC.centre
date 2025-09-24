@@ -23,7 +23,7 @@ export const UsersTableBody: React.FC<TableBodyProps> = ({
     return (
       <TableBody>
         <TableRow>
-          <CentreTableCell colSpan={3}>
+          <CentreTableCell colSpan={2}>
             <Stack direction="column" alignItems="center">
               Loading...
               <LinearProgress sx={{ width: "100%" }} />
@@ -38,7 +38,7 @@ export const UsersTableBody: React.FC<TableBodyProps> = ({
     return (
       <TableBody>
         <TableRow>
-          <CentreTableCell colSpan={3} align="center">
+          <CentreTableCell colSpan={2} align="center">
             Error loading users
           </CentreTableCell>
         </TableRow>
@@ -50,7 +50,7 @@ export const UsersTableBody: React.FC<TableBodyProps> = ({
     return (
       <TableBody>
         <TableRow>
-          <CentreTableCell colSpan={3} align="center">
+          <CentreTableCell colSpan={2} align="center">
             {searchText
               ? `No users found matching "${searchText}"`
               : "No users found"}
@@ -70,7 +70,7 @@ export const UsersTableBody: React.FC<TableBodyProps> = ({
         Array.from({ length: rowsPerPage - users.length }).map((_, idx) => (
           <TableRow key={`empty-row-${users.length}-${idx}`}>
             <CentreTableCell
-              colSpan={3}
+              colSpan={2}
               style={{
                 height: "35px",
                 border: "1px solid transparent",

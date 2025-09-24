@@ -50,10 +50,11 @@ class EpicAdminSubGroups(Enum):
     ADMIN = 'ADMIN'
     EAO_MANAGER = 'EAO_MANAGER'
     INSTANCE_ADMIN = 'INSTANCE_ADMIN'
+    SUPERUSER = 'SUPERUSER'
 
 
 GROUP_MAP = {
-    EpicGroups.COMPLIANCE.value: EpicAdminSubGroups.ADMIN.value,
+    EpicGroups.COMPLIANCE.value: EpicAdminSubGroups.SUPERUSER.value,
     EpicGroups.CONDITION_REPO.value: EpicAdminSubGroups.ADMIN.value,
     EpicGroups.SUBMIT.value: EpicAdminSubGroups.EAO_MANAGER.value,
     EpicGroups.TRACK.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
