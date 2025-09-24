@@ -6,7 +6,8 @@ import { QueryRequestParams } from "./types";
 
 type GetUsersParams = {
   search?: string;
-};
+  include_groups?: boolean;
+} & QueryRequestParams<CentreUser>;
 const getUsers = (params: GetUsersParams) => {
   return centreRequest<CentreUser[]>({
     url: `users`,

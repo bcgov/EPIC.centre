@@ -7,12 +7,18 @@ import {
 import { CentreUser } from "@/models/CentreUser";
 import { Table, TableBody, TableContainer, TableRow } from "@mui/material";
 import { getAppChipTitle } from "../../utils";
+import { useMemo } from "react";
+import { getAllAppsWithRoles } from "./utils";
 
 type CurrentAccessTableProps = {
   user?: CentreUser;
 };
 export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
-  const apps = user?.apps || [];
+  const apps = useMemo(() => {
+    const userApps = user?.apps || [];
+    return getAllAppsWithRoles(userApps);
+  }, [user]);
+
   return (
     <TableContainer>
       <Table>
@@ -34,7 +40,7 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
             apps.map((app) => (
               <TableRow key={app.name}>
                 <CentreTableCell>{getAppChipTitle(app.name)}</CentreTableCell>
-                <CentreTableCell>{app.role}</CentreTableCell>
+                <CentreTableCell>{app.role ?? "--"}</CentreTableCell>
                 <CentreTableCell>
                   <CentreLink>Edit Access</CentreLink>
                 </CentreTableCell>

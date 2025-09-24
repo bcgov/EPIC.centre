@@ -7,8 +7,18 @@ import { useState } from "react";
 export const AllUsers = () => {
   const [searchText, setSearchText] = useState("");
 
-  const [queryParams, setQueryParams] = useState<{ search?: string }>({});
-  const { data: users = [], isLoading, isError } = useGetUsers(queryParams);
+  const [queryParams, setQueryParams] = useState<{
+    search?: string;
+    include_groups?: boolean;
+  }>({});
+  const {
+    data: users = [],
+    isLoading,
+    isError,
+  } = useGetUsers({
+    ...queryParams,
+    include_groups: false,
+  });
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(event.target.value);

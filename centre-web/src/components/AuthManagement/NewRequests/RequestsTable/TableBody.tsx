@@ -6,6 +6,7 @@ import { CentreUser } from "@/models/CentreUser";
 import { CentreLink } from "@/components/Shared/CentreLink";
 import { getAppChipTitle } from "../../utils";
 import { AppChip } from "@/components/Shared/AppChip";
+import { useNavigate } from "@tanstack/react-router";
 
 type GroupedRequest = Partial<CentreUser> & {
   requests: AccessRequest[];
@@ -26,6 +27,15 @@ export const RequestsTableBody: React.FC<TableBodyProps> = ({
   rowsPerPage,
   searchText,
 }) => {
+  const navigate = useNavigate();
+
+  const handleEditAccess = () => {
+    navigate({
+      to: "/request-access/auth/users/$username",
+      params: { username: userRequests[0]?.username ?? "" },
+    });
+  };
+
   if (isLoading) {
     return (
       <TableBody>
@@ -83,7 +93,7 @@ export const RequestsTableBody: React.FC<TableBodyProps> = ({
             </Stack>
           </CentreTableCell>
           <CentreTableCell>
-            <CentreLink>View/Edit Access</CentreLink>
+            <CentreLink onClick={handleEditAccess}>View/Edit Access</CentreLink>
           </CentreTableCell>
         </TableRow>
       ))}
