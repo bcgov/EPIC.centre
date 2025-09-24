@@ -14,9 +14,10 @@ type CurrentAccessTableProps = {
   user?: CentreUser;
 };
 export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
-  const userApps = user?.apps || [];
-
-  const apps = useMemo(() => getAllAppsWithRoles(userApps), [userApps]);
+  const apps = useMemo(() => {
+    const userApps = user?.apps || [];
+    return getAllAppsWithRoles(userApps);
+  }, [user]);
 
   return (
     <TableContainer>
