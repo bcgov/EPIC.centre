@@ -37,13 +37,12 @@ type BookmarkSectionProps = {
 
 export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
   const { setOpen: setModalOpen } = useModal();
-
-  const bookmarks = epicApp?.user?.bookmarks || [];
-
   const handleAddEditBookmarks = () => {
     if (!epicApp) return;
     setModalOpen(<AddBookmark epicApp={epicApp} />);
   };
+
+  const bookmarks = epicApp?.user?.bookmarks || [];
 
   return (
     <Box sx={{ width: "100%" }}>

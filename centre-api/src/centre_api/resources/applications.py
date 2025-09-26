@@ -72,3 +72,18 @@ class CatalogApplication(Resource):
         """Create access request."""
         access_request = ApplicationsService.create_access_request(app_id)
         return AccessRequestSchema().dump(access_request), HTTPStatus.OK
+
+
+@cors_preflight('GET, OPTIONS')
+@API.route('/<app_name>/access-levels', methods=['GET'])
+class CatalogApplications(Resource):
+    """Resource for applications that can be requested."""
+
+    @staticmethod
+    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch access request catalogs that are'
+                                                            ' available to request access to')
+    @auth.require
+    def get(app_name):
+        """Fetch apps the user can request access to."""
+        access_levels = ApplicationsService.get_app_access_levels(app_name)
+        return access_levels, HTTPStatus.OK

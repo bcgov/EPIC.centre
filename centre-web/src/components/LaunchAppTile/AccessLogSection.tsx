@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import { LabeledItem } from "./LabeledItem";
+import { LabeledItem } from "../Shared/LabeledItem";
 
 type AccessLogSectionProps = {
   user: {
