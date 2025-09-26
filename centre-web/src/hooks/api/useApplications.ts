@@ -2,6 +2,8 @@ import { centreRequest } from "@/utils/axiosUtils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { QUERY_KEY } from "./constants";
 import { EpicApp, RequestAccessCatalog } from "@/models/EpicApp";
+import { QueryRequestParams } from "./types";
+import { AccessLevel } from "@/models/AccessLevels";
 
 const getApplications = () => {
   return centreRequest<EpicApp[]>({
@@ -39,5 +41,26 @@ const createAccessRequest = (appId: number) => {
 export const useCreateAccessRequest = () => {
   return useMutation({
     mutationFn: createAccessRequest,
+  });
+};
+
+type AppNameParam = {
+  appName: string;
+};
+const geteApplicationAccessLevels = ({ appName }: AppNameParam) => {
+  return centreRequest<AccessLevel[]>({
+    url: `applications/${appName}/access-levels`,
+  });
+};
+
+type GetAppAccessLevelsParam = AppNameParam & QueryRequestParams<AccessLevel[]>;
+export const useGeteApplicationAccessLevels = ({
+  appName,
+  ...queryParams
+}: GetAppAccessLevelsParam) => {
+  return useQuery({
+    queryKey: [QUERY_KEY.REQUEST_CATALOG, appName],
+    queryFn: () => geteApplicationAccessLevels({ appName }),
+    ...queryParams,
   });
 };

@@ -3,6 +3,7 @@ import { KCGroup } from "./KCGroup";
 export type CentreUserApp = {
   name: string;
   role: string | null;
+  group_name: string | null;
 };
 export type CentreUser = {
   id: string;
@@ -10,10 +11,7 @@ export type CentreUser = {
   last_name: string;
   email: string;
   username: string;
-  apps: {
-    name: string;
-    role: string;
-  }[];
+  apps: CentreUserApp[];
   enabled: boolean;
   groups: KCGroup[];
 };
