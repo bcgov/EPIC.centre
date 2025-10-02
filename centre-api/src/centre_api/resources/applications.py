@@ -76,8 +76,8 @@ class CatalogApplication(Resource):
 
 @cors_preflight('GET, OPTIONS')
 @API.route('/<app_name>/access-levels', methods=['GET'])
-class CatalogApplications(Resource):
-    """Resource for applications that can be requested."""
+class ApplicationAccessLevels(Resource):
+    """Resource for application access levels."""
 
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Fetch access request catalogs that are'

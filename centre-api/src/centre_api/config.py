@@ -89,7 +89,7 @@ class _Config():  # pylint: disable=too-few-public-methods
     EPIC_CENTRE_WEB_URL = os.getenv('EPIC_CENTRE_WEB_URL', 'http://localhost:5173')
 
     AUTH_API = os.getenv('AUTH_API', 'http://localhost:8080')
-    
+
     # Application Launch URLs Configuration
     APP_LAUNCH_URLS = {
         'condition_repository': os.getenv('CONDITION_REPOSITORY_LAUNCH_URL', ''),

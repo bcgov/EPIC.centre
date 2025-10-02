@@ -188,7 +188,7 @@ class ApplicationsService:
         """Get access levels for the given app name."""
         group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
         app_group = AuthApiService.get_group(group_name)
-        role_groups = [sub_group for sub_group in app_group.get('subGroups', [])]
+        role_groups = list(app_group.get('subGroups', []))
         access_levels = [
             {
                 'id': role_group.get('id'),
