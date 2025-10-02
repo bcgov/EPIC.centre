@@ -89,6 +89,17 @@ class _Config():  # pylint: disable=too-few-public-methods
     EPIC_CENTRE_WEB_URL = os.getenv('EPIC_CENTRE_WEB_URL', 'http://localhost:5173')
 
     AUTH_API = os.getenv('AUTH_API', 'http://localhost:8080')
+    
+    # Application Launch URLs Configuration
+    APP_LAUNCH_URLS = {
+        'condition_repository': os.getenv('CONDITION_REPOSITORY_LAUNCH_URL', ''),
+        'epic_compliance': os.getenv('EPIC_COMPLIANCE_LAUNCH_URL', ''),
+        'document_search': os.getenv('DOCUMENT_SEARCH_LAUNCH_URL', ''),
+        'epic_track': os.getenv('EPIC_TRACK_LAUNCH_URL', ''),
+        'epic_public': os.getenv('EPIC_PUBLIC_LAUNCH_URL', ''),
+        'epic_submit': os.getenv('EPIC_SUBMIT_LAUNCH_URL', ''),
+        'epic_engage': os.getenv('EPIC_ENGAGE_LAUNCH_URL', ''),
+    }
 
 
 class DevConfig(_Config):  # pylint: disable=too-few-public-methods
