@@ -110,3 +110,23 @@ class AuthApiService:
         except requests.RequestException as error:
             current_app.logger.error(f'Error fetching user by username: {error}')
             raise error
+
+    @staticmethod
+    def get_group(group_name):
+        """Fetch app groups from the Auth API."""
+        try:
+            base_url = f'{os.getenv("AUTH_API")}/api/groups/{group_name}?include_sub_groups=true'
+
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': g.authorization_header,
+            }
+
+            timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
+            response = requests.get(base_url, headers=headers, timeout=timeout)
+            response.raise_for_status()
+
+            return response.json()
+        except requests.RequestException as error:
+            current_app.logger.error(f'Error fetching app groups: {error}')
+            raise error

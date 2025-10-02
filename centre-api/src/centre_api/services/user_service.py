@@ -50,12 +50,13 @@ class UserService:
                 if level > app_roles[app_name]['level']:
                     app_roles[app_name] = {
                         'level': level,
-                        'role': display_name or group.get('name', '')
+                        'role': display_name,
+                        'group_name': group.get('name', '')
                     }
 
         # Construct the apps field as required
         user['apps'] = [
-            {'name': app_name, 'role': role_info['role']}
+            {'name': app_name, 'role': role_info['role'], 'group_name': role_info['group_name']}
             for app_name, role_info in sorted(app_roles.items())
         ]
 

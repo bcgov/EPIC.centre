@@ -4,16 +4,24 @@ import {
   CentreTableHead,
   CentreTableHeadCell,
 } from "@/components/Shared/CentreTable";
-import { CentreUser } from "@/models/CentreUser";
+import { CentreUser, CentreUserApp } from "@/models/CentreUser";
 import { Table, TableBody, TableContainer, TableRow } from "@mui/material";
 import { getAppChipTitle } from "../../utils";
 import { useMemo } from "react";
 import { getAllAppsWithRoles } from "./utils";
+import { useModal } from "@/components/Shared/Modals/modalStore";
+import { EditAccessModal } from "../../EditAccess";
 
 type CurrentAccessTableProps = {
   user?: CentreUser;
 };
 export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
+  const { setOpen: setModalOpen } = useModal();
+  const handleAddEditBookmarks = (app: CentreUserApp) => {
+    if (!user) return;
+    setModalOpen(<EditAccessModal user={user} app={app} />);
+  };
+
   const apps = useMemo(() => {
     const userApps = user?.apps || [];
     return getAllAppsWithRoles(userApps);
@@ -42,7 +50,9 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
                 <CentreTableCell>{getAppChipTitle(app.name)}</CentreTableCell>
                 <CentreTableCell>{app.role ?? "--"}</CentreTableCell>
                 <CentreTableCell>
-                  <CentreLink>Edit Access</CentreLink>
+                  <CentreLink onClick={() => handleAddEditBookmarks(app)}>
+                    Edit Access
+                  </CentreLink>
                 </CentreTableCell>
               </TableRow>
             ))

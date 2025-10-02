@@ -23,9 +23,10 @@ class ApplicationsService:
         public_apps = [EpicAppName.DOCUMENT_SEARCH.value]
         accessed_apps.update(public_apps)
 
-        apps = ApplicationModel.get_all()
         if not accessed_apps:
             return []
+
+        apps = ApplicationModel.get_all()
         apps = [(app, user_app) for app, user_app in apps if app.name in accessed_apps]
         return [
             {
@@ -180,3 +181,22 @@ class ApplicationsService:
         accessed_apps = {CLIENT_NAME_TO_APP_NAME_MAP[client] for client in accessed_clients
                          if client in CLIENT_NAME_TO_APP_NAME_MAP}
         return accessed_apps
+
+    @classmethod
+    def get_app_access_levels(cls, app_name):
+        """Get access levels for the given app name."""
+        group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
+        app_group = AuthApiService.get_group(group_name)
+        role_groups = [sub_group for sub_group in app_group.get('subGroups', [])]
+        access_levels = [
+            {
+                'id': role_group.get('id'),
+                'name': role_group.get('attributes', {}).get('display_name', [''])[0],
+                'level': role_group.get('attributes', {}).get('level', [''])[0],
+                'group_name': role_group.get('name'),
+                'group_path': role_group.get('path'),
+                'description': role_group.get('attributes', {}).get('description', [''])[0]
+            }
+            for role_group in role_groups
+        ]
+        return access_levels
