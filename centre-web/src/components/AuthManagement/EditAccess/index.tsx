@@ -5,9 +5,7 @@ import {
   Typography,
   Button,
   Stack,
-  Radio,
   RadioGroup,
-  FormControlLabel,
   FormControl,
   FormLabel,
   CircularProgress,
@@ -29,7 +27,7 @@ type EditAccessModalProps = {
   user: CentreUser;
   app: CentreUserApp;
 };
-export const EditAccessModal = ({ user, app }: EditAccessModalProps) => {
+export const EditAccessModal = ({ app }: EditAccessModalProps) => {
   const { setClose } = useModal();
   const [selectedRole, setSelectedRole] = useState<string | null>(
     app.group_name ?? null,
