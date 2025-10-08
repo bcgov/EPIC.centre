@@ -101,7 +101,6 @@ class _Config():  # pylint: disable=too-few-public-methods
         'epic_engage': os.getenv('EPIC_ENGAGE_LAUNCH_URL', ''),
     }
 
-
     # Application User Management URLs Configuration
     APP_USER_MANAGEMENT_URLS = {
         'epic_track': os.getenv('EPIC_TRACK_USER_MANAGEMENT_URL', ''),
