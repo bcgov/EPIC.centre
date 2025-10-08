@@ -15,7 +15,7 @@ defaults:
 
 jobs:
   deployment:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     environment:
       name: ${{ github.event.inputs.environment }}
     steps:
@@ -33,5 +33,5 @@ jobs:
           oc tag centre-api:latest centre-api:${{ github.event.inputs.environment }}
           oc tag centre-web:latest centre-web:${{ github.event.inputs.environment }}
           
-          oc rollout status dc/centre-api -n ${{ secrets.OPENSHIFT_REPOSITORY }}-${{ github.event.inputs.environment }} -w
-          oc rollout status dc/centre-web -n ${{ secrets.OPENSHIFT_REPOSITORY }}-${{ github.event.inputs.environment }} -w
+          oc rollout restart deployment/centre-api -n ${{ secrets.OPENSHIFT_REPOSITORY }}-${{ github.event.inputs.environment }} 
+          oc rollout restart deployment/centre-web -n ${{ secrets.OPENSHIFT_REPOSITORY }}-${{ github.event.inputs.environment }}

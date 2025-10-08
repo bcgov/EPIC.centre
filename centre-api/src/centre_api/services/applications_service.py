@@ -9,6 +9,7 @@ from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.models.db import session_scope
 from centre_api.services.auth_api_service import AuthApiService
+from centre_api.utils.app_config import get_app_launch_url
 from centre_api.utils.datetime_util import convert_utc_to_local_str
 from centre_api.utils.token_info import TokenInfo
 
@@ -34,7 +35,7 @@ class ApplicationsService:
                 'name': app.name,
                 'title': app.title,
                 'description': app.description,
-                'launch_url': app.launch_url,
+                'launch_url': get_app_launch_url(app.name),
                 'is_active': app.is_active,
                 'user': {
                     'user_auth_guid': user_app.user_auth_guid if user_app else None,
@@ -88,7 +89,7 @@ class ApplicationsService:
                 'recipients': [user_details.get('email_address')],
                 'user_name': f"{user_details.get('first_name', '')} {user_details.get('last_name', '')}".strip(),
                 'application_name': app.title,
-                'application_url': app.launch_url,
+                'application_url': get_app_launch_url(app.name),
                 'epic_centre_link': f"{os.getenv('EPIC_CENTRE_WEB_URL')}/request-access",
                 'requested_at': requested_at,
                 'sender': os.getenv('DST_EMAIL')
@@ -187,7 +188,7 @@ class ApplicationsService:
         """Get access levels for the given app name."""
         group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
         app_group = AuthApiService.get_group(group_name)
-        role_groups = [sub_group for sub_group in app_group.get('subGroups', [])]
+        role_groups = list(app_group.get('subGroups', []))
         access_levels = [
             {
                 'id': role_group.get('id'),
