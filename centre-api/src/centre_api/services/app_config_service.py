@@ -11,7 +11,7 @@ class AppConfigService:
     def get_all_app_configs(cls):
         """Get all app configurations for apps defined in EpicAppName enum."""
         app_configs = []
-        
+
         for app_name in EpicAppName:
             app_config = {
                 'name': app_name.value,
@@ -21,7 +21,7 @@ class AppConfigService:
                 'is_active': True,  # All apps in EpicAppName are considered active
             }
             app_configs.append(app_config)
-        
+
         return app_configs
 
     @staticmethod

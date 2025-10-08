@@ -2,14 +2,12 @@ import { Button } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 type AppUserManagementButtonProps = {
-  appName: string;
   appUserManagementUrl?: string;
   supportsGranularRoleManagement: boolean;
   tabIndex?: number;
 };
 
 export const AppUserManagementButton = ({
-  appName,
   appUserManagementUrl,
   supportsGranularRoleManagement,
   tabIndex,

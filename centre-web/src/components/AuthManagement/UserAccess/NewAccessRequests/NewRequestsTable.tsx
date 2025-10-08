@@ -127,7 +127,6 @@ export const NewRequestsTable = ({
                 </CentreTableCell>
                 <CentreTableCell>
                   <AppUserManagementButton
-                    appName={request.app.name}
                     appUserManagementUrl={appUrlMap.get(request.app.name)}
                     supportsGranularRoleManagement={appSupportsGranularRoleManagementMap.get(request.app.name) ?? false}
                     tabIndex={appUserManagementTabIndex.get(index) || -1}

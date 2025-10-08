@@ -128,7 +128,6 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
                 </CentreTableCell>
                 <CentreTableCell>
                   <AppUserManagementButton
-                    appName={app.name}
                     appUserManagementUrl={appUrlMap.get(app.name)}
                     supportsGranularRoleManagement={app.supportsGranularRoleManagement ?? false}
                     tabIndex={appUserManagementTabIndex.get(index) || -1}
