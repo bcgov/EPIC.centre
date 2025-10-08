@@ -91,6 +91,13 @@ class _Config():  # pylint: disable=too-few-public-methods
     AUTH_API = os.getenv('AUTH_API', 'http://localhost:8080')
 
 
+    # Application User Management URLs Configuration
+    APP_USER_MANAGEMENT_URLS = {
+        'epic_track': os.getenv('EPIC_TRACK_USER_MANAGEMENT_URL', ''),
+        'epic_engage': os.getenv('EPIC_ENGAGE_USER_MANAGEMENT_URL', ''),
+    }
+
+
 class DevConfig(_Config):  # pylint: disable=too-few-public-methods
     """Dev Config."""
 

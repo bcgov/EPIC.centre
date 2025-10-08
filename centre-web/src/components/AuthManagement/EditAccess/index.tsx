@@ -11,6 +11,7 @@ import {
   FormControl,
   FormLabel,
   CircularProgress,
+  Alert,
 } from "@mui/material";
 import { useGeteApplicationAccessLevels } from "@/hooks/api/useApplications";
 import { CentreUser, CentreUserApp } from "@/models/CentreUser";
@@ -28,14 +29,50 @@ import { CentreRadio } from "@/components/Shared/CentreRadio";
 type EditAccessModalProps = {
   user: CentreUser;
   app: CentreUserApp;
+  onClose?: () => void;
 };
-export const EditAccessModal = ({ user, app }: EditAccessModalProps) => {
+
+
+
+const getRoleDisplayName = (roleName: string): string => {
+  // Map internal role names to display names
+  const roleMap: Record<string, string> = {
+    "team_member": "Team Member",
+    "team-member": "Team Member",
+    "Team Member": "Team Member",
+    "viewer": "Viewer",
+    "Viewer": "Viewer",
+    "VIEWER": "Viewer",
+    "super_admin": "Super Admin",
+    "super-admin": "Super Admin",
+    "Super Admin": "Super Admin",
+    "super_user": "Super User",
+    "super-user": "Super User",
+    "SUPER_USER": "Super User",
+    "Super User": "Super User",
+    "admin": "Admin",
+    "Admin": "Admin",
+    "instance_admin": "Instance Admin",
+    "instance-admin": "Instance Admin",
+    "INSTANCE_ADMIN": "Instance Admin",
+    "Instance Admin": "Instance Admin",
+    "no_role": "No Role",
+    "no-role": "No Role",
+    "NO_ROLE": "No Role",
+    "No Role": "No Role",
+  };
+  return roleMap[roleName] || roleName;
+};
+
+export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
   const { setClose } = useModal();
   const [selectedRole, setSelectedRole] = useState<string | null>(
     app.group_name ?? null,
   );
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  
+  const supportsGranularRoleManagement = app.supportsGranularRoleManagement ?? false;
 
   const {
     data: accessLevels = [],
@@ -65,6 +102,7 @@ export const EditAccessModal = ({ user, app }: EditAccessModalProps) => {
 
       notify.success("Access level updated.");
       setClose();
+      onClose?.();
     } catch (err) {
       const fallback =
         "Unable to update access level. Please try again or contact support.";
@@ -192,6 +230,22 @@ export const EditAccessModal = ({ user, app }: EditAccessModalProps) => {
             </Grid>
           )}
 
+          {/* Please Note section for apps with granular role management */}
+          <If condition={supportsGranularRoleManagement && selectedRole && selectedRole !== "revoke" && selectedRole !== "deny"}>
+            <Grid item xs={12} sx={{ mt: 2 }}>
+              <Alert severity="info" sx={{ backgroundColor: "#f5f5f5", border: "1px solid #e0e0e0" }}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>Please Note:</strong> When you click the "Confirm" button, this user will be added as a{" "}
+                  {getRoleDisplayName(selectedRole!)} in {getAppChipTitle(app.name)}.
+                </Typography>
+                <Typography variant="body2">
+                  To assign this user to some engagements, please go to the User Management section in{" "}
+                  {getAppChipTitle(app.name)} by clicking the "App User Management" link.
+                </Typography>
+              </Alert>
+            </Grid>
+          </If>
+
           <Grid item xs={12} container justifyContent="flex-end">
             <Stack
               direction="row"
@@ -199,7 +253,10 @@ export const EditAccessModal = ({ user, app }: EditAccessModalProps) => {
               mt="24px"
               justifyContent="flex-end"
             >
-              <Button variant="outlined" onClick={setClose}>
+              <Button variant="outlined" onClick={() => {
+                setClose();
+                onClose?.();
+              }}>
                 Close
               </Button>
               <LoadingButton
