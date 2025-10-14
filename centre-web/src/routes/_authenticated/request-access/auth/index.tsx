@@ -22,19 +22,20 @@ function AuthRequestAccess() {
   const { user } = useAuth();
   const TAB_HASHES = ["new-requests", "all-users"] as const;
 
-  // Check if user has Administrator role
-  if (!isAdministrator(user?.access_token)) {
-    return <Navigate to="/access-denied" />;
-  }
-
   function getTabIndexFromHash(hash: string): number {
     const cleanHash = hash.replace("#", "");
     const idx = TAB_HASHES.indexOf(cleanHash as (typeof TAB_HASHES)[number]);
     return idx === -1 ? 0 : idx;
   }
+  
   const [tabIndex, setTabIndex] = useState(() =>
     getTabIndexFromHash(window.location.hash),
   );
+
+  // Check if user has Administrator role
+  if (!isAdministrator(user?.access_token)) {
+    return <Navigate to="/access-denied" />;
+  }
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);

@@ -14,7 +14,6 @@ export const getUserGroupsFromToken = (accessToken?: string): string[] => {
     const tokenData: any = jwtDecode(accessToken);
     return tokenData?.groups || [];
   } catch (error) {
-    console.error("Error decoding token for groups:", error);
     return [];
   }
 };
@@ -31,7 +30,6 @@ export const getResourceAccessFromToken = (accessToken?: string): Record<string,
     const tokenData: any = jwtDecode(accessToken);
     return tokenData?.resource_access || {};
   } catch (error) {
-    console.error("Error decoding token for resource_access:", error);
     return {};
   }
 };
