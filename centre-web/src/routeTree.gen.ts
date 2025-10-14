@@ -15,6 +15,7 @@ import { Route as UnauthenticatedImport } from './routes/unauthenticated'
 import { Route as OidcCallbackImport } from './routes/oidc-callback'
 import { Route as LogoutImport } from './routes/logout'
 import { Route as ErrorImport } from './routes/error'
+import { Route as AccessDeniedImport } from './routes/access-denied'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as IndexImport } from './routes/index'
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
@@ -42,6 +43,11 @@ const LogoutRoute = LogoutImport.update({
 
 const ErrorRoute = ErrorImport.update({
   path: '/error',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AccessDeniedRoute = AccessDeniedImport.update({
+  path: '/access-denied',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -100,6 +106,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof AuthenticatedImport
+      parentRoute: typeof rootRoute
+    }
+    '/access-denied': {
+      id: '/access-denied'
+      path: '/access-denied'
+      fullPath: '/access-denied'
+      preLoaderRoute: typeof AccessDeniedImport
       parentRoute: typeof rootRoute
     }
     '/error': {
@@ -179,6 +192,7 @@ export const routeTree = rootRoute.addChildren({
     AuthenticatedRequestAccessAuthIndexRoute,
     AuthenticatedRequestAccessAuthUsersUsernameRoute,
   }),
+  AccessDeniedRoute,
   ErrorRoute,
   LogoutRoute,
   OidcCallbackRoute,
@@ -195,6 +209,7 @@ export const routeTree = rootRoute.addChildren({
       "children": [
         "/",
         "/_authenticated",
+        "/access-denied",
         "/error",
         "/logout",
         "/oidc-callback",
@@ -213,6 +228,9 @@ export const routeTree = rootRoute.addChildren({
         "/_authenticated/request-access/auth/",
         "/_authenticated/request-access/auth/users/$username"
       ]
+    },
+    "/access-denied": {
+      "filePath": "access-denied.tsx"
     },
     "/error": {
       "filePath": "error.tsx"
