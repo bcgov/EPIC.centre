@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { Box, Grid, Paper, Typography } from "@mui/material";
+import { useAuth } from "react-oidc-context";
 
 import { AllUsers } from "@/components/AuthManagement/AllUsers";
 import { NewRequests } from "@/components/AuthManagement/NewRequests";
@@ -11,13 +12,20 @@ import {
 import { CentreTabPanel } from "@/components/Shared/CentreTabs/CentreTabPanel";
 import { PageContainer } from "@/components/Shared/PageGrid";
 import { BCDesignTokens } from "epic.theme";
+import { isAdministrator } from "@/utils/roleUtils";
 
 export const Route = createFileRoute("/_authenticated/request-access/auth/")({
   component: AuthRequestAccess,
 });
 
 function AuthRequestAccess() {
+  const { user } = useAuth();
   const TAB_HASHES = ["new-requests", "all-users"] as const;
+
+  // Check if user has Administrator role
+  if (!isAdministrator(user?.access_token)) {
+    return <Navigate to="/access-denied" />;
+  }
 
   function getTabIndexFromHash(hash: string): number {
     const cleanHash = hash.replace("#", "");
