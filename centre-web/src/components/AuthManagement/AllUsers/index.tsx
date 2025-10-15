@@ -1,5 +1,6 @@
-import { Button, Grid, Stack, TextField } from "@mui/material";
+import { Button, Grid, IconButton, Stack, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import CancelIcon from "@mui/icons-material/Cancel";
 import { UsersTable } from "./UsersTable";
 import { useGetUsers } from "@/hooks/api/useUsers";
 import { useState } from "react";
@@ -28,6 +29,17 @@ export const AllUsers = () => {
     setQueryParams({ search: searchText });
   };
 
+  const handleClearSearch = () => {
+    setSearchText("");
+    setQueryParams({ search: "" });
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      handleSearchTrigger();
+    }
+  };
+
   return (
     <Grid container spacing={2} mt={"1em"}>
       <Grid item xs={12}>
@@ -35,17 +47,32 @@ export const AllUsers = () => {
           <TextField
             variant="outlined"
             placeholder="Search users by name"
+            value={searchText}
             InputProps={{
               startAdornment: (
                 <SearchIcon
                   sx={{ color: "#7B90A7", height: "30px", width: "30px" }}
                 />
               ),
+              endAdornment: searchText && (
+                <IconButton
+                  size="small"
+                  onClick={handleClearSearch}
+                  sx={{
+                    padding: "4px",
+                  }}
+                >
+                  <CancelIcon
+                    sx={{ color: "#7B90A7", height: "24px", width: "24px" }}
+                  />
+                </IconButton>
+              ),
             }}
             sx={{
               width: "400px",
             }}
             onChange={handleSearchChange}
+            onKeyDown={handleKeyDown}
           />
           <Button
             sx={{
