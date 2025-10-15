@@ -25,7 +25,7 @@ export const NewAccessRequests = ({ user }: NewAccessRequestsProps) => {
         </Typography>
       </Grid>
       <Grid item xs={12}>
-        <NewRequestsTable requests={requests} />
+        <NewRequestsTable requests={requests} user={user} />
       </Grid>
     </Grid>
   );

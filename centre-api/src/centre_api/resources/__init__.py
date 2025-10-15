@@ -25,6 +25,7 @@ from flask import Blueprint
 
 from .apihelper import Api
 from .applications import API as APPLICATIONS_API
+from .app_config import API as APP_CONFIG_API
 from .ops import API as OPS_API
 from .user_application import API as USER_APPLICATION_API
 from .users import API as USERS_API
@@ -66,6 +67,7 @@ API = Api(
 # HANDLER = ExceptionHandler(API)
 
 API.add_namespace(APPLICATIONS_API)
+API.add_namespace(APP_CONFIG_API)
 API.add_namespace(USER_APPLICATION_API)
 API.add_namespace(USERS_API)
 API.add_namespace(ACCESS_REQUESTS_API)
