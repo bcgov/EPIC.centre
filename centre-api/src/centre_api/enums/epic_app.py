@@ -42,6 +42,7 @@ class EpicGroups(Enum):
     CONDITION_REPO = 'CONDITION-REPO'
     SUBMIT = 'SUBMIT'
     TRACK = 'TRACK'
+    ENGAGE = 'ENGAGE'
 
 
 class EpicAdminSubGroups(Enum):
@@ -58,6 +59,7 @@ GROUP_MAP = {
     EpicGroups.CONDITION_REPO.value: EpicAdminSubGroups.ADMIN.value,
     EpicGroups.SUBMIT.value: EpicAdminSubGroups.EAO_MANAGER.value,
     EpicGroups.TRACK.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
+    EpicGroups.ENGAGE.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
 }
 
 APP_NAME_TO_GROUP_MAP = {
@@ -65,6 +67,7 @@ APP_NAME_TO_GROUP_MAP = {
     EpicAppName.CONDITION_REPOSITORY.value: EpicGroups.CONDITION_REPO.value,
     EpicAppName.EPIC_SUBMIT.value: EpicGroups.SUBMIT.value,
     EpicAppName.EPIC_TRACK.value: EpicGroups.TRACK.value,
+    EpicAppName.EPIC_ENGAGE.value: EpicGroups.ENGAGE.value,
 }
 
 GROUP_TO_APP_NAME_MAP = {v: k for k, v in APP_NAME_TO_GROUP_MAP.items()}
