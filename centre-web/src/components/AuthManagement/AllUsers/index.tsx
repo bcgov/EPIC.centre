@@ -46,7 +46,7 @@ export const AllUsers = () => {
         <Stack direction="row" spacing={1} alignItems="center">
           <TextField
             variant="outlined"
-            placeholder="Search users by name"
+            placeholder="Enter the first three letters of the user’s First or Last name"
             value={searchText}
             InputProps={{
               startAdornment: (
@@ -69,7 +69,7 @@ export const AllUsers = () => {
               ),
             }}
             sx={{
-              width: "400px",
+              width: "520px",
             }}
             onChange={handleSearchChange}
             onKeyDown={handleKeyDown}
