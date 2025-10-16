@@ -103,8 +103,13 @@ class _Config():  # pylint: disable=too-few-public-methods
 
     # Application User Management URLs Configuration
     APP_USER_MANAGEMENT_URLS = {
+        'document_search': os.getenv('DOCUMENT_SEARCH_USER_MANAGEMENT_URL', ''),
+        'condition_repository': os.getenv('CONDITION_REPOSITORY_USER_MANAGEMENT_URL', ''),
+        'epic_compliance': os.getenv('EPIC_COMPLIANCE_USER_MANAGEMENT_URL', ''),
         'epic_track': os.getenv('EPIC_TRACK_USER_MANAGEMENT_URL', ''),
         'epic_engage': os.getenv('EPIC_ENGAGE_USER_MANAGEMENT_URL', ''),
+        'epic_public': os.getenv('EPIC_PUBLIC_USER_MANAGEMENT_URL', ''),
+        'epic_submit': os.getenv('EPIC_SUBMIT_USER_MANAGEMENT_URL', ''),
     }
 
 
