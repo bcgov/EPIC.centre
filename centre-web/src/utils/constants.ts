@@ -5,9 +5,10 @@
  * Maps client names to their respective admin role names
  */
 export const EPIC_ADMIN_ROLES: Record<string, string[]> = {
+  "epic-centre": ["manage_auth","manage_users"],
   "epictrack-web": ["manage_users"],
   "epic-engage": ["manage_users"],
   "epic-compliance": ["super_user"],
-  "epic-condition": ["admin"],
-  "epic-submit": ["extended_eao_edit", "eao_create"],
+  "epic-condition": [""],
+  "epic-submit": ["extended_eao_edit"],
 };
