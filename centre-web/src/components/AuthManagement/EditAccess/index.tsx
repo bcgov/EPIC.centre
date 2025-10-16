@@ -58,6 +58,9 @@ const getRoleDisplayName = (roleName: string): string => {
     "no-role": "No Role",
     "NO_ROLE": "No Role",
     "No Role": "No Role",
+    "DEVELOPER": "Developer",
+    "EAO_MANAGER": "Manager",
+    "EAO_STAFF": "Staff",
   };
   return roleMap[roleName] || roleName;
 };
