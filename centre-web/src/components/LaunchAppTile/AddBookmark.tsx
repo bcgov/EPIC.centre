@@ -61,10 +61,10 @@ const getDefaultValues = (bookmarks: Bookmark[] = []): BookmarkSchema => ({
     bookmarks.length === 3
       ? bookmarks.map((b) => ({ url: b.url || "", label: b.label || "" }))
       : [
-          { url: bookmarks[0]?.url || "", label: bookmarks[0]?.label || "" },
-          { url: bookmarks[1]?.url || "", label: bookmarks[1]?.label || "" },
-          { url: bookmarks[2]?.url || "", label: bookmarks[2]?.label || "" },
-        ],
+        { url: bookmarks[0]?.url || "", label: bookmarks[0]?.label || "" },
+        { url: bookmarks[1]?.url || "", label: bookmarks[1]?.label || "" },
+        { url: bookmarks[2]?.url || "", label: bookmarks[2]?.label || "" },
+      ],
 });
 
 type BookmarkFormProps = {
@@ -139,6 +139,12 @@ const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
                   error={!!errors.bookmarks?.[idx]?.url}
                   helperText={errors.bookmarks?.[idx]?.url?.message}
                   sx={{ marginBottom: 0 }}
+                  InputLabelProps={{
+                    sx: {
+                      fontSize: "16px",
+                      fontWeight: "bold"
+                    }
+                  }}
                   inputProps={{ "aria-label": `Bookmark ${idx + 1} URL` }}
                 />
               </Grid>
@@ -150,6 +156,12 @@ const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
                   error={!!errors.bookmarks?.[idx]?.label}
                   helperText={errors.bookmarks?.[idx]?.label?.message}
                   sx={{ marginBottom: 0 }}
+                  InputLabelProps={{
+                    sx: {
+                      fontSize: "16px",
+                      fontWeight: "bold"
+                    }
+                  }}
                   inputProps={{ "aria-label": `Bookmark ${idx + 1} Link Name` }}
                 />
               </Grid>
@@ -168,6 +180,18 @@ const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
               </Grid>
             </Grid>
           ))}{" "}
+          <Grid item xs={12}>
+            <Divider
+              sx={{
+                width: "calc(100% + 32px)",
+                marginLeft: "-16px",
+                marginRight: "-16px",
+                backgroundColor: BCDesignTokens.themeGray50,
+                marginTop: "16px",
+              }}
+              aria-label="Bookmarks form divider"
+            />
+          </Grid>
           <Grid item xs={12} container justifyContent="flex-end">
             <Stack direction="row" spacing={"8px"} mt="16px">
               <Button
@@ -201,9 +225,9 @@ export const AddBookmark = ({ epicApp }: AddBookmark) => {
     <Box
       sx={{
         ...modalStyle,
-        padding: "16px",
         width: "810px",
         overflowY: "none",
+        padding: "16px",
       }}
       aria-label={`${epicApp.title} Bookmarks Modal`}
     >
@@ -212,6 +236,7 @@ export const AddBookmark = ({ epicApp }: AddBookmark) => {
           <Typography
             variant="h3"
             aria-label={`${epicApp.title} Bookmarks Title`}
+            sx={{ fontSize: "1.5rem" }}
           >
             {epicApp.title} Bookmarks
           </Typography>
@@ -219,7 +244,9 @@ export const AddBookmark = ({ epicApp }: AddBookmark) => {
         <Grid item xs={12}>
           <Divider
             sx={{
-              width: "702px",
+              width: "calc(100% + 32px)",
+              marginLeft: "-16px",
+              marginRight: "-16px",
               backgroundColor: BCDesignTokens.themeGray50,
             }}
             aria-label="Bookmarks divider"
@@ -229,8 +256,8 @@ export const AddBookmark = ({ epicApp }: AddBookmark) => {
           <Typography
             variant="subtitle2"
             sx={{
-              fontWeight: "bold",
               mt: "16px",
+              fontSize: "16px",
             }}
             aria-label="Bookmarks instructions"
           >
