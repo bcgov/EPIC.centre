@@ -16,7 +16,6 @@ export const AccessLogSection = ({ user }: AccessLogSectionProps) => {
         display: "flex",
         flexDirection: "column",
         gap: "8px",
-        padding: "0 8px",
       }}
     >
       <LabeledItem label="Access Level">

@@ -7,6 +7,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { Circle } from "@mui/icons-material";
 import { CentreLink } from "../Shared/CentreLink";
 import { useModal } from "../Shared/Modals/modalStore";
 import { AddBookmark } from "./AddBookmark";
@@ -79,8 +80,13 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
                         overflow: "clip",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
+                        display: "flex",
+                        alignItems: "center",
                       }}
                     >
+                      {bookmark.label && bookmark.label.length > 0 && (
+                        <Circle sx={{  marginRight: "5px", fontSize: "7px" }} />
+                      )}
                       {bookmark.label}
                     </Typography>
                   </CentreLink>
