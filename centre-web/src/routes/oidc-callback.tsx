@@ -16,13 +16,8 @@ function OidcCallback() {
   useEffect(() => {
     const initialize = async () => {
       if (isAuthenticated && !userInitialized) {
-        try {
-          await initializeUser.mutateAsync();
-          setUserInitialized(true);
-        } catch (err) {
-          console.error("Failed to initialize user:", err);
-          setUserInitialized(true);
-        }
+        await initializeUser.mutateAsync();
+        setUserInitialized(true);
       }
     };
 

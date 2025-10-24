@@ -17,7 +17,7 @@ Manages user settings like card positions and other preferences
 """
 from __future__ import annotations
 
-from sqlalchemy import Column, JSON, String
+from sqlalchemy import Column
 
 from .base_model import BaseModel
 from .db import db
@@ -44,7 +44,7 @@ class UserSettings(BaseModel):
     def create_or_update_settings(cls, username: str, card_positions: dict = None, settings: dict = None):
         """Create or update user settings."""
         existing = cls.find_by_username(username)
-        
+
         if existing:
             if card_positions is not None:
                 existing.card_positions = card_positions
@@ -52,7 +52,7 @@ class UserSettings(BaseModel):
                 existing.settings = settings
             existing.save()
             return existing
-        
+
         # Create new settings
         new_settings = cls(
             username=username,
@@ -72,4 +72,3 @@ class UserSettings(BaseModel):
         """Get card positions for a user."""
         user_settings = cls.find_by_username(username)
         return user_settings.card_positions if user_settings else {}
-

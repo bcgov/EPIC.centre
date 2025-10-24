@@ -23,7 +23,6 @@ from centre_api.models.user import User
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.schemas.user import UserSchema
 from centre_api.services.user_service import UserService
-from centre_api.utils.token_info import TokenInfo
 from centre_api.utils.util import cors_preflight
 
 
@@ -97,5 +96,5 @@ class InitializeUser(Resource):
             new_user = User.create_user(user_data)
             return UserSchema().dump(new_user), HTTPStatus.CREATED
 
-        except Exception as e:
+        except (ValueError, KeyError) as e:
             return {'message': f'Error initializing user: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR

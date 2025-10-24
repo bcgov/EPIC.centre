@@ -56,7 +56,7 @@ class UserService:
 
         # Initialize all apps from GROUP_TO_APP_NAME_MAP with defaults
         all_apps = {}
-        for group_name, app_name in GROUP_TO_APP_NAME_MAP.items():
+        for _, app_name in GROUP_TO_APP_NAME_MAP.items():
             if app_name not in app_roles:
                 all_apps[app_name] = {
                     'level': float('-inf'),

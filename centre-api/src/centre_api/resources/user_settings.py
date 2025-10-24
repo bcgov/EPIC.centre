@@ -46,7 +46,7 @@ class GetUserSettings(Resource):
                 return {'message': 'Username not found in token'}, HTTPStatus.BAD_REQUEST
 
             user_settings = UserSettings.find_by_username(username)
-            
+
             if not user_settings:
                 # Return default settings if none exist
                 return {
@@ -57,7 +57,7 @@ class GetUserSettings(Resource):
 
             return UserSettingsSchema().dump(user_settings), HTTPStatus.OK
 
-        except Exception as e:
+        except (ValueError, KeyError) as e:
             return {'message': f'Error fetching user settings: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
@@ -84,7 +84,7 @@ class UpdateCardPositions(Resource):
             user_settings = UserSettings.update_card_positions(username, card_positions)
             return UserSettingsSchema().dump(user_settings), HTTPStatus.OK
 
-        except Exception as e:
+        except (ValueError, KeyError) as e:
             return {'message': f'Error updating card positions: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
@@ -111,6 +111,5 @@ class UpdateSettings(Resource):
             user_settings = UserSettings.create_or_update_settings(username, settings=settings)
             return UserSettingsSchema().dump(user_settings), HTTPStatus.OK
 
-        except Exception as e:
+        except (ValueError, KeyError) as e:
             return {'message': f'Error updating settings: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
-

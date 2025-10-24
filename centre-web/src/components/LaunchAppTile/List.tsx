@@ -126,7 +126,6 @@ export const List = ({ items }: ListProps) => {
       } catch (error) {
         attempts++;
         if (attempts >= maxRetries) {
-          console.error("Unable to save card positions after retries");
           // TODO: Show toast notification
         }
       }

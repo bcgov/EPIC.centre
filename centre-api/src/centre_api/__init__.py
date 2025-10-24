@@ -15,7 +15,7 @@ from centre_api.config import get_named_config
 from centre_api.models import db, ma, migrate
 from centre_api.utils.cache import cache
 from centre_api.utils.util import allowedorigins
-from centre_api.utils.user_login import handle_first_time_login 
+from centre_api.utils.user_login import handle_first_time_login
 
 # Security Response headers
 csp = (
