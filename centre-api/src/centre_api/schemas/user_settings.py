@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """User settings schema."""
-from marshmallow import fields, Schema
+from marshmallow import Schema, fields
 
 
 class UserSettingsSchema(Schema):
@@ -22,4 +22,3 @@ class UserSettingsSchema(Schema):
     username = fields.Str()
     card_positions = fields.Dict()
     settings = fields.Dict()
-

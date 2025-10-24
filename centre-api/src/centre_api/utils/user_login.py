@@ -57,9 +57,8 @@ def handle_first_time_login():
         # User might have been created by another request simultaneously
         db.session.rollback()
         g.user_created = False
-    except Exception as e:
+    except (ValueError, AttributeError, KeyError) as e:
         # Log error but don't block the request
         from flask import current_app
-        current_app.logger.error(f"Error handling first time login: {str(e)}")
+        current_app.logger.error(f'Error handling first time login: {str(e)}')
         g.user_created = False
-
