@@ -1,5 +1,4 @@
 import { Box, Typography } from "@mui/material";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { BCDesignTokens } from "epic.theme";
 
 export const Header = () => {
@@ -31,7 +30,6 @@ export const Header = () => {
           <Typography variant="h6" component="div">
             Document Search
           </Typography>
-          <DragIndicatorIcon />
         </Box>
         <Typography variant="body2" width="100%">
           Search all the documents in EPIC

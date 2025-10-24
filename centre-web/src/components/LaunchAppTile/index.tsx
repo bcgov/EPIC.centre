@@ -6,8 +6,10 @@ import { BCDesignTokens } from "epic.theme";
 
 type LaunchAppTileProps = {
   item: EpicApp;
+  dragListeners?: any;
+  dragAttributes?: any;
 };
-export const LaunchAppTile = ({ item }: LaunchAppTileProps) => {
+export const LaunchAppTile = ({ item, dragListeners, dragAttributes }: LaunchAppTileProps) => {
   return (
     <Paper
       elevation={2}
@@ -17,7 +19,7 @@ export const LaunchAppTile = ({ item }: LaunchAppTileProps) => {
         boxShadow: BCDesignTokens.surfaceShadowMedium,
       }}
     >
-      <Header data={item} />
+      <Header data={item} dragListeners={dragListeners} dragAttributes={dragAttributes} />
       <Content epicApp={item} />
     </Paper>
   );

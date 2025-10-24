@@ -5,4 +5,5 @@ export const QUERY_KEY = Object.freeze({
   USERS: "users",
   ACCESS_REQUESTS: "access-requests",
   USER: "user",
+  USER_SETTINGS: "user-settings",
 });

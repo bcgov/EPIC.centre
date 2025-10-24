@@ -1,5 +1,5 @@
 import { centreRequest } from "@/utils/axiosUtils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { QUERY_KEY } from "./constants";
 import { CentreUser } from "@/models/CentreUser";
 import { QueryRequestParams } from "./types";
@@ -36,5 +36,18 @@ export const useGetUser = (params: GetUserParams) => {
   return useQuery({
     queryKey: [QUERY_KEY.USER, username],
     queryFn: () => getUser({ username, ...rest }),
+  });
+};
+
+const initializeUser = () => {
+  return centreRequest<CentreUser>({
+    url: `users/initialize`,
+    method: "POST",
+  });
+};
+
+export const useInitializeUser = () => {
+  return useMutation({
+    mutationFn: initializeUser,
   });
 };
