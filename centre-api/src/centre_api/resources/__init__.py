@@ -30,6 +30,7 @@ from .ops import API as OPS_API
 from .user_application import API as USER_APPLICATION_API
 from .users import API as USERS_API
 from .access_requests import API as ACCESS_REQUESTS_API
+from .user_settings import API as USER_SETTINGS_API
 
 
 __all__ = ('API_BLUEPRINT', 'OPS_BLUEPRINT')
@@ -71,3 +72,4 @@ API.add_namespace(APP_CONFIG_API)
 API.add_namespace(USER_APPLICATION_API)
 API.add_namespace(USERS_API)
 API.add_namespace(ACCESS_REQUESTS_API)
+API.add_namespace(USER_SETTINGS_API)

@@ -34,17 +34,23 @@ class User(BaseModel):
         return cls.query.all()
 
     @classmethod
+    def find_by_username(cls, username: str):
+        """Find user by username."""
+        return cls.query.filter_by(username=username).first()
+
+    @classmethod
     def create_user(cls, user_data) -> User:
         """Create user."""
-        user_data = User(
+        user = User(
+            username=user_data.get('username', None),
             first_name=user_data.get('first_name', None),
             middle_name=user_data.get('middle_name', None),
             last_name=user_data.get('last_name', None),
             email_address=user_data.get('email_address', None),
             contact_number=user_data.get('contact_number', None),
         )
-        user_data.save()
-        return user_data
+        user.save()
+        return user
 
     @classmethod
     def update_user(cls, user_id, user_dict) -> Optional[User]:

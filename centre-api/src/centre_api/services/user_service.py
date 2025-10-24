@@ -36,7 +36,7 @@ class UserService:
     @staticmethod
     def _enrich_user_with_apps(user):
         """Enrich a single user dictionary with app names and highest level roles based on their groups."""
-        app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None})
+        app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None, 'group_name': None})
 
         for group in user.get('groups', []):
             path = group.get('path', '')
@@ -54,10 +54,22 @@ class UserService:
                         'group_name': group.get('name', '')
                     }
 
+        # Initialize all apps from GROUP_TO_APP_NAME_MAP with defaults
+        all_apps = {}
+        for _, app_name in GROUP_TO_APP_NAME_MAP.items():
+            if app_name not in app_roles:
+                all_apps[app_name] = {
+                    'level': float('-inf'),
+                    'role': None,
+                    'group_name': None
+                }
+            else:
+                all_apps[app_name] = app_roles[app_name]
+
         # Construct the apps field as required
         user['apps'] = [
             {'name': app_name, 'role': role_info['role'], 'group_name': role_info['group_name']}
-            for app_name, role_info in sorted(app_roles.items())
+            for app_name, role_info in sorted(all_apps.items())
         ]
 
         return user

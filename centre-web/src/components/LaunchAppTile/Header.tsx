@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, IconButton } from "@mui/material";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { BCDesignTokens } from "epic.theme";
 import LinesEllipsis from "react-lines-ellipsis";
@@ -8,8 +8,10 @@ type HeaderProps = {
     title: string;
     description: string;
   };
+  dragListeners?: any;
+  dragAttributes?: any;
 };
-export const Header = ({ data }: HeaderProps) => {
+export const Header = ({ data, dragListeners, dragAttributes }: HeaderProps) => {
   const { title, description } = data;
 
   return (
@@ -40,7 +42,25 @@ export const Header = ({ data }: HeaderProps) => {
           <Typography variant="h6" component="div">
             {title}
           </Typography>
-          <DragIndicatorIcon htmlColor={BCDesignTokens.themeGray80} />
+          <IconButton
+            size="small"
+            {...dragListeners}
+            {...dragAttributes}
+            sx={{
+              cursor: dragListeners ? "grab" : "default",
+              "&:active": {
+                cursor: dragListeners ? "grabbing" : "default",
+              },
+              "&:hover": {
+                backgroundColor: "rgba(0, 0, 0, 0.04)",
+              },
+            }}
+            aria-label="Drag to reorder"
+            role="button"
+            tabIndex={0}
+          >
+            <DragIndicatorIcon htmlColor={BCDesignTokens.themeGray80} />
+          </IconButton>
         </Box>
         <Typography variant="body2" width="100%">
           <LinesEllipsis

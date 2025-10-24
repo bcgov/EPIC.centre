@@ -15,7 +15,7 @@ from centre_api.config import get_named_config
 from centre_api.models import db, ma, migrate
 from centre_api.utils.cache import cache
 from centre_api.utils.util import allowedorigins
-
+from centre_api.utils.user_login import handle_first_time_login
 
 # Security Response headers
 csp = (
@@ -73,6 +73,7 @@ def create_app(run_mode=os.getenv('FLASK_ENV', 'development')):
     @app.before_request
     def set_origin():
         g.origin_url = request.environ.get('HTTP_ORIGIN', 'localhost')
+        handle_first_time_login()
 
     build_cache(app)
 

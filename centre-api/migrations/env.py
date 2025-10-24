@@ -18,8 +18,10 @@ logger = logging.getLogger('alembic.env')
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
+# Import all models to ensure they're registered with SQLAlchemy
+# Import other models if needed
+from centre_api.models import Application, User, UserApplication, EmailQueue, UserSettings  # noqa: F401
+
 config.set_main_option(
     'sqlalchemy.url',
     str(current_app.extensions['migrate'].db.engine.url).replace('%', '%%'))
