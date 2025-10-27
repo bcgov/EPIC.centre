@@ -103,33 +103,18 @@ export const List = ({ items }: ListProps) => {
 
         const newItems = arrayMove(items, oldIndex, newIndex);
         
-        // Save card positions to backend with retry logic
         const cardPositions: Record<string, number> = {};
         newItems.forEach((item, index) => {
           cardPositions[item.id] = index;
         });
         
-        saveCardPositionsWithRetry(cardPositions, 3);
+        updateCardPositions.mutateAsync(cardPositions).catch(() => {
+        });
 
         return newItems;
       });
     }
     setActiveId(null);
-  };
-
-  const saveCardPositionsWithRetry = async (cardPositions: Record<string, number>, maxRetries: number) => {
-    let attempts = 0;
-    while (attempts < maxRetries) {
-      try {
-        await updateCardPositions.mutateAsync(cardPositions);
-        return;
-      } catch (error) {
-        attempts++;
-        if (attempts >= maxRetries) {
-          // TODO: Show toast notification
-        }
-      }
-    }
   };
 
   const activeItem = sortedItems.find((item) => item.id === activeId);
