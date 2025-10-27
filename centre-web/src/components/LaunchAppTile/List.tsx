@@ -97,22 +97,19 @@ export const List = ({ items }: ListProps) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setSortedItems((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-
-        const newItems = arrayMove(items, oldIndex, newIndex);
-        
-        const cardPositions: Record<string, number> = {};
-        newItems.forEach((item, index) => {
-          cardPositions[item.id] = index;
-        });
-        
-        updateCardPositions.mutateAsync(cardPositions).catch(() => {
-        });
-
-        return newItems;
+      const oldIndex = sortedItems.findIndex((item) => item.id === active.id);
+      const newIndex = sortedItems.findIndex((item) => item.id === over.id);
+      
+      const newItems = arrayMove(sortedItems, oldIndex, newIndex);
+      
+      setSortedItems(newItems);
+      
+      const cardPositions: Record<string, number> = {};
+      newItems.forEach((item, index) => {
+        cardPositions[item.id] = index;
       });
+      
+      updateCardPositions.mutateAsync(cardPositions);
     }
     setActiveId(null);
   };

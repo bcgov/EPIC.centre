@@ -200,7 +200,7 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
           )}
 
           {/* Please Note section for apps with granular role management */}
-          <If condition={supportsGranularRoleManagement && selectedRole && selectedRole !== "revoke" && selectedRole !== "deny"}>
+          <If condition={supportsGranularRoleManagement && selectedRole && selectedRole !== REVOKE_OPTION.value && selectedRole !== DENY_OPTION.value}>
             <Grid item xs={12} sx={{ mt: 2 }}>
               <Alert severity="info" sx={{ backgroundColor: "#f5f5f5", border: "1px solid #e0e0e0" }}>
                 <Typography variant="body2" sx={{ mb: 1 }}>
