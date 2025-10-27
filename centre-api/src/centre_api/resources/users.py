@@ -18,6 +18,7 @@ from http import HTTPStatus
 from flask import g, request
 from flask_restx import Namespace, Resource
 
+from centre_api import limiter
 from centre_api.auth import auth
 from centre_api.models.user import User
 from centre_api.resources.apihelper import Api as ApiHelper
@@ -71,6 +72,7 @@ class InitializeUser(Resource):
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Initialize current user')
     @auth.require
+    @limiter.limit("5 per minute")
     def post():
         """Initialize current user in staff_users table if not exists."""
         try:

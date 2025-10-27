@@ -9,13 +9,14 @@ from http import HTTPStatus
 import secure
 from flask import Flask, current_app, g, request
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from centre_api.auth import jwt
 from centre_api.config import get_named_config
 from centre_api.models import db, ma, migrate
 from centre_api.utils.cache import cache
 from centre_api.utils.util import allowedorigins
-# from centre_api.utils.user_login import handle_first_time_login
 
 # Security Response headers
 csp = (
@@ -41,6 +42,16 @@ secure_headers = secure.Secure(
 )
 
 
+# 🔐 Function to use username as limiter key, fallback to IP
+def get_user_identifier():
+    return g.jwt_oidc_token_info.get('preferred_username') if hasattr(g,
+                                                                      'jwt_oidc_token_info') else get_remote_address()
+
+
+# ⚡ Global Limiter instance
+limiter = Limiter(key_func=get_user_identifier, default_limits=[])
+
+
 def create_app(run_mode=os.getenv('FLASK_ENV', 'development')):
     """Create flask app."""
     from centre_api.resources import API_BLUEPRINT, OPS_BLUEPRINT  # pylint: disable=import-outside-toplevel
@@ -51,7 +62,11 @@ def create_app(run_mode=os.getenv('FLASK_ENV', 'development')):
     # All configuration are in config file
     app.config.from_object(get_named_config(run_mode))
 
+    # Setup CORS
     CORS(app, origins=allowedorigins(), supports_credentials=True)
+
+    # Setup rate limiter
+    limiter.init_app(app)
 
     # Register blueprints
     app.register_blueprint(API_BLUEPRINT)
@@ -73,8 +88,6 @@ def create_app(run_mode=os.getenv('FLASK_ENV', 'development')):
     @app.before_request
     def set_origin():
         g.origin_url = request.environ.get('HTTP_ORIGIN', 'localhost')
-        # Disabled automatic user creation - now handled explicitly via /api/users/initialize endpoint
-        # handle_first_time_login()
 
     build_cache(app)
 
@@ -112,7 +125,6 @@ def setup_jwt_manager(app, jwt_manager):
         realm_roles = realm_access.get('roles', [])
 
         client_name = current_app.config.get('JWT_OIDC_AUDIENCE')
-
         resource_access = a_dict.get('resource_access', {})
         client_roles = resource_access.get(client_name, {}).get('roles', [])
 

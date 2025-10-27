@@ -13,6 +13,7 @@ export const useGetUserSettings = () => {
   return useQuery({
     queryKey: [QUERY_KEY.USER_SETTINGS],
     queryFn: getUserSettings,
+    retry: 3,
   });
 };
 
@@ -26,7 +27,7 @@ const updateCardPositions = (cardPositions: Record<string, number>) => {
 
 export const useUpdateCardPositions = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: updateCardPositions,
     retry: 3,
@@ -46,7 +47,7 @@ const updateSettings = (settings: Record<string, any>) => {
 
 export const useUpdateSettings = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: updateSettings,
     onSuccess: () => {
@@ -54,4 +55,3 @@ export const useUpdateSettings = () => {
     },
   });
 };
-

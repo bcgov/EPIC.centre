@@ -32,15 +32,17 @@ type EditAccessModalProps = {
   onClose?: () => void;
 };
 
-
-
-
-export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
+export const EditAccessModal = ({
+  app,
+  onClose,
+  user,
+}: EditAccessModalProps) => {
   const { setClose } = useModal();
   const [selectedRole, setSelectedRole] = useState<string | null>(
     app.group_name ?? null,
   );
-  const supportsGranularRoleManagement = app.supportsGranularRoleManagement ?? false;
+  const supportsGranularRoleManagement =
+    app.supportsGranularRoleManagement ?? false;
 
   const {
     data: accessLevels = [],
@@ -227,16 +229,31 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
           )}
 
           {/* Please Note section for apps with granular role management */}
-          <If condition={supportsGranularRoleManagement && selectedRole && selectedRole !== REVOKE_OPTION.value && selectedRole !== DENY_OPTION.value}>
+          <If
+            condition={
+              supportsGranularRoleManagement &&
+              selectedRole &&
+              selectedRole !== REVOKE_OPTION.value &&
+              selectedRole !== DENY_OPTION.value
+            }
+          >
             <Grid item xs={12} sx={{ mt: 2 }}>
-              <Alert severity="info" sx={{ backgroundColor: "#f5f5f5", border: "1px solid #e0e0e0" }}>
+              <Alert
+                severity="info"
+                sx={{ backgroundColor: "#f5f5f5", border: "1px solid #e0e0e0" }}
+              >
                 <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>Please Note:</strong> When you click the "Confirm" button, this user will be added as a{" "}
-                  {accessLevels.find(level => level.group_name === selectedRole)?.name || selectedRole} in {getAppChipTitle(app.name)}.
+                  <strong>Please Note:</strong> When you click the "Confirm"
+                  button, this user will be added as a{" "}
+                  {accessLevels.find(
+                    (level) => level.group_name === selectedRole,
+                  )?.name || selectedRole}{" "}
+                  in {getAppChipTitle(app.name)}.
                 </Typography>
                 <Typography variant="body2">
-                  To assign this user to some engagements, please go to the User Management section in{" "}
-                  {getAppChipTitle(app.name)} by clicking the "App User Management" link.
+                  To assign this user to some engagements, please go to the User
+                  Management section in {getAppChipTitle(app.name)} by clicking
+                  the "App User Management" link.
                 </Typography>
               </Alert>
             </Grid>
@@ -249,10 +266,13 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
               mt="24px"
               justifyContent="flex-end"
             >
-              <Button variant="outlined" onClick={() => {
-                setClose();
-                onClose?.();
-              }}>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setClose();
+                  onClose?.();
+                }}
+              >
                 Close
               </Button>
               <LoadingButton
