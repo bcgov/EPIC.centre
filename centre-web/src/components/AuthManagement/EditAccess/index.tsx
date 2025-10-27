@@ -32,39 +32,6 @@ type EditAccessModalProps = {
 
 
 
-const getRoleDisplayName = (roleName: string): string => {
-  // Map internal role names to display names
-  const roleMap: Record<string, string> = {
-    "team_member": "Team Member",
-    "team-member": "Team Member",
-    "Team Member": "Team Member",
-    "viewer": "Viewer",
-    "Viewer": "Viewer",
-    "VIEWER": "Viewer",
-    "super_admin": "Super Admin",
-    "super-admin": "Super Admin",
-    "Super Admin": "Super Admin",
-    "super_user": "Super User",
-    "super-user": "Super User",
-    "SUPER_USER": "Super User",
-    "Super User": "Super User",
-    "admin": "Admin",
-    "Admin": "Admin",
-    "instance_admin": "Instance Admin",
-    "instance-admin": "Instance Admin",
-    "INSTANCE_ADMIN": "Instance Admin",
-    "Instance Admin": "Instance Admin",
-    "no_role": "No Role",
-    "no-role": "No Role",
-    "NO_ROLE": "No Role",
-    "No Role": "No Role",
-    "DEVELOPER": "Developer",
-    "EAO_MANAGER": "Manager",
-    "EAO_STAFF": "Staff",
-    "SUPER_ADMIN": "Super Admin",
-  };
-  return roleMap[roleName] || roleName;
-};
 
 export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
   const { setClose } = useModal();
@@ -233,12 +200,12 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
           )}
 
           {/* Please Note section for apps with granular role management */}
-          <If condition={supportsGranularRoleManagement && selectedRole && selectedRole !== "revoke" && selectedRole !== "deny"}>
+          <If condition={supportsGranularRoleManagement && selectedRole && selectedRole !== REVOKE_OPTION.value && selectedRole !== DENY_OPTION.value}>
             <Grid item xs={12} sx={{ mt: 2 }}>
               <Alert severity="info" sx={{ backgroundColor: "#f5f5f5", border: "1px solid #e0e0e0" }}>
                 <Typography variant="body2" sx={{ mb: 1 }}>
                   <strong>Please Note:</strong> When you click the "Confirm" button, this user will be added as a{" "}
-                  {getRoleDisplayName(selectedRole!)} in {getAppChipTitle(app.name)}.
+                  {accessLevels.find(level => level.group_name === selectedRole)?.name || selectedRole} in {getAppChipTitle(app.name)}.
                 </Typography>
                 <Typography variant="body2">
                   To assign this user to some engagements, please go to the User Management section in{" "}

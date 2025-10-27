@@ -29,6 +29,7 @@ export const useUpdateCardPositions = () => {
   
   return useMutation({
     mutationFn: updateCardPositions,
+    retry: 3,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY.USER_SETTINGS] });
     },

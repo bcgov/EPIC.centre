@@ -97,39 +97,21 @@ export const List = ({ items }: ListProps) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setSortedItems((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-
-        const newItems = arrayMove(items, oldIndex, newIndex);
-        
-        // Save card positions to backend with retry logic
-        const cardPositions: Record<string, number> = {};
-        newItems.forEach((item, index) => {
-          cardPositions[item.id] = index;
-        });
-        
-        saveCardPositionsWithRetry(cardPositions, 3);
-
-        return newItems;
+      const oldIndex = sortedItems.findIndex((item) => item.id === active.id);
+      const newIndex = sortedItems.findIndex((item) => item.id === over.id);
+      
+      const newItems = arrayMove(sortedItems, oldIndex, newIndex);
+      
+      setSortedItems(newItems);
+      
+      const cardPositions: Record<string, number> = {};
+      newItems.forEach((item, index) => {
+        cardPositions[item.id] = index;
       });
+      
+      updateCardPositions.mutateAsync(cardPositions);
     }
     setActiveId(null);
-  };
-
-  const saveCardPositionsWithRetry = async (cardPositions: Record<string, number>, maxRetries: number) => {
-    let attempts = 0;
-    while (attempts < maxRetries) {
-      try {
-        await updateCardPositions.mutateAsync(cardPositions);
-        return;
-      } catch (error) {
-        attempts++;
-        if (attempts >= maxRetries) {
-          // TODO: Show toast notification
-        }
-      }
-    }
   };
 
   const activeItem = sortedItems.find((item) => item.id === activeId);
