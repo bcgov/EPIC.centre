@@ -89,15 +89,15 @@ export const NewRequestsTable = ({
       <Table>
         <CentreTableHead>
           <TableRow>
-            <CentreTableHeadCell sx={{ width: "25%" }}>
+            <CentreTableHeadCell sx={{ width: "30%" }}>
               Application
             </CentreTableHeadCell>
-            <CentreTableHeadCell sx={{ width: "25%" }}>
+            <CentreTableHeadCell sx={{ width: "30%" }}>
               Current Access Level
             </CentreTableHeadCell>
-            <CentreTableHeadCell sx={{ width: "25%" }}>
+            <CentreTableHeadCell sx={{ width: "30%" }}>
             </CentreTableHeadCell>
-            <CentreTableHeadCell sx={{ width: "25%" }}>
+            <CentreTableHeadCell sx={{ width: "10%" }}>
               Actions
             </CentreTableHeadCell>
           </TableRow>
