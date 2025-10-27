@@ -1,5 +1,9 @@
 import { centreRequest } from "@/utils/axiosUtils";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import {
+  useMutation,
+  UseMutationOptions,
+  useQuery,
+} from "@tanstack/react-query";
 import { QUERY_KEY } from "./constants";
 import { CentreUser } from "@/models/CentreUser";
 import { QueryRequestParams } from "./types";
@@ -49,5 +53,31 @@ const initializeUser = () => {
 export const useInitializeUser = () => {
   return useMutation({
     mutationFn: initializeUser,
+  });
+};
+
+type UpdateUserGroupParams = {
+  username: string;
+  groupName: string;
+  appName: string;
+};
+export const updateUserGroup = (params: UpdateUserGroupParams) => {
+  const { username, groupName, appName } = params;
+  return centreRequest<unknown>({
+    url: `users/${username}/groups`,
+    method: "PUT",
+    data: { group_name: groupName, app_name: appName },
+  });
+};
+
+type UseUpdateUserGroupsOptions = UseMutationOptions<
+  unknown,
+  unknown,
+  UpdateUserGroupParams
+>;
+export const useUpdateUserGroup = (options?: UseUpdateUserGroupsOptions) => {
+  return useMutation({
+    mutationFn: (params: UpdateUserGroupParams) => updateUserGroup(params),
+    ...options,
   });
 };

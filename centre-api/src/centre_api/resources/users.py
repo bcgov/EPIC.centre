@@ -62,7 +62,6 @@ class UserByUsername(Resource):
             return {'message': 'User not found'}, HTTPStatus.NOT_FOUND
         return UserSchema().dump(user), HTTPStatus.OK
 
-
 @cors_preflight('POST, OPTIONS')
 @API.route('/initialize', methods=['POST', 'OPTIONS'])
 class InitializeUser(Resource):
@@ -98,3 +97,17 @@ class InitializeUser(Resource):
 
         except (ValueError, KeyError) as e:
             return {'message': f'Error initializing user: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+@cors_preflight('PUT, OPTIONS')
+@API.route('/<username>/groups', methods=['PUT', 'OPTIONS'])
+class User(Resource):
+    """Resource for fetching users."""
+
+    @staticmethod
+    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all users')
+    @auth.require
+    def put(username):
+        """Update a user group assignment."""
+        group_data = API.payload
+        UserService.update_user_group(username, group_data)
+        return "User group updated", HTTPStatus.OK
