@@ -29,6 +29,7 @@ export enum EpicAppName {
   EPIC_PUBLIC = "epic_public",
   EPIC_SUBMIT = "epic_submit",
   EPIC_ENGAGE = "epic_engage",
+  EPIC_CENTRE = "epic_centre",
 }
 
 export enum RequestAccessStatus {

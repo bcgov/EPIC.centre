@@ -96,9 +96,9 @@ export const NewRequestsTable = ({
               Current Access Level
             </CentreTableHeadCell>
             <CentreTableHeadCell sx={{ width: "25%" }}>
-              Actions
             </CentreTableHeadCell>
             <CentreTableHeadCell sx={{ width: "25%" }}>
+              Actions
             </CentreTableHeadCell>
           </TableRow>
         </CentreTableHead>
@@ -110,6 +110,13 @@ export const NewRequestsTable = ({
                   {getAppChipTitle(request.app.name)}
                 </CentreTableCell>
                 <CentreTableCell>--</CentreTableCell>
+                <CentreTableCell sx={{ minHeight: "40px" }}>
+                  <AppUserManagementButton
+                    appUserManagementUrl={appUrlMap.get(request.app.name)}
+                    supportsGranularRoleManagement={appSupportsGranularRoleManagementMap.get(request.app.name) ?? false}
+                    tabIndex={appUserManagementTabIndex.get(index) || -1}
+                  />
+                </CentreTableCell>
                 <CentreTableCell>
                   <CentreLink 
                     onClick={() => handleAddEditBookmarks(request)}
@@ -124,13 +131,6 @@ export const NewRequestsTable = ({
                   >
                     Edit Access
                   </CentreLink>
-                </CentreTableCell>
-                <CentreTableCell>
-                  <AppUserManagementButton
-                    appUserManagementUrl={appUrlMap.get(request.app.name)}
-                    supportsGranularRoleManagement={appSupportsGranularRoleManagementMap.get(request.app.name) ?? false}
-                    tabIndex={appUserManagementTabIndex.get(index) || -1}
-                  />
                 </CentreTableCell>
               </TableRow>
             ))

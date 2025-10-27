@@ -1,5 +1,6 @@
-import { Button } from "@mui/material";
+import { Box } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { BCDesignTokens } from "epic.theme";
 
 type AppUserManagementButtonProps = {
   appUserManagementUrl?: string;
@@ -23,34 +24,43 @@ export const AppUserManagementButton = ({
     }
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
-    <Button
-      variant="text"
-      size="small"
-      endIcon={<OpenInNewIcon />}
+    <Box
+      component="span"
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
       tabIndex={tabIndex}
+      role="button"
       sx={{
-        color: "#1976d2",
-        textTransform: "none",
-        fontWeight: "normal",
-        "&:hover": {
-          backgroundColor: "rgba(25, 118, 210, 0.04)",
-        },
+        color: BCDesignTokens.themeBlue90,
+        textDecoration: "underline",
+        cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "4px",
+        fontSize: "inherit",
+        lineHeight: "inherit",
         "&:focus": {
-          outline: "2px solid #1976d2",
+          outline: `2px solid ${BCDesignTokens.themeBlue90}`,
           outlineOffset: "2px",
-          backgroundColor: "rgba(25, 118, 210, 0.08)",
+          borderRadius: "2px",
         },
         "&:focus-visible": {
-          outline: "2px solid #1976d2",
+          outline: `2px solid ${BCDesignTokens.themeBlue90}`,
           outlineOffset: "2px",
-          backgroundColor: "rgba(25, 118, 210, 0.08)",
+          borderRadius: "2px",
         },
       }}
     >
       App User Management
-    </Button>
+      <OpenInNewIcon sx={{ fontSize: "1rem", verticalAlign: "middle" }} />
+    </Box>
   );
 };
-
