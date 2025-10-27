@@ -14,7 +14,7 @@ import {
 import { useGeteApplicationAccessLevels } from "@/hooks/api/useApplications";
 import { CentreUser, CentreUserApp } from "@/models/CentreUser";
 import { useModal } from "@/components/Shared/Modals/modalStore";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { notify } from "@/components/Shared/Snackbar/snackbarStore";
 import { isAxiosError } from "axios";
 import { modalStyle } from "@/components/Shared/Modals/constants";
@@ -23,6 +23,8 @@ import { Else, If, Then, Unless, When } from "react-if";
 import { LoadingButton } from "@/components/Shared/LoadingButton";
 import { EditAccessModalSkeleton } from "./EditAccessSkeleton";
 import { CentreRadio } from "@/components/Shared/CentreRadio";
+import { useUpdateUserGroup } from "@/hooks/api/useUsers";
+import { EPIC_APP_TO_GROUP } from "@/models/KCGroup";
 
 type EditAccessModalProps = {
   user: CentreUser;
@@ -38,9 +40,6 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
   const [selectedRole, setSelectedRole] = useState<string | null>(
     app.group_name ?? null,
   );
-  const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  
   const supportsGranularRoleManagement = app.supportsGranularRoleManagement ?? false;
 
   const {
@@ -51,39 +50,55 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
     appName: app.name,
   });
 
+  console.log(accessLevels);
+  const handleUpdateError = (error: unknown) => {
+    if (isAxiosError(error)) {
+      notify.error(
+        error.response?.data?.message || "Failed to update user access.",
+      );
+    } else {
+      notify.error("Failed to update user access.");
+    }
+    setClose();
+  };
+
+  const handleUpdateSuccess = () => {
+    notify.success("User access updated successfully.");
+    setClose();
+  };
+
+  const {
+    mutateAsync: updateUserGroup,
+    isPending: isUpdating,
+    error: updateError,
+  } = useUpdateUserGroup({
+    onError: handleUpdateError,
+    onSuccess: handleUpdateSuccess,
+  });
+
   const currentRole = app.role;
 
   const handleConfirm = async () => {
-    if (!selectedRole) {
+    const selectedAccessLevel = accessLevels.find(
+      (level) => level.group_path === selectedRole,
+    );
+    if (!selectedAccessLevel) {
       notify.error("Please select an access level.");
       return;
     }
 
-    setSubmitting(true);
-    setErrorMsg(null);
-
-    try {
-      //   await updateUserRole({
-      //     username,
-      //     application: applicationName,
-      //     role: selectedRole,
-      //   });
-
-      notify.success("Access level updated.");
-      setClose();
-      onClose?.();
-    } catch (err) {
-      const fallback =
-        "Unable to update access level. Please try again or contact support.";
-      if (isAxiosError(err)) {
-        const msg = err.response?.data?.message ?? fallback;
-        setErrorMsg(msg);
-      } else {
-        setErrorMsg(fallback);
-      }
-    } finally {
-      setSubmitting(false);
+    const parentGroupName =
+      EPIC_APP_TO_GROUP[app.name as keyof typeof EPIC_APP_TO_GROUP];
+    if (!parentGroupName) {
+      notify.error("Invalid application name.");
+      return;
     }
+
+    await updateUserGroup({
+      username: user.username,
+      groupName: selectedAccessLevel.group_name,
+      appName: parentGroupName,
+    });
   };
 
   const REVOKE_OPTION = {
@@ -94,6 +109,18 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
     label: "Deny Access Request",
     value: "deny",
   };
+
+  const errorMsg = useMemo(() => {
+    if (updateError) {
+      if (isAxiosError(updateError)) {
+        return (
+          updateError.response?.data?.message || "Failed to update user access."
+        );
+      }
+      return "Failed to update user access.";
+    }
+    return null;
+  }, [updateError]);
 
   if (accessLevelsLoading) {
     return (
@@ -167,7 +194,7 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
                 {accessLevels.map((accessLevel) => (
                   <CentreRadio
                     key={accessLevel.name}
-                    value={accessLevel.group_name}
+                    value={accessLevel.group_path}
                     label={accessLevel.name}
                   />
                 ))}
@@ -231,7 +258,7 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
               <LoadingButton
                 variant="contained"
                 onClick={handleConfirm}
-                loading={submitting}
+                loading={isUpdating}
               >
                 Confirm
               </LoadingButton>

@@ -51,7 +51,8 @@ class UserService:
                     app_roles[app_name] = {
                         'level': level,
                         'role': display_name,
-                        'group_name': group.get('name', '')
+                        'group_name': group.get('name', ''),
+                        'group_path': path
                     }
 
         # Initialize all apps from GROUP_TO_APP_NAME_MAP with defaults
@@ -68,8 +69,15 @@ class UserService:
 
         # Construct the apps field as required
         user['apps'] = [
-            {'name': app_name, 'role': role_info['role'], 'group_name': role_info['group_name']}
-            for app_name, role_info in sorted(all_apps.items())
+            {'name': app_name, 'role': role_info['role'],
+             'group_name': role_info['group_name'], 'group_path': role_info['group_path']}
+            for app_name, role_info in sorted(app_roles.items())
         ]
 
         return user
+
+    @classmethod
+    def update_user_group(cls, username: str, group_data: dict):
+        """Retrieve a user by ID and enrich with application access information."""
+        response = AuthApiService.update_user_group(username, group_data)
+        return response
