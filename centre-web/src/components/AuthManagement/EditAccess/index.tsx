@@ -61,6 +61,7 @@ const getRoleDisplayName = (roleName: string): string => {
     "DEVELOPER": "Developer",
     "EAO_MANAGER": "Manager",
     "EAO_STAFF": "Staff",
+    "SUPER_ADMIN": "Super Admin",
   };
   return roleMap[roleName] || roleName;
 };

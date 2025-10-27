@@ -12,6 +12,7 @@ class EpicAppName(Enum):
     EPIC_PUBLIC = 'epic_public'
     EPIC_SUBMIT = 'epic_submit'
     EPIC_ENGAGE = 'epic_engage'
+    EPIC_CENTRE = 'epic_centre'
 
 
 class EpicAppClientName(Enum):
@@ -23,6 +24,7 @@ class EpicAppClientName(Enum):
     EPIC_PUBLIC = 'epic-public'
     EPIC_SUBMIT = 'epic-submit'
     EPIC_ENGAGE = 'epic-engage'
+    EPIC_CENTRE = 'epic-centre'
 
 
 CLIENT_NAME_TO_APP_NAME_MAP = {
@@ -32,6 +34,7 @@ CLIENT_NAME_TO_APP_NAME_MAP = {
     EpicAppClientName.EPIC_PUBLIC.value: EpicAppName.EPIC_PUBLIC.value,
     EpicAppClientName.EPIC_SUBMIT.value: EpicAppName.EPIC_SUBMIT.value,
     EpicAppClientName.EPIC_ENGAGE.value: EpicAppName.EPIC_ENGAGE.value,
+    EpicAppClientName.EPIC_CENTRE.value: EpicAppName.EPIC_CENTRE.value,
 }
 
 
@@ -43,6 +46,7 @@ class EpicGroups(Enum):
     SUBMIT = 'SUBMIT'
     TRACK = 'TRACK'
     ENGAGE = 'ENGAGE'
+    CENTRE = 'CENTRE'
 
 
 class EpicAdminSubGroups(Enum):
@@ -52,6 +56,7 @@ class EpicAdminSubGroups(Enum):
     EAO_MANAGER = 'EAO_MANAGER'
     INSTANCE_ADMIN = 'INSTANCE_ADMIN'
     SUPERUSER = 'SUPERUSER'
+    SUPER_USER = 'SUPER_USER',
 
 
 GROUP_MAP = {
@@ -60,6 +65,7 @@ GROUP_MAP = {
     EpicGroups.SUBMIT.value: EpicAdminSubGroups.EAO_MANAGER.value,
     EpicGroups.TRACK.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
     EpicGroups.ENGAGE.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
+    EpicGroups.CENTRE.value: EpicAdminSubGroups.SUPER_USER.value,
 }
 
 APP_NAME_TO_GROUP_MAP = {
@@ -68,6 +74,7 @@ APP_NAME_TO_GROUP_MAP = {
     EpicAppName.EPIC_SUBMIT.value: EpicGroups.SUBMIT.value,
     EpicAppName.EPIC_TRACK.value: EpicGroups.TRACK.value,
     EpicAppName.EPIC_ENGAGE.value: EpicGroups.ENGAGE.value,
+    EpicAppName.EPIC_CENTRE.value: EpicGroups.CENTRE.value,
 }
 
 GROUP_TO_APP_NAME_MAP = {v: k for k, v in APP_NAME_TO_GROUP_MAP.items()}
