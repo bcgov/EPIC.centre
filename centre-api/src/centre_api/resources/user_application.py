@@ -64,4 +64,4 @@ class UserApplicationSortOrder(Resource):
         payload = API.payload
 
         UserApplicationsService.update_sort_order(payload)
-        return "sort order updated successfully", HTTPStatus.OK
+        return 'sort order updated successfully', HTTPStatus.OK

@@ -41,6 +41,7 @@ class UserApplication(BaseModel):
     def bulk_upsert_sort_order(cls, user_auth_guid: str, sort_order_list: list[dict]):
         """
         Perform a bulk upsert to update sort_order for user applications.
+
         This SQL logic is DB-specific (PostgreSQL).
         """
         if not sort_order_list:
