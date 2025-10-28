@@ -1,7 +1,7 @@
 import { PageLoader } from "@/components/PageLoader";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useAuth } from "react-oidc-context";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useInitializeUser } from "@/hooks/api/useUsers";
 
 export const Route = createFileRoute("/oidc-callback")({
@@ -10,29 +10,31 @@ export const Route = createFileRoute("/oidc-callback")({
 
 function OidcCallback() {
   const { isAuthenticated, isLoading, error } = useAuth();
-  const initializeUser = useInitializeUser();
-  const [userInitialized, setUserInitialized] = useState(false);
+  const {
+    mutate: initializeUser,
+    isIdle,
+    isError: isInitError,
+    isPending: isInitLoading,
+  } = useInitializeUser();
+
+  const hasCalled = useRef(false);
 
   useEffect(() => {
-    const initialize = async () => {
-      if (isAuthenticated && !userInitialized) {
-        await initializeUser.mutateAsync();
-        setUserInitialized(true);
-      }
-    };
-
-    initialize();
-  }, [isAuthenticated, userInitialized, initializeUser]);
+    if (!hasCalled.current && isAuthenticated && isIdle) {
+      hasCalled.current = true;
+      initializeUser();
+    }
+  }, [isAuthenticated, isIdle, initializeUser]);
 
   if (isLoading) {
     return <PageLoader />;
   }
 
-  if (error) {
+  if (error || isInitError) {
     return <Navigate to="/error" />;
   }
 
-  if (!isLoading && isAuthenticated && userInitialized) {
+  if (!isLoading && isAuthenticated && !isInitLoading) {
     return <Navigate to="/launchpad" />;
   }
 

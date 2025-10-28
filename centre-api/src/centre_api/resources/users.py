@@ -18,8 +18,9 @@ from http import HTTPStatus
 from flask import g, request
 from flask_restx import Namespace, Resource
 
+from centre_api.extensions import limiter
 from centre_api.auth import auth
-from centre_api.models.user import User
+from centre_api.models.user import User as UserModel
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.schemas.user import UserSchema
 from centre_api.services.user_service import UserService
@@ -71,6 +72,7 @@ class InitializeUser(Resource):
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Initialize current user')
     @auth.require
+    @limiter.limit('5 per minute')
     def post():
         """Initialize current user in staff_users table if not exists."""
         try:
@@ -81,7 +83,7 @@ class InitializeUser(Resource):
                 return {'message': 'Username not found in token'}, HTTPStatus.BAD_REQUEST
 
             # Check if user already exists
-            existing_user = User.find_by_username(username)
+            existing_user = UserModel.find_by_username(username)
             if existing_user:
                 return UserSchema().dump(existing_user), HTTPStatus.OK
 
@@ -93,8 +95,23 @@ class InitializeUser(Resource):
                 'email_address': token_info.get('email'),
             }
 
-            new_user = User.create_user(user_data)
+            new_user = UserModel.create_user(user_data)
             return UserSchema().dump(new_user), HTTPStatus.CREATED
 
         except (ValueError, KeyError) as e:
             return {'message': f'Error initializing user: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+@cors_preflight('PUT, OPTIONS')
+@API.route('/<username>/groups', methods=['PUT', 'OPTIONS'])
+class User(Resource):
+    """Resource for fetching users."""
+
+    @staticmethod
+    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all users')
+    @auth.require
+    def put(username):
+        """Update a user group assignment."""
+        group_data = API.payload
+        UserService.update_user_group(username, group_data)
+        return 'User group updated', HTTPStatus.OK

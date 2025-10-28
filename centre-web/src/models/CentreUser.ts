@@ -5,6 +5,7 @@ export type CentreUserApp = {
   role: string | null;
   group_name: string | null;
   supportsGranularRoleManagement?: boolean;
+  group_path: string | null;
 };
 export type CentreUser = {
   id: string;

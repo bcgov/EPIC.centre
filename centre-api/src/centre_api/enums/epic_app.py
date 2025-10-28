@@ -77,4 +77,17 @@ APP_NAME_TO_GROUP_MAP = {
     EpicAppName.EPIC_CENTRE.value: EpicGroups.CENTRE.value,
 }
 
-GROUP_TO_APP_NAME_MAP = {v: k for k, v in APP_NAME_TO_GROUP_MAP.items()}
+CONDITION_REPOSITORY = 'condition_repository'
+EPIC_COMPLIANCE = 'epic_compliance'
+DOCUMENT_SEARCH = 'document_search'
+EPIC_TRACK = 'epic_track'
+EPIC_PUBLIC = 'epic_public'
+EPIC_SUBMIT = 'epic_submit'
+EPIC_ENGAGE = 'epic_engage'
+
+GROUP_TO_APP_NAME_MAP = {
+    'TRACK': 'epic_track',
+    'SUBMIT': 'epic_submit',
+    'COMPLIANCE': 'epic_compliance',
+    'CONDITION-REPO': 'condition_repository',
+}
