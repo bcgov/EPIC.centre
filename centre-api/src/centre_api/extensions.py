@@ -20,6 +20,7 @@ from flask import g
 
 # Custom key function that uses user identity if available
 def get_user_identifier():
+    """Get user identifier for rate limiting."""
     return g.jwt_oidc_token_info.get('preferred_username') if hasattr(g,
                                                                       'jwt_oidc_token_info') else get_remote_address()
 

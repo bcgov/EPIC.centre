@@ -72,7 +72,7 @@ class InitializeUser(Resource):
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Initialize current user')
     @auth.require
-    @limiter.limit("5 per minute")
+    @limiter.limit('5 per minute')
     def post():
         """Initialize current user in staff_users table if not exists."""
         try:
@@ -114,4 +114,4 @@ class User(Resource):
         """Update a user group assignment."""
         group_data = API.payload
         UserService.update_user_group(username, group_data)
-        return "User group updated", HTTPStatus.OK
+        return 'User group updated', HTTPStatus.OK
