@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""This module initializes and configures the Flask-Limiter extension for rate limiting."""
+
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask import g
