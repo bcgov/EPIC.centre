@@ -20,7 +20,7 @@ from flask_restx import Namespace, Resource
 
 from centre_api import limiter
 from centre_api.auth import auth
-from centre_api.models.user import User
+from centre_api.models.user import User as UserModel
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.schemas.user import UserSchema
 from centre_api.services.user_service import UserService
@@ -83,7 +83,7 @@ class InitializeUser(Resource):
                 return {'message': 'Username not found in token'}, HTTPStatus.BAD_REQUEST
 
             # Check if user already exists
-            existing_user = User.find_by_username(username)
+            existing_user = UserModel.find_by_username(username)
             if existing_user:
                 return UserSchema().dump(existing_user), HTTPStatus.OK
 
@@ -95,7 +95,7 @@ class InitializeUser(Resource):
                 'email_address': token_info.get('email'),
             }
 
-            new_user = User.create_user(user_data)
+            new_user = UserModel.create_user(user_data)
             return UserSchema().dump(new_user), HTTPStatus.CREATED
 
         except (ValueError, KeyError) as e:

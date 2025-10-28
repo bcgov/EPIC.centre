@@ -52,7 +52,6 @@ export const EditAccessModal = ({
     appName: app.name,
   });
 
-  console.log(accessLevels);
   const handleUpdateError = (error: unknown) => {
     if (isAxiosError(error)) {
       notify.error(
