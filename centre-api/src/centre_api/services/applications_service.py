@@ -72,6 +72,7 @@ class ApplicationsService:
                     'access_level': user_app.access_level if user_app else None,
                     'last_accessed': user_app.last_accessed.isoformat() if (
                         user_app and user_app.last_accessed) else None,
+                    'sort_order': user_app.sort_order if user_app else None,
                 }
             }
             for app, user_app in filtered_apps

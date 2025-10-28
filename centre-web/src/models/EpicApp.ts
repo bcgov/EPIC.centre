@@ -9,6 +9,7 @@ export type UserEpicAppData = {
   last_accessed: string | null; // ISO datetime
   custom_order: number | null; // position in launchpad, null = default
   bookmarks: Bookmark[];
+  sort_order: number;
 };
 
 export type EpicApp = {

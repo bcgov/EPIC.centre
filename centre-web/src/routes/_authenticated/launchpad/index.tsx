@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/launchpad/")({
 
 function Launchpad() {
   const { data: applications = [], isPending } = useGetApplications();
+  console.log("A", applications);
 
   const { documentSearchApp, otherApps } = useMemo(() => {
     const documentSearchApp = applications.find(
@@ -24,6 +25,8 @@ function Launchpad() {
     );
     return { documentSearchApp, otherApps };
   }, [applications]);
+
+  console.log("B", otherApps);
 
   if (isPending) {
     return <LaunchAppListSkeleton />;
