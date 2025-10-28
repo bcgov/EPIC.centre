@@ -18,7 +18,7 @@ from http import HTTPStatus
 from flask import g, request
 from flask_restx import Namespace, Resource
 
-from centre_api import limiter
+from centre_api.extensions import limiter
 from centre_api.auth import auth
 from centre_api.models.user import User as UserModel
 from centre_api.resources.apihelper import Api as ApiHelper

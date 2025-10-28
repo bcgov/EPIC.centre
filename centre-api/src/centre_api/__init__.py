@@ -9,11 +9,10 @@ from http import HTTPStatus
 import secure
 from flask import Flask, current_app, g, request
 from flask_cors import CORS
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 
 from centre_api.auth import jwt
 from centre_api.config import get_named_config
+from centre_api.extensions import limiter
 from centre_api.models import db, ma, migrate
 from centre_api.utils.cache import cache
 from centre_api.utils.util import allowedorigins
@@ -40,16 +39,6 @@ secure_headers = secure.Secure(
     cache=cache_value,
     xfo=xfo_value
 )
-
-
-# 🔐 Function to use username as limiter key, fallback to IP
-def get_user_identifier():
-    return g.jwt_oidc_token_info.get('preferred_username') if hasattr(g,
-                                                                      'jwt_oidc_token_info') else get_remote_address()
-
-
-# ⚡ Global Limiter instance
-limiter = Limiter(key_func=get_user_identifier, default_limits=[])
 
 
 def create_app(run_mode=os.getenv('FLASK_ENV', 'development')):
