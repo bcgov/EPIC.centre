@@ -53,14 +53,14 @@ class UserApplicationBookmarks(Resource):
 
 @cors_preflight('PATCH, OPTIONS')
 @API.route('/sort-order', methods=['PATCH', 'OPTIONS'])
-class UserApplicationBookmarks(Resource):
-    """Resource for managing user application bookmarks."""
+class UserApplicationSortOrder(Resource):
+    """Resource for managing user application sort orders."""
 
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Update bookmarks for a user application')
     @auth.require
     def patch():
-        """Update bookmarks for a user application."""
+        """Update sort order for a user application."""
         payload = API.payload
 
         UserApplicationsService.update_sort_order(payload)

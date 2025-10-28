@@ -67,8 +67,6 @@ const SortableItem = ({ item }: SortableItemProps) => {
 };
 
 export const List = ({ items }: ListProps) => {
-  console.log(items);
-
   const sortItems = (items: EpicApp[]) => {
     return items.slice().sort((a, b) => a.user.sort_order - b.user.sort_order);
   };
