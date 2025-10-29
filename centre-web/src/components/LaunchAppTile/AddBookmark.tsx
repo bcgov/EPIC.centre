@@ -61,10 +61,10 @@ const getDefaultValues = (bookmarks: Bookmark[] = []): BookmarkSchema => ({
     bookmarks.length === 3
       ? bookmarks.map((b) => ({ url: b.url || "", label: b.label || "" }))
       : [
-        { url: bookmarks[0]?.url || "", label: bookmarks[0]?.label || "" },
-        { url: bookmarks[1]?.url || "", label: bookmarks[1]?.label || "" },
-        { url: bookmarks[2]?.url || "", label: bookmarks[2]?.label || "" },
-      ],
+          { url: bookmarks[0]?.url || "", label: bookmarks[0]?.label || "" },
+          { url: bookmarks[1]?.url || "", label: bookmarks[1]?.label || "" },
+          { url: bookmarks[2]?.url || "", label: bookmarks[2]?.label || "" },
+        ],
 });
 
 type BookmarkFormProps = {
@@ -142,8 +142,8 @@ const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
                   InputLabelProps={{
                     sx: {
                       fontSize: "16px",
-                      fontWeight: "bold"
-                    }
+                      fontWeight: "bold",
+                    },
                   }}
                   inputProps={{ "aria-label": `Bookmark ${idx + 1} URL` }}
                 />
@@ -159,8 +159,8 @@ const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
                   InputLabelProps={{
                     sx: {
                       fontSize: "16px",
-                      fontWeight: "bold"
-                    }
+                      fontWeight: "bold",
+                    },
                   }}
                   inputProps={{ "aria-label": `Bookmark ${idx + 1} Link Name` }}
                 />

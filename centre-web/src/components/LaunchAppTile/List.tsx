@@ -20,9 +20,9 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useState, useEffect } from "react";
-import { useGetUserSettings, useUpdateCardPositions } from "@/hooks/api/useUserSettings";
+import { useEffect, useState } from "react";
 import { BCDesignTokens } from "epic.theme";
+import { useUpdateSortOrder } from "@/hooks/api/useUserApplications";
 
 type ListProps = {
   items: EpicApp[];
@@ -49,44 +49,42 @@ const SortableItem = ({ item }: SortableItemProps) => {
   };
 
   return (
-    <div 
-      ref={setNodeRef} 
+    <div
+      ref={setNodeRef}
       style={style}
       role="button"
       aria-grabbed={isDragging}
       aria-label={`Application card: ${item.title}`}
       tabIndex={0}
     >
-      <LaunchAppTile item={item} dragListeners={listeners} dragAttributes={attributes} />
+      <LaunchAppTile
+        item={item}
+        dragListeners={listeners}
+        dragAttributes={attributes}
+      />
     </div>
   );
 };
 
 export const List = ({ items }: ListProps) => {
-  const [sortedItems, setSortedItems] = useState(items);
+  const sortItems = (items: EpicApp[]) => {
+    return items.slice().sort((a, b) => a.user.sort_order - b.user.sort_order);
+  };
+  const [sortedItems, setSortedItems] = useState(sortItems(items));
   const [activeId, setActiveId] = useState<number | null>(null);
-  const { data: userSettings } = useGetUserSettings();
-  const updateCardPositions = useUpdateCardPositions();
+  const { mutate: updateSortOrder } = useUpdateSortOrder({
+    retry: false,
+  });
 
   useEffect(() => {
-    // Apply saved card positions if available
-    if (userSettings?.card_positions && Object.keys(userSettings.card_positions).length > 0) {
-      const sorted = [...items].sort((a, b) => {
-        const posA = userSettings.card_positions[a.id] ?? items.length;
-        const posB = userSettings.card_positions[b.id] ?? items.length;
-        return posA - posB;
-      });
-      setSortedItems(sorted);
-    } else {
-      setSortedItems(items);
-    }
-  }, [items, userSettings]);
+    setSortedItems(sortItems(items));
+  }, [items]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -99,17 +97,11 @@ export const List = ({ items }: ListProps) => {
     if (over && active.id !== over.id) {
       const oldIndex = sortedItems.findIndex((item) => item.id === active.id);
       const newIndex = sortedItems.findIndex((item) => item.id === over.id);
-      
+
       const newItems = arrayMove(sortedItems, oldIndex, newIndex);
-      
+
       setSortedItems(newItems);
-      
-      const cardPositions: Record<string, number> = {};
-      newItems.forEach((item, index) => {
-        cardPositions[item.id] = index;
-      });
-      
-      updateCardPositions.mutateAsync(cardPositions);
+      updateSortOrder(newItems.map((item) => item.id));
     }
     setActiveId(null);
   };
