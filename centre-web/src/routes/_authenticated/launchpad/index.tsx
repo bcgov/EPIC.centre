@@ -1,14 +1,14 @@
 import { DocumentSearch } from "@/components/DocumentSearch";
 import { List as EpicTileList } from "@/components/LaunchAppTile/List";
 import { LaunchAppListSkeleton } from "@/components/LaunchAppTile/ListSkeleton";
+import { ViewDescriptionSwitch } from "@/components/LaunchAppTile/ViewDescriptionSwitch";
 import { PageContainer } from "@/components/Shared/PageGrid";
 import { useGetApplications } from "@/hooks/api/useApplications";
-import { useGetUserSettings, useUpdateSettings } from "@/hooks/api/useUserSettings";
+import { useLaunchpadStore } from "@/stores/launchpadStore";
 import { EpicAppName } from "@/models/EpicApp";
-import { Box, Switch, FormControlLabel } from "@mui/material";
-import { BCDesignTokens } from "epic.theme";
+import { Box } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo } from "react";
 
 export const Route = createFileRoute("/_authenticated/launchpad/")({
   component: Launchpad,
@@ -16,41 +16,7 @@ export const Route = createFileRoute("/_authenticated/launchpad/")({
 
 function Launchpad() {
   const { data: applications = [], isPending } = useGetApplications();
-  const { data: userSettings } = useGetUserSettings();
-  const updateSettings = useUpdateSettings();
-
-  // Initialize showDescription from user settings, default to true
-  const [showDescription, setShowDescription] = useState<boolean>(true);
-  const [announcement, setAnnouncement] = useState<string>("");
-
-  useEffect(() => {
-    if (userSettings?.settings?.showDescription !== undefined) {
-      setShowDescription(userSettings.settings.showDescription);
-    }
-  }, [userSettings]);
-
-  useEffect(() => {
-    if (announcement) {
-      const timer = setTimeout(() => setAnnouncement(""), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [announcement]);
-
-  const handleToggleChange = useCallback((_: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
-    setShowDescription(checked);
-    setAnnouncement(checked ? "Application descriptions visible" : "Application descriptions hidden");
-
-    const newSettings = {
-      ...userSettings?.settings,
-      showDescription: checked,
-    };
-
-    updateSettings.mutate(newSettings, {
-      onError: () => {
-        // Silently fail - toggle still works for current session
-      },
-    });
-  }, [userSettings, updateSettings]);
+  const { showDescription } = useLaunchpadStore();
 
   const { documentSearchApp, otherApps } = useMemo(() => {
     const documentSearchApp = applications.find(
@@ -76,35 +42,7 @@ function Launchpad() {
           maxWidth: "1070px",
         }}
       >
-        <FormControlLabel
-          control={
-            <Switch checked={showDescription} onChange={handleToggleChange} name="view-description"
-              sx={{
-                '& .MuiSwitch-thumb': {
-                  backgroundColor: '#ffffff',
-                  border: `1px solid ${BCDesignTokens.themeGray50}`, 
-                },
-                '& .MuiSwitch-track': {
-                  backgroundColor: '#e6e3e3',
-                  opacity: 1,
-                },
-                '& .MuiSwitch-switchBase.Mui-checked': {
-                  color: '#ffffff',        
-                  '& .MuiSwitch-thumb': {
-                    backgroundColor: '#ffffff',
-                    border: 'none',
-                  },
-                  '& + .MuiSwitch-track': {
-                    backgroundColor: BCDesignTokens.themeBlue90,  
-                    opacity: 1,
-                  },
-                },
-              }}
-
-            />
-          }
-          label="View Description"
-        />
+        <ViewDescriptionSwitch />
       </Box>
       <Box
         sx={{
