@@ -14,7 +14,7 @@ import {
 import { useGeteApplicationAccessLevels } from "@/hooks/api/useApplications";
 import { CentreUser, CentreUserApp } from "@/models/CentreUser";
 import { useModal } from "@/components/Shared/Modals/modalStore";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { notify } from "@/components/Shared/Snackbar/snackbarStore";
 import { isAxiosError } from "axios";
 import { modalStyle } from "@/components/Shared/Modals/constants";
@@ -23,25 +23,34 @@ import { Else, If, Then, Unless, When } from "react-if";
 import { LoadingButton } from "@/components/Shared/LoadingButton";
 import { EditAccessModalSkeleton } from "./EditAccessSkeleton";
 import { CentreRadio } from "@/components/Shared/CentreRadio";
+import { useGetUser, useUpdateUserGroup } from "@/hooks/api/useUsers";
+import { EPIC_APP_TO_GROUP } from "@/models/KCGroup";
 
 type EditAccessModalProps = {
   user: CentreUser;
   app: CentreUserApp;
   onClose?: () => void;
+  username: string;
 };
 
+export const EditAccessModal = ({
+  app,
+  onClose,
+  user,
+  username,
+}: EditAccessModalProps) => {
+  const [isUpdatingAccess, setIsUpdatingAccess] = useState(false);
+  const { refetch } = useGetUser({
+    username: String(username),
+    enabled: !!username,
+  });
 
-
-
-export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
   const { setClose } = useModal();
   const [selectedRole, setSelectedRole] = useState<string | null>(
     app.group_name ?? null,
   );
-  const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  
-  const supportsGranularRoleManagement = app.supportsGranularRoleManagement ?? false;
+  const supportsGranularRoleManagement =
+    app.supportsGranularRoleManagement ?? false;
 
   const {
     data: accessLevels = [],
@@ -51,38 +60,60 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
     appName: app.name,
   });
 
+  const handleUpdateError = (error: unknown) => {
+    if (isAxiosError(error)) {
+      notify.error(
+        error.response?.data?.message || "Failed to update user access.",
+      );
+    } else {
+      notify.error("Failed to update user access.");
+    }
+    setClose();
+  };
+
+  const { mutateAsync: updateUserGroup, error: updateError } =
+    useUpdateUserGroup({
+      onError: handleUpdateError,
+    });
+
   const currentRole = app.role;
 
   const handleConfirm = async () => {
-    if (!selectedRole) {
+    const selectedAccessLevel = accessLevels.find(
+      (level) => level.group_path === selectedRole,
+    );
+    if (!selectedAccessLevel) {
       notify.error("Please select an access level.");
       return;
     }
 
-    setSubmitting(true);
-    setErrorMsg(null);
+    const parentGroupName =
+      EPIC_APP_TO_GROUP[app.name as keyof typeof EPIC_APP_TO_GROUP];
+    if (!parentGroupName) {
+      notify.error("Invalid application name.");
+      return;
+    }
+    setIsUpdatingAccess(true);
 
     try {
-      //   await updateUserRole({
-      //     username,
-      //     application: applicationName,
-      //     role: selectedRole,
-      //   });
-
-      notify.success("Access level updated.");
-      setClose();
-      onClose?.();
-    } catch (err) {
-      const fallback =
-        "Unable to update access level. Please try again or contact support.";
-      if (isAxiosError(err)) {
-        const msg = err.response?.data?.message ?? fallback;
-        setErrorMsg(msg);
+      await updateUserGroup({
+        username: user.username,
+        groupName: selectedAccessLevel.group_name,
+        appName: parentGroupName,
+      });
+      await refetch();
+      notify.success("User access updated successfully.");
+    } catch (error) {
+      if (isAxiosError(error)) {
+        notify.error(
+          error.response?.data?.message || "Failed to update user access.",
+        );
       } else {
-        setErrorMsg(fallback);
+        notify.error("Failed to update user access.");
       }
     } finally {
-      setSubmitting(false);
+      setIsUpdatingAccess(false);
+      setClose();
     }
   };
 
@@ -94,6 +125,18 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
     label: "Deny Access Request",
     value: "deny",
   };
+
+  const errorMsg = useMemo(() => {
+    if (updateError) {
+      if (isAxiosError(updateError)) {
+        return (
+          updateError.response?.data?.message || "Failed to update user access."
+        );
+      }
+      return "Failed to update user access.";
+    }
+    return null;
+  }, [updateError]);
 
   if (accessLevelsLoading) {
     return (
@@ -167,7 +210,7 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
                 {accessLevels.map((accessLevel) => (
                   <CentreRadio
                     key={accessLevel.name}
-                    value={accessLevel.group_name}
+                    value={accessLevel.group_path}
                     label={accessLevel.name}
                   />
                 ))}
@@ -200,16 +243,31 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
           )}
 
           {/* Please Note section for apps with granular role management */}
-          <If condition={supportsGranularRoleManagement && selectedRole && selectedRole !== REVOKE_OPTION.value && selectedRole !== DENY_OPTION.value}>
+          <If
+            condition={
+              supportsGranularRoleManagement &&
+              selectedRole &&
+              selectedRole !== REVOKE_OPTION.value &&
+              selectedRole !== DENY_OPTION.value
+            }
+          >
             <Grid item xs={12} sx={{ mt: 2 }}>
-              <Alert severity="info" sx={{ backgroundColor: "#f5f5f5", border: "1px solid #e0e0e0" }}>
+              <Alert
+                severity="info"
+                sx={{ backgroundColor: "#f5f5f5", border: "1px solid #e0e0e0" }}
+              >
                 <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>Please Note:</strong> When you click the "Confirm" button, this user will be added as a{" "}
-                  {accessLevels.find(level => level.group_name === selectedRole)?.name || selectedRole} in {getAppChipTitle(app.name)}.
+                  <strong>Please Note:</strong> When you click the "Confirm"
+                  button, this user will be added as a{" "}
+                  {accessLevels.find(
+                    (level) => level.group_name === selectedRole,
+                  )?.name || selectedRole}{" "}
+                  in {getAppChipTitle(app.name)}.
                 </Typography>
                 <Typography variant="body2">
-                  To assign this user to some engagements, please go to the User Management section in{" "}
-                  {getAppChipTitle(app.name)} by clicking the "App User Management" link.
+                  To assign this user to some engagements, please go to the User
+                  Management section in {getAppChipTitle(app.name)} by clicking
+                  the "App User Management" link.
                 </Typography>
               </Alert>
             </Grid>
@@ -222,16 +280,19 @@ export const EditAccessModal = ({ app, onClose }: EditAccessModalProps) => {
               mt="24px"
               justifyContent="flex-end"
             >
-              <Button variant="outlined" onClick={() => {
-                setClose();
-                onClose?.();
-              }}>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setClose();
+                  onClose?.();
+                }}
+              >
                 Close
               </Button>
               <LoadingButton
                 variant="contained"
                 onClick={handleConfirm}
-                loading={submitting}
+                loading={isUpdatingAccess}
               >
                 Confirm
               </LoadingButton>

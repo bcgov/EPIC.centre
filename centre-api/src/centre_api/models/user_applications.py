@@ -1,6 +1,8 @@
 """User Applications Model."""
 from __future__ import annotations
 
+from sqlalchemy.dialects.postgresql import insert
+
 from .base_model import BaseModel
 from .db import db
 
@@ -34,3 +36,36 @@ class UserApplication(BaseModel):
         db.session.add(user_app)
         db.session.commit()
         return user_app
+
+    @classmethod
+    def bulk_upsert_sort_order(cls, user_auth_guid: str, sort_order_list: list[dict]):
+        """
+        Perform a bulk upsert to update sort_order for user applications.
+
+        This SQL logic is DB-specific (PostgreSQL).
+        """
+        if not sort_order_list:
+            return
+
+        values = []
+        for item in sort_order_list:
+            app_id = item.get('app_id')
+            sort_order = item.get('sort_order')
+            if app_id is not None and sort_order is not None:
+                values.append({
+                    'user_auth_guid': user_auth_guid,
+                    'app_id': app_id,
+                    'sort_order': sort_order
+                })
+
+        if not values:
+            return
+
+        stmt = insert(cls).values(values)
+        stmt = stmt.on_conflict_do_update(
+            constraint='uq_user_auth_guid_app_id',
+            set_={'sort_order': stmt.excluded.sort_order}
+        )
+
+        db.session.execute(stmt)
+        db.session.commit()

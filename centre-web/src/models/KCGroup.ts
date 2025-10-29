@@ -17,3 +17,25 @@ export const EPIC_ADMIN_GROUPS = {
    [EpicAppName.EPIC_ENGAGE]: "INSTANCE_ADMIN",
   [EpicAppName.EPIC_CENTRE]: "INSTANCE_ADMIN",
 };
+
+// class EpicGroups(Enum):
+//     """Enum representing Epic group names."""
+
+//     COMPLIANCE = 'COMPLIANCE'
+//     CONDITION_REPO = 'CONDITION-REPO'
+//     SUBMIT = 'SUBMIT'
+//     TRACK = 'TRACK'
+
+export const enum EpicGroups {
+  COMPLIANCE = "COMPLIANCE",
+  CONDITION_REPO = "CONDITION-REPO",
+  SUBMIT = "SUBMIT",
+  TRACK = "TRACK",
+}
+
+export const EPIC_APP_TO_GROUP = {
+  [EpicAppName.EPIC_COMPLIANCE]: EpicGroups.COMPLIANCE,
+  [EpicAppName.CONDITION_REPOSITORY]: EpicGroups.CONDITION_REPO,
+  [EpicAppName.EPIC_SUBMIT]: EpicGroups.SUBMIT,
+  [EpicAppName.EPIC_TRACK]: EpicGroups.TRACK,
+};

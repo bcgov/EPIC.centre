@@ -25,3 +25,4 @@ requests
 flask_cors
 pyhumps
 importlib-resources
+flask_limiter
