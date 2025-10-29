@@ -7,17 +7,19 @@ import { BCDesignTokens } from "epic.theme";
 
 type ContentProps = {
   epicApp: EpicApp;
+  showDescription?: boolean;
 };
-export const Content = ({ epicApp }: ContentProps) => {
+export const Content = ({ epicApp, showDescription = true }: ContentProps) => {
   const { launch_url } = epicApp;
   return (
-    <Box>
+    <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
       <Box
         sx={{
           padding: "16px 12px 12px 12px",
           display: "flex",
           flexDirection: "column",
           alignItems: "flex-start",
+          flex: 1,
         }}
       >
         <Button
@@ -43,7 +45,7 @@ export const Content = ({ epicApp }: ContentProps) => {
             }}
           />
         </Box>
-        <Box sx={{ width: "100%" }}>
+        <Box sx={{ width: "100%", marginTop: "auto" }}>
           <AccessLogSection user={epicApp.user} />
         </Box>
       </Box>

@@ -10,14 +10,15 @@ type HeaderProps = {
   };
   dragListeners?: any;
   dragAttributes?: any;
+  showDescription?: boolean;
 };
-export const Header = ({ data, dragListeners, dragAttributes }: HeaderProps) => {
+export const Header = ({ data, dragListeners, dragAttributes, showDescription = true }: HeaderProps) => {
   const { title, description } = data;
 
   return (
     <Box
       sx={{
-        height: "100px",
+        height: showDescription ? "100px" : "50px",
         backgroundColor: BCDesignTokens.surfaceColorBackgroundLightBlue,
       }}
     >
@@ -62,15 +63,17 @@ export const Header = ({ data, dragListeners, dragAttributes }: HeaderProps) => 
             <DragIndicatorIcon htmlColor={BCDesignTokens.themeGray80} />
           </IconButton>
         </Box>
-        <Typography variant="body2" width="100%">
-          <LinesEllipsis
-            text={description}
-            maxLine={2}
-            ellipsis="..."
-            trimRight
-            basedOn="letters"
-          />
-        </Typography>
+        {showDescription && (
+          <Typography variant="body2" width="100%" title={description}>
+            <LinesEllipsis
+              text={description}
+              maxLine={2}
+              ellipsis="..."
+              trimRight
+              basedOn="letters"
+            />
+          </Typography>
+        )}
       </Box>
     </Box>
   );

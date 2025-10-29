@@ -26,13 +26,15 @@ import { BCDesignTokens } from "epic.theme";
 
 type ListProps = {
   items: EpicApp[];
+  showDescription?: boolean;
 };
 
 type SortableItemProps = {
   item: EpicApp;
+  showDescription?: boolean;
 };
 
-const SortableItem = ({ item }: SortableItemProps) => {
+const SortableItem = ({ item, showDescription }: SortableItemProps) => {
   const {
     attributes,
     listeners,
@@ -57,12 +59,12 @@ const SortableItem = ({ item }: SortableItemProps) => {
       aria-label={`Application card: ${item.title}`}
       tabIndex={0}
     >
-      <LaunchAppTile item={item} dragListeners={listeners} dragAttributes={attributes} />
+      <LaunchAppTile item={item} dragListeners={listeners} dragAttributes={attributes} showDescription={showDescription} />
     </div>
   );
 };
 
-export const List = ({ items }: ListProps) => {
+export const List = ({ items, showDescription }: ListProps) => {
   const [sortedItems, setSortedItems] = useState(items);
   const [activeId, setActiveId] = useState<number | null>(null);
   const { data: userSettings } = useGetUserSettings();
@@ -127,7 +129,7 @@ export const List = ({ items }: ListProps) => {
         <Grid container rowSpacing={4} spacing={2} direction={"row"}>
           {sortedItems.map((item) => (
             <Grid item key={item.id}>
-              <SortableItem item={item} />
+              <SortableItem item={item} showDescription={showDescription} />
             </Grid>
           ))}
         </Grid>
@@ -140,7 +142,7 @@ export const List = ({ items }: ListProps) => {
               borderRadius: "4px",
             }}
           >
-            <LaunchAppTile item={activeItem} />
+            <LaunchAppTile item={activeItem} showDescription={showDescription} />
           </div>
         ) : null}
       </DragOverlay>
