@@ -23,14 +23,12 @@ function Launchpad() {
   const [showDescription, setShowDescription] = useState<boolean>(true);
   const [announcement, setAnnouncement] = useState<string>("");
 
-  // Load preference from user settings on mount
   useEffect(() => {
     if (userSettings?.settings?.showDescription !== undefined) {
       setShowDescription(userSettings.settings.showDescription);
     }
   }, [userSettings]);
 
-  // Clear announcement after it's been announced
   useEffect(() => {
     if (announcement) {
       const timer = setTimeout(() => setAnnouncement(""), 1000);
@@ -38,18 +36,15 @@ function Launchpad() {
     }
   }, [announcement]);
 
-  // Save preference when it changes
   const handleToggleChange = useCallback((_: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
     setShowDescription(checked);
     setAnnouncement(checked ? "Application descriptions visible" : "Application descriptions hidden");
 
-    // Save to user settings
     const newSettings = {
       ...userSettings?.settings,
       showDescription: checked,
     };
 
-    // Silently fail if save doesn't work - toggle still works for session
     updateSettings.mutate(newSettings, {
       onError: () => {
         // Silently fail - toggle still works for current session
