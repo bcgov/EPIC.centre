@@ -13,6 +13,7 @@ import { EditAccessModal } from "../../EditAccess";
 import { useAppConfigs } from "@/hooks/api/useAppConfigs";
 import { useMemo, useRef } from "react";
 import { AppUserManagementButton } from "../AppUserManagementButton";
+import { useParams } from "@tanstack/react-router";
 
 export const NewRequestsTable = ({
   requests,
@@ -21,6 +22,9 @@ export const NewRequestsTable = ({
   requests: AccessRequest[];
   user?: CentreUser;
 }) => {
+  const { username } = useParams({
+    strict: false,
+  });
   const { setOpen: setModalOpen } = useModal();
   const { data: appConfigs = [] } = useAppConfigs();
 
@@ -77,6 +81,7 @@ export const NewRequestsTable = ({
       <EditAccessModal
         user={user}
         app={app}
+        username={String(username)}
         onClose={() => {
           const buttonRef = editButtonRefs.current.get(request.id.toString());
           if (buttonRef) {
