@@ -13,11 +13,15 @@ import { useModal } from "@/components/Shared/Modals/modalStore";
 import { EditAccessModal } from "../../EditAccess";
 import { useAppConfigs } from "@/hooks/api/useAppConfigs";
 import { AppUserManagementButton } from "../AppUserManagementButton";
+import { useParams } from "@tanstack/react-router";
 
 type CurrentAccessTableProps = {
   user?: CentreUser;
 };
 export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
+  const { username } = useParams({
+    strict: false,
+  });
   const { setOpen: setModalOpen } = useModal();
   const { data: appConfigs = [] } = useAppConfigs();
 
@@ -41,7 +45,7 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
     return map;
   }, [appConfigs]);
 
-  const handleAddEditBookmarks = (app: CentreUserApp) => {
+  const handleAddEditAccess = (app: CentreUserApp) => {
     if (!user) return;
 
     const modalWithFocusReturn = (
@@ -54,6 +58,7 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
             setTimeout(() => buttonRef.focus(), 100);
           }
         }}
+        username={String(username)}
       />
     );
 
@@ -119,7 +124,7 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
                 </CentreTableCell>
                 <CentreTableCell>
                   <CentreLink
-                    onClick={() => handleAddEditBookmarks(app)}
+                    onClick={() => handleAddEditAccess(app)}
                     tabIndex={index + 1}
                     ref={(el) => {
                       if (el) {

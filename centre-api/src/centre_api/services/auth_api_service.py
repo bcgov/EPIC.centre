@@ -143,9 +143,7 @@ class AuthApiService:
             }
 
             timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
-            print(group_data)
             response = requests.put(base_url, headers=headers, timeout=timeout, json=group_data)
-            print(str(response))
             response.raise_for_status()
 
             return response

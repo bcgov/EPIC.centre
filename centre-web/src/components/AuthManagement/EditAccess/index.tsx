@@ -23,20 +23,28 @@ import { Else, If, Then, Unless, When } from "react-if";
 import { LoadingButton } from "@/components/Shared/LoadingButton";
 import { EditAccessModalSkeleton } from "./EditAccessSkeleton";
 import { CentreRadio } from "@/components/Shared/CentreRadio";
-import { useUpdateUserGroup } from "@/hooks/api/useUsers";
+import { useGetUser, useUpdateUserGroup } from "@/hooks/api/useUsers";
 import { EPIC_APP_TO_GROUP } from "@/models/KCGroup";
 
 type EditAccessModalProps = {
   user: CentreUser;
   app: CentreUserApp;
   onClose?: () => void;
+  username: string;
 };
 
 export const EditAccessModal = ({
   app,
   onClose,
   user,
+  username,
 }: EditAccessModalProps) => {
+  const [isUpdatingAccess, setIsUpdatingAccess] = useState(false);
+  const { refetch } = useGetUser({
+    username: String(username),
+    enabled: !!username,
+  });
+
   const { setClose } = useModal();
   const [selectedRole, setSelectedRole] = useState<string | null>(
     app.group_name ?? null,
@@ -63,19 +71,10 @@ export const EditAccessModal = ({
     setClose();
   };
 
-  const handleUpdateSuccess = () => {
-    notify.success("User access updated successfully.");
-    setClose();
-  };
-
-  const {
-    mutateAsync: updateUserGroup,
-    isPending: isUpdating,
-    error: updateError,
-  } = useUpdateUserGroup({
-    onError: handleUpdateError,
-    onSuccess: handleUpdateSuccess,
-  });
+  const { mutateAsync: updateUserGroup, error: updateError } =
+    useUpdateUserGroup({
+      onError: handleUpdateError,
+    });
 
   const currentRole = app.role;
 
@@ -94,12 +93,28 @@ export const EditAccessModal = ({
       notify.error("Invalid application name.");
       return;
     }
+    setIsUpdatingAccess(true);
 
-    await updateUserGroup({
-      username: user.username,
-      groupName: selectedAccessLevel.group_name,
-      appName: parentGroupName,
-    });
+    try {
+      await updateUserGroup({
+        username: user.username,
+        groupName: selectedAccessLevel.group_name,
+        appName: parentGroupName,
+      });
+      await refetch();
+      notify.success("User access updated successfully.");
+    } catch (error) {
+      if (isAxiosError(error)) {
+        notify.error(
+          error.response?.data?.message || "Failed to update user access.",
+        );
+      } else {
+        notify.error("Failed to update user access.");
+      }
+    } finally {
+      setIsUpdatingAccess(false);
+      setClose();
+    }
   };
 
   const REVOKE_OPTION = {
@@ -277,7 +292,7 @@ export const EditAccessModal = ({
               <LoadingButton
                 variant="contained"
                 onClick={handleConfirm}
-                loading={isUpdating}
+                loading={isUpdatingAccess}
               >
                 Confirm
               </LoadingButton>
