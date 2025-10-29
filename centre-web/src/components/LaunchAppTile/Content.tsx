@@ -7,9 +7,8 @@ import { BCDesignTokens } from "epic.theme";
 
 type ContentProps = {
   epicApp: EpicApp;
-  showDescription?: boolean;
 };
-export const Content = ({ epicApp, showDescription = true }: ContentProps) => {
+export const Content = ({ epicApp }: ContentProps) => {
   const { launch_url } = epicApp;
   return (
     <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
