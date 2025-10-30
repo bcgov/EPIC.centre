@@ -95,16 +95,17 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
       <Table>
         <CentreTableHead>
           <TableRow>
-            <CentreTableHeadCell sx={{ width: "30%" }}>
+            <CentreTableHeadCell sx={{ width: "35%" }}>
               Application
             </CentreTableHeadCell>
-            <CentreTableHeadCell sx={{ width: "30%" }}>
+            <CentreTableHeadCell sx={{ width: "35%" }}>
               Current Access Level
             </CentreTableHeadCell>
-            <CentreTableHeadCell sx={{ width: "30%" }}></CentreTableHeadCell>
             <CentreTableHeadCell sx={{ width: "10%" }}>
               Actions
             </CentreTableHeadCell>
+            <CentreTableHeadCell sx={{ width: "20%" }}></CentreTableHeadCell>
+
           </TableRow>
         </CentreTableHead>
         <TableBody>
@@ -113,15 +114,6 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
               <TableRow key={app.name}>
                 <CentreTableCell>{getAppChipTitle(app.name)}</CentreTableCell>
                 <CentreTableCell>{app.role ?? "--"}</CentreTableCell>
-                <CentreTableCell sx={{ minHeight: "40px" }}>
-                  <AppUserManagementButton
-                    appUserManagementUrl={appUrlMap.get(app.name)}
-                    supportsGranularRoleManagement={
-                      app.supportsGranularRoleManagement ?? false
-                    }
-                    tabIndex={appUserManagementTabIndex.get(index) || -1}
-                  />
-                </CentreTableCell>
                 <CentreTableCell>
                   <CentreLink
                     onClick={() => handleAddEditAccess(app)}
@@ -136,6 +128,15 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
                   >
                     Edit Access
                   </CentreLink>
+                </CentreTableCell>
+                <CentreTableCell sx={{ minHeight: "40px" }}>
+                  <AppUserManagementButton
+                    appUserManagementUrl={appUrlMap.get(app.name)}
+                    supportsGranularRoleManagement={
+                      app.supportsGranularRoleManagement ?? false
+                    }
+                    tabIndex={appUserManagementTabIndex.get(index) || -1}
+                  />
                 </CentreTableCell>
               </TableRow>
             ))
