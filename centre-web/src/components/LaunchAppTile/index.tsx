@@ -3,14 +3,16 @@ import { Header } from "./Header";
 import { Content } from "./Content";
 import { EpicApp } from "@/models/EpicApp";
 import { BCDesignTokens } from "epic.theme";
+import { useLaunchpadStore } from "@/stores/launchpadStore";
 
 type LaunchAppTileProps = {
   item: EpicApp;
   dragListeners?: any;
   dragAttributes?: any;
-  showDescription?: boolean;
 };
-export const LaunchAppTile = ({ item, dragListeners, dragAttributes, showDescription = true }: LaunchAppTileProps) => {
+export const LaunchAppTile = ({ item, dragListeners, dragAttributes }: LaunchAppTileProps) => {
+  const { showDescription } = useLaunchpadStore();
+  
   return (
     <Paper
       elevation={2}
@@ -22,7 +24,7 @@ export const LaunchAppTile = ({ item, dragListeners, dragAttributes, showDescrip
         flexDirection: "column",
       }}
     >
-      <Header data={item} dragListeners={dragListeners} dragAttributes={dragAttributes} showDescription={showDescription} />
+      <Header data={item} dragListeners={dragListeners} dragAttributes={dragAttributes} />
       <Content epicApp={item} />
     </Paper>
   );

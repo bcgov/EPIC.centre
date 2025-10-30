@@ -4,7 +4,6 @@ import { LaunchAppListSkeleton } from "@/components/LaunchAppTile/ListSkeleton";
 import { ViewDescriptionSwitch } from "@/components/LaunchAppTile/ViewDescriptionSwitch";
 import { PageContainer } from "@/components/Shared/PageGrid";
 import { useGetApplications } from "@/hooks/api/useApplications";
-import { useLaunchpadStore } from "@/stores/launchpadStore";
 import { EpicAppName } from "@/models/EpicApp";
 import { Box } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
@@ -16,7 +15,6 @@ export const Route = createFileRoute("/_authenticated/launchpad/")({
 
 function Launchpad() {
   const { data: applications = [], isPending } = useGetApplications();
-  const { showDescription } = useLaunchpadStore();
 
   const { documentSearchApp, otherApps } = useMemo(() => {
     const documentSearchApp = applications.find(
@@ -52,7 +50,7 @@ function Launchpad() {
         }}
       >
         <DocumentSearch epicApp={documentSearchApp} />
-        <EpicTileList items={otherApps} showDescription={showDescription} />
+        <EpicTileList items={otherApps} />
       </Box>
     </PageContainer>
   );

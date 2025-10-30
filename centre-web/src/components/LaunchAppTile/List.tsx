@@ -26,15 +26,13 @@ import { useUpdateSortOrder } from "@/hooks/api/useUserApplications";
 
 type ListProps = {
   items: EpicApp[];
-  showDescription?: boolean;
 };
 
 type SortableItemProps = {
   item: EpicApp;
-  showDescription?: boolean;
 };
 
-const SortableItem = ({ item, showDescription }: SortableItemProps) => {
+const SortableItem = ({ item }: SortableItemProps) => {
   const {
     attributes,
     listeners,
@@ -63,13 +61,12 @@ const SortableItem = ({ item, showDescription }: SortableItemProps) => {
         item={item}
         dragListeners={listeners}
         dragAttributes={attributes}
-        showDescription={showDescription}
       />
     </div>
   );
 };
 
-export const List = ({ items, showDescription }: ListProps) => {
+export const List = ({ items }: ListProps) => {
   const sortItems = (items: EpicApp[]) => {
     return items.slice().sort((a, b) => a.user.sort_order - b.user.sort_order);
   };
@@ -122,7 +119,7 @@ export const List = ({ items, showDescription }: ListProps) => {
         <Grid container rowSpacing={4} spacing={2} direction={"row"}>
           {sortedItems.map((item) => (
             <Grid item key={item.id}>
-              <SortableItem item={item} showDescription={showDescription} />
+              <SortableItem item={item} />
             </Grid>
           ))}
         </Grid>
@@ -135,7 +132,7 @@ export const List = ({ items, showDescription }: ListProps) => {
               borderRadius: "4px",
             }}
           >
-            <LaunchAppTile item={activeItem} showDescription={showDescription} />
+            <LaunchAppTile item={activeItem} />
           </div>
         ) : null}
       </DragOverlay>

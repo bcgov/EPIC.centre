@@ -2,6 +2,7 @@ import { Box, Typography, IconButton } from "@mui/material";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { BCDesignTokens } from "epic.theme";
 import LinesEllipsis from "react-lines-ellipsis";
+import { useLaunchpadStore } from "@/stores/launchpadStore";
 
 type HeaderProps = {
   data: {
@@ -10,9 +11,9 @@ type HeaderProps = {
   };
   dragListeners?: any;
   dragAttributes?: any;
-  showDescription?: boolean;
 };
-export const Header = ({ data, dragListeners, dragAttributes, showDescription = true }: HeaderProps) => {
+export const Header = ({ data, dragListeners, dragAttributes }: HeaderProps) => {
+  const { showDescription } = useLaunchpadStore();
   const { title, description } = data;
 
   return (
