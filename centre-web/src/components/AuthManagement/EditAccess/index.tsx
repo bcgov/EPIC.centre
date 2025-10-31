@@ -78,6 +78,15 @@ export const EditAccessModal = ({
 
   const currentRole = app.role;
 
+  const REVOKE_OPTION = {
+    label: "Revoke Access",
+    value: "revoke",
+  };
+  const DENY_OPTION = {
+    label: "Deny Access Request",
+    value: "deny",
+  };
+
   const handleConfirm = async () => {
     const selectedAccessLevel = accessLevels.find(
       (level) => level.group_path === selectedRole,
@@ -96,11 +105,17 @@ export const EditAccessModal = ({
     setIsUpdatingAccess(true);
 
     try {
-      await updateUserGroup({
-        username: user.username,
-        groupName: selectedAccessLevel.group_name,
-        appName: parentGroupName,
-      });
+      if (selectedRole === REVOKE_OPTION.value) {
+        /// Revoke Access
+      } else if (selectedRole === DENY_OPTION.value) {
+        // Deny Access Request
+      } else {
+        await updateUserGroup({
+          username: user.username,
+          groupName: selectedAccessLevel.group_name,
+          appName: parentGroupName,
+        });
+      }
       await refetch();
       notify.success("User access updated successfully.");
     } catch (error) {
@@ -115,15 +130,6 @@ export const EditAccessModal = ({
       setIsUpdatingAccess(false);
       setClose();
     }
-  };
-
-  const REVOKE_OPTION = {
-    label: "Revoke Access",
-    value: "revoke",
-  };
-  const DENY_OPTION = {
-    label: "Deny Access Request",
-    value: "deny",
   };
 
   const errorMsg = useMemo(() => {

@@ -78,6 +78,6 @@ class UserService:
 
     @classmethod
     def update_user_group(cls, username: str, group_data: dict):
-        """Retrieve a user by ID and enrich with application access information."""
+        """Update user group."""
         response = AuthApiService.update_user_group(username, group_data)
         return response

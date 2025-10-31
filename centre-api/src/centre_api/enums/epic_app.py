@@ -37,6 +37,10 @@ CLIENT_NAME_TO_APP_NAME_MAP = {
     EpicAppClientName.EPIC_CENTRE.value: EpicAppName.EPIC_CENTRE.value,
 }
 
+APP_NAME_TO_CLIENT_NAME_MAP = {
+    v: k for k, v in CLIENT_NAME_TO_APP_NAME_MAP.items()
+}
+
 
 class EpicGroups(Enum):
     """Enum representing Epic group names."""
@@ -90,4 +94,13 @@ GROUP_TO_APP_NAME_MAP = {
     'SUBMIT': 'epic_submit',
     'COMPLIANCE': 'epic_compliance',
     'CONDITION-REPO': 'condition_repository',
+}
+
+CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP = {
+    EpicAppClientName.EPIC_CENTRE.value: ['manage_auth', 'manage_users'],
+    EpicAppClientName.EPIC_TRACK.value: ['manage_users'],
+    EpicAppClientName.EPIC_ENGAGE.value: ['manage_users'],
+    EpicAppClientName.EPIC_COMPLIANCE.value: ['super_user'],
+    EpicAppClientName.CONDITION_REPOSITORY.value: ['view_conditions'],
+    EpicAppClientName.EPIC_SUBMIT.value: ['manage_auth'],
 }
