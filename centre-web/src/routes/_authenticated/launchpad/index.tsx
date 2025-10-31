@@ -1,6 +1,7 @@
 import { DocumentSearch } from "@/components/DocumentSearch";
 import { List as EpicTileList } from "@/components/LaunchAppTile/List";
 import { LaunchAppListSkeleton } from "@/components/LaunchAppTile/ListSkeleton";
+import { ViewDescriptionSwitch } from "@/components/LaunchAppTile/ViewDescriptionSwitch";
 import { PageContainer } from "@/components/Shared/PageGrid";
 import { useGetApplications } from "@/hooks/api/useApplications";
 import { EpicAppName } from "@/models/EpicApp";
@@ -31,6 +32,16 @@ function Launchpad() {
 
   return (
     <PageContainer>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          mb: 2,
+          maxWidth: "1070px",
+        }}
+      >
+        <ViewDescriptionSwitch />
+      </Box>
       <Box
         sx={{
           display: "flex",

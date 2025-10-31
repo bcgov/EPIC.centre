@@ -2,6 +2,7 @@ import { Box, Typography, IconButton } from "@mui/material";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { BCDesignTokens } from "epic.theme";
 import LinesEllipsis from "react-lines-ellipsis";
+import { useLaunchpadStore } from "@/stores/launchpadStore";
 
 type HeaderProps = {
   data: {
@@ -12,12 +13,13 @@ type HeaderProps = {
   dragAttributes?: any;
 };
 export const Header = ({ data, dragListeners, dragAttributes }: HeaderProps) => {
+  const { showDescription } = useLaunchpadStore();
   const { title, description } = data;
 
   return (
     <Box
       sx={{
-        height: "100px",
+        height: showDescription ? "100px" : "50px",
         backgroundColor: BCDesignTokens.surfaceColorBackgroundLightBlue,
       }}
     >
@@ -62,15 +64,17 @@ export const Header = ({ data, dragListeners, dragAttributes }: HeaderProps) => 
             <DragIndicatorIcon htmlColor={BCDesignTokens.themeGray80} />
           </IconButton>
         </Box>
-        <Typography variant="body2" width="100%">
-          <LinesEllipsis
-            text={description}
-            maxLine={2}
-            ellipsis="..."
-            trimRight
-            basedOn="letters"
-          />
-        </Typography>
+        {showDescription && (
+          <Typography variant="body2" width="100%" title={description}>
+            <LinesEllipsis
+              text={description}
+              maxLine={2}
+              ellipsis="..."
+              trimRight
+              basedOn="letters"
+            />
+          </Typography>
+        )}
       </Box>
     </Box>
   );
