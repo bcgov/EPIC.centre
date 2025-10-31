@@ -143,10 +143,34 @@ class AuthApiService:
             }
 
             timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
-            response = requests.put(base_url, headers=headers, timeout=timeout, json=group_data)
+            request_body = {
+                'app_name': group_data.get('parent_group_name'),
+                'group_name': group_data.get('group_name')
+            }
+            response = requests.put(base_url, headers=headers, timeout=timeout, json=request_body)
             response.raise_for_status()
 
             return response
         except requests.RequestException as error:
             current_app.logger.error(f'Error fetching user by username: {error}')
+            raise error
+
+    @staticmethod
+    def delete_all_user_group_mapping(username: str):
+        """Delete all user group mappings."""
+        try:
+            base_url = f'{os.getenv("AUTH_API")}/api/users/{username}/groups'
+
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': g.authorization_header,
+            }
+
+            timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
+            response = requests.delete(base_url, headers=headers, timeout=timeout)
+            response.raise_for_status()
+
+            return response
+        except requests.RequestException as error:
+            current_app.logger.error(f'Error deleting user group mappings: {error}')
             raise error

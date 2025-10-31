@@ -1,5 +1,4 @@
 """Service for applications management."""
-from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.epic_app import EpicAppClientName, CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP, APP_NAME_TO_CLIENT_NAME_MAP
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.services.auth_api_service import AuthApiService
@@ -48,33 +47,24 @@ class AccessRequestsService:
         if not access_request:
             return None
 
-        user_data = TokenInfo.get_user_data()
-        resource_access = user_data.get('resource_access', {})
+        app_name = access_request.app_name
+        has_admin_access = cls.has_admin_access_on_app(app_name)
+        if not has_admin_access:
+            raise PermissionError(
+                f"User does not have permission to update access requests for app '{app_name}'."
+            )
 
-        # Check for Centre admin roles
-        if cls._has_admin_roles(
-            resource_access, EpicAppClientName.EPIC_CENTRE.value
-        ):
-            return cls._do_update_access_request(access_request, status)
+        return cls._do_update_access_request(access_request, status)
 
-        # Check for app-specific admin roles
-        app_name = access_request.app.name
+    @classmethod
+    def has_admin_access_on_app(cls, app_name: str):
+        """Check if the user had admin access on the given app."""
+        had_dst_admin_roles = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
+        if had_dst_admin_roles:
+            return True
+
         client_name = APP_NAME_TO_CLIENT_NAME_MAP.get(app_name)
-        if cls._has_admin_roles(resource_access, client_name):
-            return cls._do_update_access_request(access_request, status)
-
-        raise PermissionError(
-            f"User does not have permission to update access requests for app '{app_name}'."
-        )
-
-    @staticmethod
-    def _has_admin_roles(resource_access, client_name):
-        """Check if the user has admin roles for the given client."""
-        if not client_name:
-            return False
-        roles = resource_access.get(client_name, {}).get('roles', [])
-        admin_roles = CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP.get(client_name, [])
-        return any(role in admin_roles for role in roles)
+        return TokenInfo.has_admin_roles(client_name)
 
     @classmethod
     def _do_update_access_request(cls, access_request, status):

@@ -1,6 +1,7 @@
 """Helper for token decoding."""
 from flask import g
 
+from centre_api.enums.epic_app import CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP
 from centre_api.utils.user_context import UserContext, user_context
 
 
@@ -31,3 +32,13 @@ class TokenInfo:
             'resource_access': token_info.get('resource_access', {}),
         }
         return user_data
+
+    @staticmethod
+    def has_admin_roles(client_name):
+        """Check if the user has admin roles for the given client."""
+        token_info = g.jwt_oidc_token_info
+        resource_access = token_info.get('resource_access', {})
+        client_resource_access = resource_access.get(client_name, {})
+        roles = client_resource_access.get('roles', [])
+        admin_roles = CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP.get(client_name, [])
+        return any(role in admin_roles for role in roles)

@@ -63,7 +63,7 @@ class UserByUsername(Resource):
 
 
 @cors_preflight('PUT, OPTIONS')
-@API.route('/<username>/groups', methods=['PUT', 'OPTIONS'])
+@API.route('/<username>/access', methods=['PUT', 'OPTIONS'])
 class User(Resource):
     """Resource for fetching users."""
 
@@ -72,6 +72,21 @@ class User(Resource):
     @auth.require
     def put(username):
         """Update a user group assignment."""
-        group_data = API.payload
-        UserService.update_user_group(username, group_data)
+        access_data = API.payload
+        UserService.update_user_access(username, access_data)
         return 'User group updated', HTTPStatus.OK
+
+
+@cors_preflight('PUT, OPTIONS')
+@API.route('/<username>/access', methods=['PUT', 'OPTIONS'])
+class User(Resource):
+    """Resource for fetching users."""
+
+    @staticmethod
+    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all users')
+    @auth.require
+    def delete(username):
+        """Delete user groups assignment."""
+        access_data = API.payload
+        UserService.revoke_user_access(username, access_data)
+        return 'User group revoked', HTTPStatus.OK

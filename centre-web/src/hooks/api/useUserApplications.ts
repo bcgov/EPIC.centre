@@ -33,7 +33,7 @@ export const updateSortOrder = (data: UpdateSortOrderRequest) => {
 };
 
 export const useUpdateSortOrder = (
-  options?: MutationRequestParams<UpdateSortOrderRequest>,
+  options?: MutationRequestParams<string, UpdateSortOrderRequest>,
 ) => {
   return useMutation<string, unknown, UpdateSortOrderRequest>({
     mutationFn: (data: UpdateSortOrderRequest) => updateSortOrder(data),

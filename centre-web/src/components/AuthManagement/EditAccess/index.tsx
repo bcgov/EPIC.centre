@@ -23,14 +23,21 @@ import { Else, If, Then, Unless, When } from "react-if";
 import { LoadingButton } from "@/components/Shared/LoadingButton";
 import { EditAccessModalSkeleton } from "./EditAccessSkeleton";
 import { CentreRadio } from "@/components/Shared/CentreRadio";
-import { useGetUser, useUpdateUserGroup } from "@/hooks/api/useUsers";
+import {
+  useGetUser,
+  useRevokeUserAccess,
+  useUpdateUserGroup,
+} from "@/hooks/api/useUsers";
 import { EPIC_APP_TO_GROUP } from "@/models/KCGroup";
+import { AccessRequest, AccessRequestStatus } from "@/models/AccessRequest";
+import { useUpdateAccessRequest } from "@/hooks/api/useAccessRequests";
 
 type EditAccessModalProps = {
   user: CentreUser;
   app: CentreUserApp;
   onClose?: () => void;
   username: string;
+  request?: AccessRequest;
 };
 
 export const EditAccessModal = ({
@@ -38,6 +45,7 @@ export const EditAccessModal = ({
   onClose,
   user,
   username,
+  request,
 }: EditAccessModalProps) => {
   const [isUpdatingAccess, setIsUpdatingAccess] = useState(false);
   const { refetch } = useGetUser({
@@ -76,6 +84,14 @@ export const EditAccessModal = ({
       onError: handleUpdateError,
     });
 
+  const { mutateAsync: revokeUserAccess } = useRevokeUserAccess({
+    onError: handleUpdateError,
+  });
+
+  const { mutateAsync: updateAccessRequest } = useUpdateAccessRequest({
+    onError: handleUpdateError,
+  });
+
   const currentRole = app.role;
 
   const REVOKE_OPTION = {
@@ -107,13 +123,23 @@ export const EditAccessModal = ({
     try {
       if (selectedRole === REVOKE_OPTION.value) {
         /// Revoke Access
+        await revokeUserAccess({
+          username: user.username,
+          appName: app.name,
+        });
       } else if (selectedRole === DENY_OPTION.value) {
         // Deny Access Request
+        await updateAccessRequest({
+          access_request_id: request?.id!,
+          status: AccessRequestStatus.REJECTED,
+        });
       } else {
         await updateUserGroup({
           username: user.username,
           groupName: selectedAccessLevel.group_name,
-          appName: parentGroupName,
+          appName: app.name,
+          parentGroupName: parentGroupName,
+          accessRequestId: request?.id,
         });
       }
       await refetch();
