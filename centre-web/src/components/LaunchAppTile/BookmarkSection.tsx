@@ -71,22 +71,27 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
                   <CentreLink
                     key={bookmark.label}
                     onClick={() => window.open(bookmark.url, "_blank")}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
                   >
+                    {bookmark.label && bookmark.label.length > 0 && (
+                      <Circle sx={{ marginRight: "5px", fontSize: "7px", flexShrink: 0 }} />
+                    )}
                     <Typography
                       variant="body1"
                       fontWeight={400}
                       color={"inherit"}
                       sx={{
-                        overflow: "clip",
+                        overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
-                        display: "flex",
-                        alignItems: "center",
                       }}
                     >
-                      {bookmark.label && bookmark.label.length > 0 && (
-                        <Circle sx={{  marginRight: "5px", fontSize: "7px" }} />
-                      )}
                       {bookmark.label}
                     </Typography>
                   </CentreLink>
