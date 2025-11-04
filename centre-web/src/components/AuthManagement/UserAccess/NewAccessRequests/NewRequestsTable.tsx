@@ -88,6 +88,7 @@ export const NewRequestsTable = ({
             setTimeout(() => buttonRef.focus(), 100);
           }
         }}
+        request={request}
       />
     );
 

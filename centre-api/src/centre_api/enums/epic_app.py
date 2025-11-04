@@ -94,12 +94,13 @@ GROUP_TO_APP_NAME_MAP = {
     'SUBMIT': 'epic_submit',
     'COMPLIANCE': 'epic_compliance',
     'CONDITION-REPO': 'condition_repository',
+    'ENGAGE': 'epic_engage',
 }
 
 CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP = {
     EpicAppClientName.EPIC_CENTRE.value: ['manage_auth', 'manage_users'],
     EpicAppClientName.EPIC_TRACK.value: ['manage_users'],
-    EpicAppClientName.EPIC_ENGAGE.value: ['manage_users'],
+    EpicAppClientName.EPIC_ENGAGE.value: ['create_admin_user'],
     EpicAppClientName.EPIC_COMPLIANCE.value: ['super_user'],
     EpicAppClientName.CONDITION_REPOSITORY.value: ['view_conditions'],
     EpicAppClientName.EPIC_SUBMIT.value: ['manage_auth'],

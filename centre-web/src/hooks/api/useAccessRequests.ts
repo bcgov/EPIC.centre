@@ -39,13 +39,16 @@ export const useAccessRequests = ({
 // New hook for /access-requests/users/user_auth_guid
 type GetUserAccessRequestsParams = {
   user_auth_guid: string;
+  status?: string;
 };
 
 const getUserAccessRequests = ({
   user_auth_guid,
+  status,
 }: GetUserAccessRequestsParams) => {
   return centreRequest<AccessRequest[]>({
     url: `access-requests/users/${user_auth_guid}`,
+    params: { status },
   });
 };
 
@@ -53,11 +56,12 @@ type UseUserAccessRequestsParams = GetUserAccessRequestsParams &
   QueryRequestParams<AccessRequest[]>;
 export const useUserAccessRequests = ({
   user_auth_guid,
+  status,
   ...rest
 }: UseUserAccessRequestsParams) => {
   return useQuery({
     queryKey: [QUERY_KEY.ACCESS_REQUESTS, user_auth_guid],
-    queryFn: () => getUserAccessRequests({ user_auth_guid }),
+    queryFn: () => getUserAccessRequests({ user_auth_guid, status }),
     ...rest,
   });
 };

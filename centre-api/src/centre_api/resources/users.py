@@ -62,10 +62,10 @@ class UserByUsername(Resource):
         return UserSchema().dump(user), HTTPStatus.OK
 
 
-@cors_preflight('PUT, OPTIONS')
-@API.route('/<username>/access', methods=['PUT', 'OPTIONS'])
+@cors_preflight('PUT, OPTIONS, DELETE')
+@API.route('/<username>/access', methods=['PUT', 'OPTIONS', 'DELETE'])
 class User(Resource):
-    """Resource for fetching users."""
+    """Resource for managing user access."""
 
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all users')
@@ -76,14 +76,8 @@ class User(Resource):
         UserService.update_user_access(username, access_data)
         return 'User group updated', HTTPStatus.OK
 
-
-@cors_preflight('PUT, OPTIONS')
-@API.route('/<username>/access', methods=['PUT', 'OPTIONS'])
-class User(Resource):
-    """Resource for fetching users."""
-
     @staticmethod
-    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all users')
+    @ApiHelper.swagger_decorators(API, endpoint_description='Delete user group assignment')
     @auth.require
     def delete(username):
         """Delete user groups assignment."""

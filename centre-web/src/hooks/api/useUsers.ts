@@ -54,7 +54,7 @@ export const updateUserGroup = (params: UpdateUserGroupParams) => {
   const { username, groupName, appName, accessRequestId, parentGroupName } =
     params;
   return centreRequest<unknown>({
-    url: `users/${username}/groups`,
+    url: `users/${username}/access`,
     method: "PUT",
     data: {
       group_name: groupName,

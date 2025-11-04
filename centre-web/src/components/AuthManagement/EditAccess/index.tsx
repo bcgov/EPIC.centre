@@ -30,7 +30,10 @@ import {
 } from "@/hooks/api/useUsers";
 import { EPIC_APP_TO_GROUP } from "@/models/KCGroup";
 import { AccessRequest, AccessRequestStatus } from "@/models/AccessRequest";
-import { useUpdateAccessRequest } from "@/hooks/api/useAccessRequests";
+import {
+  useUpdateAccessRequest,
+  useUserAccessRequests,
+} from "@/hooks/api/useAccessRequests";
 
 type EditAccessModalProps = {
   user: CentreUser;
@@ -92,6 +95,12 @@ export const EditAccessModal = ({
     onError: handleUpdateError,
   });
 
+  const { refetch: refetchAccessRequests } = useUserAccessRequests({
+    user_auth_guid: user?.id || "",
+    status: AccessRequestStatus.PENDING,
+    enabled: !!user?.id,
+  });
+
   const currentRole = app.role;
 
   const REVOKE_OPTION = {
@@ -104,10 +113,13 @@ export const EditAccessModal = ({
   };
 
   const handleConfirm = async () => {
+    const isDeny = selectedRole === DENY_OPTION.value;
+    const isRevoke = selectedRole === REVOKE_OPTION.value;
+
     const selectedAccessLevel = accessLevels.find(
       (level) => level.group_path === selectedRole,
     );
-    if (!selectedAccessLevel) {
+    if (!selectedAccessLevel && !isRevoke && !isDeny) {
       notify.error("Please select an access level.");
       return;
     }
@@ -133,7 +145,8 @@ export const EditAccessModal = ({
           access_request_id: request?.id!,
           status: AccessRequestStatus.REJECTED,
         });
-      } else {
+        await refetchAccessRequests();
+      } else if (selectedAccessLevel) {
         await updateUserGroup({
           username: user.username,
           groupName: selectedAccessLevel.group_name,
@@ -141,6 +154,9 @@ export const EditAccessModal = ({
           parentGroupName: parentGroupName,
           accessRequestId: request?.id,
         });
+        await refetchAccessRequests();
+      } else {
+        notify.error("Please select a valid access level.");
       }
       await refetch();
       notify.success("User access updated successfully.");
@@ -246,22 +262,20 @@ export const EditAccessModal = ({
                     label={accessLevel.name}
                   />
                 ))}
-                <If condition={currentRole}>
-                  <Then>
-                    <CentreRadio
-                      key={REVOKE_OPTION.label}
-                      value={REVOKE_OPTION.value}
-                      label={REVOKE_OPTION.label}
-                    />
-                  </Then>
-                  <Else>
-                    <CentreRadio
-                      key={DENY_OPTION.label}
-                      value={DENY_OPTION.value}
-                      label={DENY_OPTION.label}
-                    />
-                  </Else>
-                </If>
+                {currentRole && (
+                  <CentreRadio
+                    key={REVOKE_OPTION.label}
+                    value={REVOKE_OPTION.value}
+                    label={REVOKE_OPTION.label}
+                  />
+                )}
+                {request && (
+                  <CentreRadio
+                    key={DENY_OPTION.label}
+                    value={DENY_OPTION.value}
+                    label={DENY_OPTION.label}
+                  />
+                )}
               </RadioGroup>
             </FormControl>
           </Grid>

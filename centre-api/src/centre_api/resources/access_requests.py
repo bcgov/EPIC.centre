@@ -59,8 +59,8 @@ class UserAccessRequests(Resource):
         return access_requests, HTTPStatus.OK
 
 
-@cors_preflight('GET, OPTIONS')
-@API.route('/<int:access_request_id>', methods=['GET', 'OPTIONS'])
+@cors_preflight('PUT, OPTIONS')
+@API.route('/<int:access_request_id>', methods=['PUT', 'OPTIONS'])
 class UserAccessRequests(Resource):
     """Resource for managing an access request."""
 

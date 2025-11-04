@@ -47,7 +47,7 @@ class AccessRequestsService:
         if not access_request:
             return None
 
-        app_name = access_request.app_name
+        app_name = access_request.app.name
         has_admin_access = cls.has_admin_access_on_app(app_name)
         if not has_admin_access:
             raise PermissionError(
