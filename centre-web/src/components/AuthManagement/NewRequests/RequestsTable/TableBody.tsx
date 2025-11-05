@@ -29,10 +29,10 @@ export const RequestsTableBody: React.FC<TableBodyProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleEditAccess = () => {
+  const handleEditAccess = (user: GroupedRequest) => {
     navigate({
       to: "/request-access/auth/users/$username",
-      params: { username: userRequests[0]?.username ?? "" },
+      params: { username: user.username ?? "" },
     });
   };
 
@@ -93,7 +93,9 @@ export const RequestsTableBody: React.FC<TableBodyProps> = ({
             </Stack>
           </CentreTableCell>
           <CentreTableCell>
-            <CentreLink onClick={handleEditAccess}>View/Edit Access</CentreLink>
+            <CentreLink onClick={() => handleEditAccess(user)}>
+              View/Edit Access
+            </CentreLink>
           </CentreTableCell>
         </TableRow>
       ))}

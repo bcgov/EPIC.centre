@@ -20,13 +20,6 @@ export default function UsersTableRow({ user }: Props) {
   return (
     <TableRow>
       <CentreTableCell>{`${user.last_name ?? ""}, ${user.first_name ?? ""}`}</CentreTableCell>
-      {/* <CentreTableCell sx={{ height: "35px" }}>
-        <Stack direction="row" spacing={1} flexWrap="wrap">
-          {user.apps.map((app) => (
-            <AppChip key={app.name} appName={getAppChipTitle(app.name)} />
-          ))}
-        </Stack>
-      </CentreTableCell> */}
       <CentreTableCell>
         <CentreLink onClick={handleEditAccess}>View/Edit Access</CentreLink>
       </CentreTableCell>

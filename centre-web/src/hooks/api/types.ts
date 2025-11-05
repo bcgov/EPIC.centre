@@ -12,8 +12,7 @@ export type RequestOptions<TData = any> = {
 export type QueryRequestParams<TData = any> = Partial<
   DefinedInitialDataOptions<TData>
 >;
-export type MutationRequestParams<TData = any> = UseMutationOptions<
-  string,
-  unknown,
-  TData
->;
+export type MutationRequestParams<
+  TData = any,
+  TVariables = any,
+> = UseMutationOptions<TData, unknown, TVariables>;

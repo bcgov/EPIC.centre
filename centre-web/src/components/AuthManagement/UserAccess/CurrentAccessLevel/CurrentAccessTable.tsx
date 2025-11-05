@@ -14,6 +14,7 @@ import { EditAccessModal } from "../../EditAccess";
 import { useAppConfigs } from "@/hooks/api/useAppConfigs";
 import { AppUserManagementButton } from "../AppUserManagementButton";
 import { useParams } from "@tanstack/react-router";
+import { useUserAccessRequests } from "@/hooks/api/useAccessRequests";
 
 type CurrentAccessTableProps = {
   user?: CentreUser;
@@ -24,6 +25,11 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
   });
   const { setOpen: setModalOpen } = useModal();
   const { data: appConfigs = [] } = useAppConfigs();
+
+  const { data: requests = [] } = useUserAccessRequests({
+    user_auth_guid: user?.id || "",
+    enabled: !!user?.id,
+  });
 
   const editButtonRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
 
@@ -48,6 +54,8 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
   const handleAddEditAccess = (app: CentreUserApp) => {
     if (!user) return;
 
+    const request = requests.find((req) => req.app.name === app.name);
+
     const modalWithFocusReturn = (
       <EditAccessModal
         user={user}
@@ -59,6 +67,7 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
           }
         }}
         username={String(username)}
+        request={request}
       />
     );
 
@@ -105,7 +114,6 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
               Actions
             </CentreTableHeadCell>
             <CentreTableHeadCell sx={{ width: "20%" }}></CentreTableHeadCell>
-
           </TableRow>
         </CentreTableHead>
         <TableBody>

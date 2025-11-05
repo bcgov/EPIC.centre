@@ -3,6 +3,7 @@ import datetime
 import os
 from collections import defaultdict
 
+from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import APP_NAME_TO_GROUP_MAP, CLIENT_NAME_TO_APP_NAME_MAP, GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppName
 from centre_api.models import Application as ApplicationModel
@@ -96,7 +97,8 @@ class ApplicationsService:
                           EpicAppName.DOCUMENT_SEARCH.value}
         filtered_apps = [(app, user_app) for app, user_app in apps if app.name not in exception_apps]
         accessed_apps = cls.get_user_accessed_apps_names()
-        access_requests = AccessRequestsModal.get_all_requests_by_user(TokenInfo.get_id())
+        access_requests = AccessRequestsModal.get_all_requests_by_user(TokenInfo.get_id(),
+                                                                       status=AccessRequestsStatusEnum.PENDING.value)
         
         user_access_levels = cls._get_current_user_access_levels()
         
@@ -200,7 +202,10 @@ class ApplicationsService:
             raise ValueError(f'Application with id {app_id} does not exist.')
 
         # Check if an access request already exists
-        existing_request = AccessRequestsModal.query.filter_by(app_id=app_id, user_auth_guid=user_auth_id).first()
+        existing_request = (AccessRequestsModal.query
+                            .filter_by(app_id=app_id, user_auth_guid=user_auth_id,
+                                       status=AccessRequestsStatusEnum.PENDING.value)
+                            .first())
         if existing_request:
             return existing_request
         with session_scope() as session:

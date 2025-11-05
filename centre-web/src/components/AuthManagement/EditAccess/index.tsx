@@ -19,18 +19,28 @@ import { notify } from "@/components/Shared/Snackbar/snackbarStore";
 import { isAxiosError } from "axios";
 import { modalStyle } from "@/components/Shared/Modals/constants";
 import { getAppChipTitle } from "../utils";
-import { Else, If, Then, Unless, When } from "react-if";
+import { If, Unless, When } from "react-if";
 import { LoadingButton } from "@/components/Shared/LoadingButton";
 import { EditAccessModalSkeleton } from "./EditAccessSkeleton";
 import { CentreRadio } from "@/components/Shared/CentreRadio";
-import { useGetUser, useUpdateUserGroup } from "@/hooks/api/useUsers";
+import {
+  useGetUser,
+  useRevokeUserAccess,
+  useUpdateUserGroup,
+} from "@/hooks/api/useUsers";
 import { EPIC_APP_TO_GROUP } from "@/models/KCGroup";
+import { AccessRequest, AccessRequestStatus } from "@/models/AccessRequest";
+import {
+  useUpdateAccessRequest,
+  useUserAccessRequests,
+} from "@/hooks/api/useAccessRequests";
 
 type EditAccessModalProps = {
   user: CentreUser;
   app: CentreUserApp;
   onClose?: () => void;
   username: string;
+  request?: AccessRequest;
 };
 
 export const EditAccessModal = ({
@@ -38,6 +48,7 @@ export const EditAccessModal = ({
   onClose,
   user,
   username,
+  request,
 }: EditAccessModalProps) => {
   const [isUpdatingAccess, setIsUpdatingAccess] = useState(false);
   const { refetch } = useGetUser({
@@ -76,13 +87,39 @@ export const EditAccessModal = ({
       onError: handleUpdateError,
     });
 
+  const { mutateAsync: revokeUserAccess } = useRevokeUserAccess({
+    onError: handleUpdateError,
+  });
+
+  const { mutateAsync: updateAccessRequest } = useUpdateAccessRequest({
+    onError: handleUpdateError,
+  });
+
+  const { refetch: refetchAccessRequests } = useUserAccessRequests({
+    user_auth_guid: user?.id || "",
+    status: AccessRequestStatus.PENDING,
+    enabled: !!user?.id,
+  });
+
   const currentRole = app.role;
 
+  const REVOKE_OPTION = {
+    label: "Revoke Access",
+    value: "revoke",
+  };
+  const DENY_OPTION = {
+    label: "Deny Access Request",
+    value: "deny",
+  };
+
   const handleConfirm = async () => {
+    const isDeny = selectedRole === DENY_OPTION.value;
+    const isRevoke = selectedRole === REVOKE_OPTION.value;
+
     const selectedAccessLevel = accessLevels.find(
       (level) => level.group_path === selectedRole,
     );
-    if (!selectedAccessLevel) {
+    if (!selectedAccessLevel && !isRevoke && !isDeny) {
       notify.error("Please select an access level.");
       return;
     }
@@ -96,11 +133,33 @@ export const EditAccessModal = ({
     setIsUpdatingAccess(true);
 
     try {
-      await updateUserGroup({
-        username: user.username,
-        groupName: selectedAccessLevel.group_name,
-        appName: parentGroupName,
-      });
+      if (selectedRole === REVOKE_OPTION.value) {
+        /// Revoke Access
+        await revokeUserAccess({
+          username: user.username,
+          appName: app.name,
+        });
+      } else if (!request) {
+        return;
+      } else if (selectedRole === DENY_OPTION.value) {
+        // Deny Access Request
+        await updateAccessRequest({
+          access_request_id: request.id,
+          status: AccessRequestStatus.REJECTED,
+        });
+        await refetchAccessRequests();
+      } else if (selectedAccessLevel) {
+        await updateUserGroup({
+          username: user.username,
+          groupName: selectedAccessLevel.group_name,
+          appName: app.name,
+          parentGroupName: parentGroupName,
+          accessRequestId: request.id,
+        });
+        await refetchAccessRequests();
+      } else {
+        notify.error("Please select a valid access level.");
+      }
       await refetch();
       notify.success("User access updated successfully.");
     } catch (error) {
@@ -115,15 +174,6 @@ export const EditAccessModal = ({
       setIsUpdatingAccess(false);
       setClose();
     }
-  };
-
-  const REVOKE_OPTION = {
-    label: "Revoke Access",
-    value: "revoke",
-  };
-  const DENY_OPTION = {
-    label: "Deny Access Request",
-    value: "deny",
   };
 
   const errorMsg = useMemo(() => {
@@ -214,22 +264,20 @@ export const EditAccessModal = ({
                     label={accessLevel.name}
                   />
                 ))}
-                <If condition={currentRole}>
-                  <Then>
-                    <CentreRadio
-                      key={REVOKE_OPTION.label}
-                      value={REVOKE_OPTION.value}
-                      label={REVOKE_OPTION.label}
-                    />
-                  </Then>
-                  <Else>
-                    <CentreRadio
-                      key={DENY_OPTION.label}
-                      value={DENY_OPTION.value}
-                      label={DENY_OPTION.label}
-                    />
-                  </Else>
-                </If>
+                {currentRole && (
+                  <CentreRadio
+                    key={REVOKE_OPTION.label}
+                    value={REVOKE_OPTION.value}
+                    label={REVOKE_OPTION.label}
+                  />
+                )}
+                {request && (
+                  <CentreRadio
+                    key={DENY_OPTION.label}
+                    value={DENY_OPTION.value}
+                    label={DENY_OPTION.label}
+                  />
+                )}
               </RadioGroup>
             </FormControl>
           </Grid>
