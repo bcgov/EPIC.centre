@@ -65,7 +65,7 @@ export const NewRequestsTable = ({
     return tabIndexMap;
   }, [requests, appSupportsGranularRoleManagementMap, appUrlMap]);
 
-  const handleAddEditBookmarks = (request: AccessRequest) => {
+  const handleEditAccess = (request: AccessRequest) => {
     if (!user) return;
 
     const app = {
@@ -88,6 +88,7 @@ export const NewRequestsTable = ({
             setTimeout(() => buttonRef.focus(), 100);
           }
         }}
+        request={request}
       />
     );
 
@@ -108,7 +109,6 @@ export const NewRequestsTable = ({
               Actions
             </CentreTableHeadCell>
             <CentreTableHeadCell sx={{ width: "20%" }}></CentreTableHeadCell>
-
           </TableRow>
         </CentreTableHead>
         <TableBody>
@@ -121,7 +121,7 @@ export const NewRequestsTable = ({
                 <CentreTableCell>--</CentreTableCell>
                 <CentreTableCell>
                   <CentreLink
-                    onClick={() => handleAddEditBookmarks(request)}
+                    onClick={() => handleEditAccess(request)}
                     tabIndex={index + 1}
                     ref={(el) => {
                       if (el) {

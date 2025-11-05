@@ -57,3 +57,19 @@ class UserAccessRequests(Resource):
         args = request.args.to_dict()
         access_requests = AccessRequestsService.get_user_access_requests(user_auth_guid, args)
         return access_requests, HTTPStatus.OK
+
+
+@cors_preflight('PUT, OPTIONS')
+@API.route('/<int:access_request_id>', methods=['PUT', 'OPTIONS'])
+class UserAccessRequest(Resource):
+    """Resource for managing an access request."""
+
+    @staticmethod
+    @ApiHelper.swagger_decorators(API, endpoint_description='Update an access request')
+    @auth.require
+    def put(access_request_id):
+        """Fetch all access requests."""
+        args = request.args.to_dict()
+        status = args.get('status')
+        access_requests = AccessRequestsService.process_access_request(access_request_id, status)
+        return access_requests, HTTPStatus.OK

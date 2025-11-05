@@ -1,7 +1,8 @@
 """Service for applications management."""
-
+from centre_api.enums.epic_app import APP_NAME_TO_CLIENT_NAME_MAP, EpicAppClientName
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.services.auth_api_service import AuthApiService
+from centre_api.utils.token_info import TokenInfo
 
 
 class AccessRequestsService:
@@ -38,3 +39,36 @@ class AccessRequestsService:
         for req in serialized_requests:
             req['user'] = user
         return serialized_requests
+
+    @classmethod
+    def process_access_request(cls, access_request_id, status):
+        """Update an access request for a user."""
+        access_request = AccessRequestsModal.query.get(access_request_id)
+        if not access_request:
+            return None
+
+        app_name = access_request.app.name
+        has_admin_access = cls.has_admin_access_on_app(app_name)
+        if not has_admin_access:
+            raise PermissionError(
+                f"User does not have permission to update access requests for app '{app_name}'."
+            )
+
+        return cls._do_update_access_request(access_request, status)
+
+    @classmethod
+    def has_admin_access_on_app(cls, app_name: str):
+        """Check if the user had admin access on the given app."""
+        had_dst_admin_roles = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
+        if had_dst_admin_roles:
+            return True
+
+        client_name = APP_NAME_TO_CLIENT_NAME_MAP.get(app_name)
+        return TokenInfo.has_admin_roles(client_name)
+
+    @classmethod
+    def _do_update_access_request(cls, access_request, status):
+        """Perform the update of an access request."""
+        access_request.status = status
+        access_request.save()
+        return access_request.to_dict()

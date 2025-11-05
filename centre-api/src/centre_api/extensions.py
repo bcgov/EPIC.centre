@@ -13,9 +13,9 @@
 # limitations under the License.
 """This module initializes and configures the Flask-Limiter extension for rate limiting."""
 
+from flask import g
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask import g
 
 
 # Custom key function that uses user identity if available

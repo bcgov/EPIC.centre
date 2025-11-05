@@ -17,6 +17,7 @@ from centre_api.models import db, ma, migrate
 from centre_api.utils.cache import cache
 from centre_api.utils.util import allowedorigins
 
+
 # Security Response headers
 csp = (
     secure.ContentSecurityPolicy()

@@ -14,8 +14,11 @@
 """user functions."""
 from collections import defaultdict
 
-from centre_api.enums.epic_app import GROUP_TO_APP_NAME_MAP
+from centre_api.enums.access_request_status import AccessRequestsStatusEnum
+from centre_api.enums.epic_app import APP_NAME_TO_CLIENT_NAME_MAP, GROUP_TO_APP_NAME_MAP, EpicAppClientName
+from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.services.auth_api_service import AuthApiService
+from centre_api.utils.token_info import TokenInfo
 
 
 class UserService:
@@ -77,7 +80,40 @@ class UserService:
         return user
 
     @classmethod
-    def update_user_group(cls, username: str, group_data: dict):
-        """Retrieve a user by ID and enrich with application access information."""
-        response = AuthApiService.update_user_group(username, group_data)
+    def update_user_access(cls, username: str, access_data: dict):
+        """Update user group."""
+        had_admin_access_on_app = cls.has_admin_access_on_app(access_data.get('app_name'))
+        if not had_admin_access_on_app:
+            raise PermissionError(f'User does not have permission to update access for app'
+                                  f' "{access_data.get("app_name")}".')
+
+        response = AuthApiService.update_user_group(username, access_data)
+        access_request_id = access_data.get('access_request_id')
+        if access_request_id:
+            access_request = AccessRequestsModal.find_by_id(access_request_id)
+            if access_request:
+                access_request.status = AccessRequestsStatusEnum.APPROVED.value
+                access_request.save()
         return response
+
+    @classmethod
+    def revoke_user_access(cls, username: str, access_data: dict):
+        """Update user group."""
+        had_admin_access_on_app = cls.has_admin_access_on_app(access_data.get('app_name'))
+        if not had_admin_access_on_app:
+            raise PermissionError(f'User does not have permission to update access for app'
+                                  f' "{access_data.get("app_name")}".')
+
+        response = AuthApiService.delete_all_user_group_mapping(username)
+
+        return response
+
+    @classmethod
+    def has_admin_access_on_app(cls, app_name: str):
+        """Check if the user had admin access on the given app."""
+        had_dst_admin_roles = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
+        if had_dst_admin_roles:
+            return True
+
+        client_name = APP_NAME_TO_CLIENT_NAME_MAP.get(app_name)
+        return TokenInfo.has_admin_roles(client_name)

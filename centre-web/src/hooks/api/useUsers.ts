@@ -47,13 +47,21 @@ type UpdateUserGroupParams = {
   username: string;
   groupName: string;
   appName: string;
+  parentGroupName: string;
+  accessRequestId?: number;
 };
 export const updateUserGroup = (params: UpdateUserGroupParams) => {
-  const { username, groupName, appName } = params;
+  const { username, groupName, appName, accessRequestId, parentGroupName } =
+    params;
   return centreRequest<unknown>({
-    url: `users/${username}/groups`,
+    url: `users/${username}/access`,
     method: "PUT",
-    data: { group_name: groupName, app_name: appName },
+    data: {
+      group_name: groupName,
+      app_name: appName,
+      access_request_id: accessRequestId,
+      parent_group_name: parentGroupName,
+    },
   });
 };
 
@@ -69,15 +77,29 @@ export const useUpdateUserGroup = (options?: UseUpdateUserGroupsOptions) => {
   });
 };
 
-const initializeUser = () => {
-  return centreRequest<CentreUser>({
-    url: `users/initialize`,
-    method: "POST",
+type RevokeUserAccessParams = {
+  username: string;
+  appName: string;
+};
+export const revokeUserAccess = (params: RevokeUserAccessParams) => {
+  const { username, appName } = params;
+  return centreRequest<unknown>({
+    url: `users/${username}/access`,
+    method: "DELETE",
+    data: {
+      app_name: appName,
+    },
   });
 };
 
-export const useInitializeUser = () => {
+type UseRevokeUserAccessOptions = UseMutationOptions<
+  unknown,
+  unknown,
+  RevokeUserAccessParams
+>;
+export const useRevokeUserAccess = (options?: UseRevokeUserAccessOptions) => {
   return useMutation({
-    mutationFn: initializeUser,
+    mutationFn: (params: RevokeUserAccessParams) => revokeUserAccess(params),
+    ...options,
   });
 };
