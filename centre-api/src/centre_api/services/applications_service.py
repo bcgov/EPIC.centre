@@ -1,8 +1,9 @@
 """Service for applications management."""
 import datetime
 import os
-import requests
 from collections import defaultdict
+
+import requests
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
