@@ -1,6 +1,7 @@
 """Service for applications management."""
 import datetime
 import os
+import requests
 from collections import defaultdict
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
@@ -51,7 +52,7 @@ class ApplicationsService:
                 if role_info['role']:
                     result[app_name] = role_info['role']
             return result
-        except Exception:
+        except (requests.RequestException, AttributeError, KeyError):
             return {}
 
     @classmethod
@@ -66,9 +67,9 @@ class ApplicationsService:
 
         apps = ApplicationModel.get_all()
         apps = [(app, user_app) for app, user_app in apps if app.name in accessed_apps]
-        
+
         user_access_levels = cls._get_current_user_access_levels()
-        
+
         return [
             {
                 'id': app.id,
@@ -99,9 +100,9 @@ class ApplicationsService:
         accessed_apps = cls.get_user_accessed_apps_names()
         access_requests = AccessRequestsModal.get_all_requests_by_user(TokenInfo.get_id(),
                                                                        status=AccessRequestsStatusEnum.PENDING.value)
-        
+
         user_access_levels = cls._get_current_user_access_levels()
-        
+
         return [
             {
                 'id': app.id,
