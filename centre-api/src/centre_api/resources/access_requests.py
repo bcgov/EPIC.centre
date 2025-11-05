@@ -61,7 +61,7 @@ class UserAccessRequests(Resource):
 
 @cors_preflight('PUT, OPTIONS')
 @API.route('/<int:access_request_id>', methods=['PUT', 'OPTIONS'])
-class UserAccessRequests(Resource):
+class UserAccessRequest(Resource):
     """Resource for managing an access request."""
 
     @staticmethod

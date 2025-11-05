@@ -19,7 +19,7 @@ import { notify } from "@/components/Shared/Snackbar/snackbarStore";
 import { isAxiosError } from "axios";
 import { modalStyle } from "@/components/Shared/Modals/constants";
 import { getAppChipTitle } from "../utils";
-import { Else, If, Then, Unless, When } from "react-if";
+import { If, Unless, When } from "react-if";
 import { LoadingButton } from "@/components/Shared/LoadingButton";
 import { EditAccessModalSkeleton } from "./EditAccessSkeleton";
 import { CentreRadio } from "@/components/Shared/CentreRadio";
@@ -139,10 +139,12 @@ export const EditAccessModal = ({
           username: user.username,
           appName: app.name,
         });
+      } else if (!request) {
+        return;
       } else if (selectedRole === DENY_OPTION.value) {
         // Deny Access Request
         await updateAccessRequest({
-          access_request_id: request?.id!,
+          access_request_id: request.id,
           status: AccessRequestStatus.REJECTED,
         });
         await refetchAccessRequests();
@@ -152,7 +154,7 @@ export const EditAccessModal = ({
           groupName: selectedAccessLevel.group_name,
           appName: app.name,
           parentGroupName: parentGroupName,
-          accessRequestId: request?.id,
+          accessRequestId: request.id,
         });
         await refetchAccessRequests();
       } else {

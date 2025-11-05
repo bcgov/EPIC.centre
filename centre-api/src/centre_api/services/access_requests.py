@@ -1,5 +1,5 @@
 """Service for applications management."""
-from centre_api.enums.epic_app import EpicAppClientName, CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP, APP_NAME_TO_CLIENT_NAME_MAP
+from centre_api.enums.epic_app import EpicAppClientName, APP_NAME_TO_CLIENT_NAME_MAP
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.services.auth_api_service import AuthApiService
 from centre_api.utils.token_info import TokenInfo
