@@ -1,10 +1,14 @@
 """Service for applications management."""
 import datetime
 import os
+from collections import defaultdict
+
+import requests
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
-from centre_api.enums.epic_app import APP_NAME_TO_GROUP_MAP, CLIENT_NAME_TO_APP_NAME_MAP, GROUP_MAP, EpicAppName
+from centre_api.enums.epic_app import (
+    APP_NAME_TO_GROUP_MAP, CLIENT_NAME_TO_APP_NAME_MAP, GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppName)
 from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
@@ -19,6 +23,41 @@ class ApplicationsService:
     """Applications service."""
 
     @classmethod
+    def _get_current_user_access_levels(cls):
+        """Get the current logged-in user's access levels (roles) for all apps from their Keycloak groups."""
+        try:
+            user_id = TokenInfo.get_id()
+            if not user_id:
+                return {}
+
+            user = AuthApiService.get_user_by_id(user_id)
+            if not user or 'groups' not in user:
+                return {}
+
+            app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None})
+
+            for group in user.get('groups', []):
+                path = group.get('path', '')
+                level = group.get('level', float('-inf'))
+                display_name = group.get('display_name', '')
+                top_path = path.split('/')[0]
+                app_name = GROUP_TO_APP_NAME_MAP.get(top_path)
+
+                if app_name and level > app_roles[app_name]['level']:
+                    app_roles[app_name] = {
+                        'level': level,
+                        'role': display_name
+                    }
+
+            result = {}
+            for app_name, role_info in app_roles.items():
+                if role_info['role']:
+                    result[app_name] = role_info['role']
+            return result
+        except (requests.RequestException, AttributeError, KeyError):
+            return {}
+
+    @classmethod
     def get_all(cls):
         """Get all apps."""
         accessed_apps = cls.get_user_accessed_apps_names()
@@ -30,6 +69,9 @@ class ApplicationsService:
 
         apps = ApplicationModel.get_all()
         apps = [(app, user_app) for app, user_app in apps if app.name in accessed_apps]
+
+        user_access_levels = cls._get_current_user_access_levels()
+
         return [
             {
                 'id': app.id,
@@ -40,7 +82,7 @@ class ApplicationsService:
                 'is_active': app.is_active,
                 'user': {
                     'user_auth_guid': user_app.user_auth_guid if user_app else None,
-                    'access_level': user_app.access_level if user_app else None,
+                    'access_level': user_access_levels.get(app.name) or (user_app.access_level if user_app else None),
                     'last_accessed': user_app.last_accessed.isoformat() if (
                         user_app and user_app.last_accessed) else None,
                     'sort_order': user_app.sort_order if user_app else None,
@@ -60,6 +102,9 @@ class ApplicationsService:
         accessed_apps = cls.get_user_accessed_apps_names()
         access_requests = AccessRequestsModal.get_all_requests_by_user(TokenInfo.get_id(),
                                                                        status=AccessRequestsStatusEnum.PENDING.value)
+
+        user_access_levels = cls._get_current_user_access_levels()
+
         return [
             {
                 'id': app.id,
@@ -71,7 +116,7 @@ class ApplicationsService:
                     'pending' if any(req.app_id == app.id for req in access_requests) else 'not_requested'),
                 'user': {
                     'user_auth_guid': user_app.user_auth_guid if user_app else None,
-                    'access_level': user_app.access_level if user_app else None,
+                    'access_level': user_access_levels.get(app.name) or (user_app.access_level if user_app else None),
                     'last_accessed': user_app.last_accessed.isoformat() if (
                         user_app and user_app.last_accessed) else None,
                     'sort_order': user_app.sort_order if user_app else None,

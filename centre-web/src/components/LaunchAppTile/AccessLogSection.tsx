@@ -19,7 +19,9 @@ export const AccessLogSection = ({ user }: AccessLogSectionProps) => {
       }}
     >
       <LabeledItem label="Access Level">
-        <Typography variant="body2">{user.access_level ?? ""}</Typography>
+        <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
+          <Typography variant="body2">{user.access_level ?? ""}</Typography>
+        </Box>
       </LabeledItem>
       <LabeledItem label="Last Accessed">
         <Typography variant="body2">{user.last_accessed ?? ""}</Typography>
