@@ -19,7 +19,7 @@ import { notify } from "@/components/Shared/Snackbar/snackbarStore";
 import { isAxiosError } from "axios";
 import { modalStyle } from "@/components/Shared/Modals/constants";
 import { getAppChipTitle } from "../utils";
-import { If, Unless, When } from "react-if";
+import { Unless, When } from "react-if";
 import { LoadingButton } from "@/components/Shared/LoadingButton";
 import { EditAccessModalSkeleton } from "./EditAccessSkeleton";
 import { CentreRadio } from "@/components/Shared/CentreRadio";
@@ -34,6 +34,48 @@ import {
   useUpdateAccessRequest,
   useUserAccessRequests,
 } from "@/hooks/api/useAccessRequests";
+
+const AccessLevelWarningMessage = (groupPath: string) => {
+  if (groupPath === "/ENGAGE/EAO_TEAM_MEMBER") {
+    return (
+      <Alert
+        severity="info"
+        sx={{ backgroundColor: "#f5f5f5", border: "1px solid #e0e0e0" }}
+      >
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Please Note:</strong> When you click the "Confirm" button,
+          this user will be added as a Team Member in EPIC.engage.
+        </Typography>
+        <Typography variant="body2">
+          To assign this user to some engagements, please go to the User
+          Management section in EPIC.engage by clicking the "App User
+          Management" link.
+        </Typography>
+      </Alert>
+    );
+  }
+
+  if (groupPath === "/TRACK/VIEWER") {
+    return (
+      <Alert
+        severity="info"
+        sx={{ backgroundColor: "#f5f5f5", border: "1px solid #e0e0e0" }}
+      >
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Please Note:</strong> When you click the "Confirm" button,
+          this user will be added as a Viewer in EPIC.track.
+        </Typography>
+        <Typography variant="body2">
+          To assign this user as Team Member in specific Works, please go to the
+          User Management section in EPIC.track by clicking the "App User
+          Management" link.
+        </Typography>
+      </Alert>
+    );
+  }
+
+  return null;
+};
 
 type EditAccessModalProps = {
   user: CentreUser;
@@ -58,8 +100,9 @@ export const EditAccessModal = ({
 
   const { setClose } = useModal();
   const [selectedRole, setSelectedRole] = useState<string | null>(
-    app.group_name ?? null,
+    app.group_path ?? null,
   );
+
   const supportsGranularRoleManagement =
     app.supportsGranularRoleManagement ?? false;
 
@@ -290,36 +333,7 @@ export const EditAccessModal = ({
             </Grid>
           )}
 
-          {/* Please Note section for apps with granular role management */}
-          <If
-            condition={
-              supportsGranularRoleManagement &&
-              selectedRole &&
-              selectedRole !== REVOKE_OPTION.value &&
-              selectedRole !== DENY_OPTION.value
-            }
-          >
-            <Grid item xs={12} sx={{ mt: 2 }}>
-              <Alert
-                severity="info"
-                sx={{ backgroundColor: "#f5f5f5", border: "1px solid #e0e0e0" }}
-              >
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>Please Note:</strong> When you click the "Confirm"
-                  button, this user will be added as a{" "}
-                  {accessLevels.find(
-                    (level) => level.group_name === selectedRole,
-                  )?.name || selectedRole}{" "}
-                  in {getAppChipTitle(app.name)}.
-                </Typography>
-                <Typography variant="body2">
-                  To assign this user to some engagements, please go to the User
-                  Management section in {getAppChipTitle(app.name)} by clicking
-                  the "App User Management" link.
-                </Typography>
-              </Alert>
-            </Grid>
-          </If>
+          {AccessLevelWarningMessage(selectedRole || "")}
 
           <Grid item xs={12} container justifyContent="flex-end">
             <Stack
