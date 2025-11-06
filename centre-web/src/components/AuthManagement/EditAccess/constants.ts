@@ -1,7 +1,4 @@
-export const GROUP_PATHS = {
-  ENGAGE_TEAM_MEMBER: "/ENGAGE/EAO_TEAM_MEMBER",
-  TRACK_VIEWER: "/TRACK/VIEWER",
-} as const;
+import { EPIC_GROUPS } from "@/models/KCGroup";
 
 export const ACTION_TYPES = {
   REVOKE: "revoke",
@@ -9,19 +6,19 @@ export const ACTION_TYPES = {
 } as const;
 
 export const ACCESS_LEVEL_WARNINGS = {
-  [GROUP_PATHS.ENGAGE_TEAM_MEMBER]: {
+  [EPIC_GROUPS.ENGAGE.EAO_TEAM_MEMBER.path]: {
     title: "Please Note:",
     mainMessage:
-      "When you click the \"Confirm\" button, this user will be added as a Team Member in EPIC.engage.",
+      'When you click the "Confirm" button, this user will be added as a Team Member in EPIC.engage.',
     additionalInfo:
-      "To assign this user to some engagements, please go to the User Management section in EPIC.engage by clicking the \"App User Management\" link.",
+      'To assign this user to some engagements, please go to the User Management section in EPIC.engage by clicking the "App User Management" link.',
   },
-  [GROUP_PATHS.TRACK_VIEWER]: {
+  [EPIC_GROUPS.TRACK.VIEWER.path]: {
     title: "Please Note:",
     mainMessage:
-      "When you click the \"Confirm\" button, this user will be added as a Viewer in EPIC.track.",
+      'When you click the "Confirm" button, this user will be added as a Viewer in EPIC.track.',
     additionalInfo:
-      "To assign this user as Team Member in specific Works, please go to the User Management section in EPIC.track by clicking the \"App User Management\" link.",
+      'To assign this user as Team Member in specific Works, please go to the User Management section in EPIC.track by clicking the "App User Management" link.',
   },
 } as const;
 
