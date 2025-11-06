@@ -1,4 +1,4 @@
-type DeepReadonly<T> = T extends Function
+type DeepReadonly<T> = T extends (...args: unknown[]) => unknown
   ? T
   : T extends Array<infer U>
     ? ReadonlyArray<DeepReadonly<U>>
