@@ -102,6 +102,6 @@ CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP = {
     EpicAppClientName.EPIC_TRACK.value: ['manage_users'],
     EpicAppClientName.EPIC_ENGAGE.value: ['create_admin_user'],
     EpicAppClientName.EPIC_COMPLIANCE.value: ['super_user'],
-    EpicAppClientName.CONDITION_REPOSITORY.value: ['view_conditions'],
+    EpicAppClientName.CONDITION_REPOSITORY.value: [''],
     EpicAppClientName.EPIC_SUBMIT.value: ['manage_auth'],
 }
