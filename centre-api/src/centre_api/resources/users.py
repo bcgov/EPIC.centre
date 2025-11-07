@@ -65,7 +65,7 @@ class UserByUsername(Resource):
     @ApiHelper.swagger_decorators(API, endpoint_description='Update user status')
     @auth.require
     def patch(username):
-        """Partially update a user."""
+        """Update a user by username."""
         patch_data = request.get_json()
         updated_user = UserService.update_user_status(username, patch_data)
         return UserSchema().dump(updated_user), HTTPStatus.OK
