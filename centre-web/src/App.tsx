@@ -3,7 +3,7 @@ import { QueryClient } from "@tanstack/query-core";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AuthProvider } from "react-oidc-context";
-import { OidcConfig } from "@/utils/config";
+import { AppConfig, OidcConfig } from "@/utils/config";
 import { theme } from "@/styles/theme";
 import RouterProviderWithAuthContext from "@/router";
 import { createRouter } from "@tanstack/react-router";
@@ -26,6 +26,7 @@ function App() {
     // This will ensure that the loader is always called when the route is preloaded or visited
     defaultPreloadStaleTime: 0,
     notFoundMode: "root",
+    basepath: AppConfig.basepath ?? "/",
   });
   return (
     <QueryClientProvider client={queryClient}>
