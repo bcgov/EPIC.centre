@@ -61,6 +61,15 @@ class UserByUsername(Resource):
             return {'message': 'User not found'}, HTTPStatus.NOT_FOUND
         return UserSchema().dump(user), HTTPStatus.OK
 
+    @staticmethod
+    @ApiHelper.swagger_decorators(API, endpoint_description='Update user status')
+    @auth.require
+    def patch(username):
+        """Partially update a user."""
+        patch_data = request.get_json()
+        updated_user = UserService.update_user_status(username, patch_data)
+        return UserSchema().dump(updated_user), HTTPStatus.OK
+
 
 @cors_preflight('PUT, OPTIONS, DELETE')
 @API.route('/<username>/access', methods=['PUT', 'OPTIONS', 'DELETE'])
