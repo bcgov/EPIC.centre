@@ -8,7 +8,6 @@ import { CentreUser, CentreUserApp } from "@/models/CentreUser";
 import { Table, TableBody, TableContainer, TableRow } from "@mui/material";
 import { getAppChipTitle } from "../../utils";
 import { useMemo, useRef } from "react";
-import { getAllAppsWithRoles } from "./utils";
 import { useModal } from "@/components/Shared/Modals/modalStore";
 import { EditAccessModal } from "../../EditAccess";
 import { useAppConfigs } from "@/hooks/api/useAppConfigs";
@@ -76,9 +75,8 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
 
   const apps = useMemo(() => {
     const userApps = user?.apps || [];
-    const appsWithRoles = getAllAppsWithRoles(userApps);
 
-    return appsWithRoles.map((app) => ({
+    return userApps.map((app) => ({
       ...app,
       supportsGranularRoleManagement:
         appSupportsGranularRoleManagementMap.get(app.name) ?? false,

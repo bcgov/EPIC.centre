@@ -42,3 +42,16 @@ class TokenInfo:
         roles = client_resource_access.get('roles', [])
         admin_roles = CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP.get(client_name, [])
         return any(role in admin_roles for role in roles)
+
+    @staticmethod
+    def get_admin_roles_map():
+        """Check if the user has admin roles for the given client."""
+        token_info = g.jwt_oidc_token_info
+        resource_access = token_info.get('resource_access', {})
+        admin_roles_map = {}
+        for client, access in resource_access.items():
+            roles = access.get('roles', [])
+            admin_roles = CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP.get(client, [])
+            admin_roles_map[client] = any(role in admin_roles for role in roles)
+
+        return admin_roles_map
