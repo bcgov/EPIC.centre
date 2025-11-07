@@ -76,9 +76,8 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
 
   const apps = useMemo(() => {
     const userApps = user?.apps || [];
-    const appsWithRoles = getAllAppsWithRoles(userApps);
 
-    return appsWithRoles.map((app) => ({
+    return userApps.map((app) => ({
       ...app,
       supportsGranularRoleManagement:
         appSupportsGranularRoleManagementMap.get(app.name) ?? false,

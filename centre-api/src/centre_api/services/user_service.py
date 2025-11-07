@@ -39,17 +39,17 @@ class UserService:
     @staticmethod
     def _enrich_user_with_apps(user):
         """Enrich a single user dictionary with app names and highest level roles based on their groups."""
-        app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None, 'group_name': None})
+        app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None, 'group_name': None, 'group_path': None})
 
+        current_user_is_dst_admin = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
+        current_user_admin_roles_map = TokenInfo.get_admin_roles_map()
         for group in user.get('groups', []):
             path = group.get('path', '')
             level = group.get('level', float('-inf'))
             display_name = group.get('display_name', '')
             top_path = path.split('/')[0]
             app_name = GROUP_TO_APP_NAME_MAP.get(top_path)
-
             if app_name:
-                # Check if this group has a higher level for the app
                 if level > app_roles[app_name]['level']:
                     app_roles[app_name] = {
                         'level': level,
@@ -58,25 +58,29 @@ class UserService:
                         'group_path': path
                     }
 
-        # Initialize all apps from GROUP_TO_APP_NAME_MAP with defaults
-        all_apps = {}
-        for _, app_name in GROUP_TO_APP_NAME_MAP.items():
+        for app_name in GROUP_TO_APP_NAME_MAP.values():
             if app_name not in app_roles:
-                all_apps[app_name] = {
-                    'level': float('-inf'),
+                app_roles[app_name] = {
+                    'level': None,
                     'role': None,
-                    'group_name': None
+                    'group_name': None,
+                    'group_path': None
                 }
-            else:
-                all_apps[app_name] = app_roles[app_name]
 
-        # Construct the apps field as required
-        user['apps'] = [
-            {'name': app_name, 'role': role_info['role'],
-             'group_name': role_info['group_name'], 'group_path': role_info['group_path']}
+        apps = [
+            {'name': app_name, 'role': role_info.get('role'),
+             'group_name': role_info.get('group_name'), 'group_path': role_info.get('group_path')}
             for app_name, role_info in sorted(app_roles.items())
         ]
 
+        filtered_apps = [
+            app for app in apps
+            if current_user_is_dst_admin or current_user_admin_roles_map.get(
+                APP_NAME_TO_CLIENT_NAME_MAP.get(app['name']), False
+            )
+        ]
+
+        user['apps'] = filtered_apps
         return user
 
     @classmethod
@@ -111,8 +115,8 @@ class UserService:
     @classmethod
     def has_admin_access_on_app(cls, app_name: str):
         """Check if the user had admin access on the given app."""
-        had_dst_admin_roles = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
-        if had_dst_admin_roles:
+        has_dst_admin_roles = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
+        if has_dst_admin_roles:
             return True
 
         client_name = APP_NAME_TO_CLIENT_NAME_MAP.get(app_name)

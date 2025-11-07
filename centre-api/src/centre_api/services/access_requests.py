@@ -34,8 +34,18 @@ class AccessRequestsService:
             **args,
             'user_auth_guid': user_auth_guid
         })
+        is_dst_admin = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
+        admin_roles_map = TokenInfo.get_admin_roles_map()
+        filtered_requests = [
+            req for req in access_requests
+            if is_dst_admin or admin_roles_map.get(
+                APP_NAME_TO_CLIENT_NAME_MAP.get(req.app.name),
+                False
+            )
+        ]
+
         user = AuthApiService.get_user_by_id(user_auth_guid)
-        serialized_requests = [req.to_dict() for req in access_requests]
+        serialized_requests = [req.to_dict() for req in filtered_requests]
         for req in serialized_requests:
             req['user'] = user
         return serialized_requests
