@@ -174,3 +174,30 @@ class AuthApiService:
         except requests.RequestException as error:
             current_app.logger.error(f'Error deleting user group mappings: {error}')
             raise error
+
+    @staticmethod
+    def patch_user(username: str, patch_data: dict):
+        """Patch a user's information in the Auth API.
+
+        This forwards a partial update to EPIC.auth's PATCH /users/<username> endpoint.
+
+        :param username: The user's Keycloak username
+        :param patch_data: Dictionary of allowed fields (e.g. 'enabled', 'attributes')
+        :return: The updated user dict
+        """
+        try:
+            base_url = f'{os.getenv("AUTH_API")}/api/users/{username}'
+
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': g.authorization_header,
+            }
+
+            timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
+            response = requests.patch(base_url, headers=headers, timeout=timeout, json=patch_data)
+            response.raise_for_status()
+
+            return response.json()
+        except requests.RequestException as error:
+            current_app.logger.error(f'Error patching user "{username}": {error}')
+            raise error

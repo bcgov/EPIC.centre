@@ -121,3 +121,16 @@ class UserService:
 
         client_name = APP_NAME_TO_CLIENT_NAME_MAP.get(app_name)
         return TokenInfo.has_admin_roles(client_name)
+
+    @classmethod
+    def update_user_status(cls, username: str, patch_data: dict):
+        """Update user status (enabled,firstName, etc.) via EPIC.auth.
+
+        This wraps the patch_user call to allow access from resource layer.
+        Allowed keys should match EPIC.auth's whitelist.
+
+        :param username: Keycloak username
+        :param patch_data: Dict of fields to update (e.g. {"enabled": True})
+        :return: Updated user dict
+        """
+        return AuthApiService.patch_user(username, patch_data)
