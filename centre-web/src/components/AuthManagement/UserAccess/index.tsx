@@ -1,6 +1,6 @@
 import { GreenBadge, GreyBadge } from "@/components/Shared/Badges";
 import BarTitle from "@/components/Shared/BarTitle.tsx";
-import { Box, Button, Grid, Stack, Typography } from "@mui/material";
+import { Box, Grid, Stack, Typography } from "@mui/material";
 import { BCDesignTokens } from "epic.theme";
 import { NewAccessRequests } from "./NewAccessRequests";
 import { CurrentAccessLevel } from "./CurrentAccessLevel";
