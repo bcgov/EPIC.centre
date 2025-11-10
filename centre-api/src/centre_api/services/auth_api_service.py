@@ -197,7 +197,7 @@ class AuthApiService:
             response = requests.patch(base_url, headers=headers, timeout=timeout, json=patch_data)
             response.raise_for_status()
 
-            return response.json()
+            return
         except requests.RequestException as error:
             current_app.logger.error(f'Error patching user "{username}": {error}')
             raise error

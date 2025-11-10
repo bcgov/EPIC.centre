@@ -46,8 +46,8 @@ class Users(Resource):
         return UserSchema(many=True).dump(users), HTTPStatus.OK
 
 
-@cors_preflight('GET, OPTIONS')
-@API.route('/username/<username>', methods=['GET', 'OPTIONS'])
+@cors_preflight('GET, OPTIONS, PATCH')
+@API.route('/username/<username>', methods=['GET', 'OPTIONS', 'PATCH'])
 class UserByUsername(Resource):
     """Resource for fetching users."""
 
@@ -67,8 +67,8 @@ class UserByUsername(Resource):
     def patch(username):
         """Update a user by username."""
         patch_data = request.get_json()
-        updated_user = UserService.update_user_status(username, patch_data)
-        return UserSchema().dump(updated_user), HTTPStatus.OK
+        UserService.update_user_status(username, patch_data)
+        return 'User updated', HTTPStatus.OK
 
 
 @cors_preflight('PUT, OPTIONS, DELETE')

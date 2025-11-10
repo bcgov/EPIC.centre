@@ -47,12 +47,10 @@ export const EditAccessModal = ({
     app.group_path ?? null,
   );
 
-  const {
-    data: accessLevels = [],
-    isLoading: accessLevelsLoading,
-  } = useGeteApplicationAccessLevels({
-    appName: app.name,
-  });
+  const { data: accessLevels = [], isLoading: accessLevelsLoading } =
+    useGeteApplicationAccessLevels({
+      appName: app.name,
+    });
 
   const handleClose = () => {
     setClose();
@@ -69,7 +67,11 @@ export const EditAccessModal = ({
   const currentRole = app.role;
 
   const handleConfirm = async () => {
-    const success = await executeAction(selectedRole, accessLevels, request?.id);
+    const success = await executeAction(
+      selectedRole,
+      accessLevels,
+      request?.id,
+    );
     if (success) {
       await refetch();
     }
