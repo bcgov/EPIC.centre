@@ -29,6 +29,7 @@ export const UserAccess = () => {
 
   const handleEnableUser = async (enable: boolean) => {
     if (!user) return;
+
     setIsUpdating(true);
     await updateUser({
       username: user.username,
