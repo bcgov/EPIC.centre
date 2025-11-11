@@ -185,3 +185,37 @@ GET /admin/realms/{realm}/users/{user-id}/sessions
 
 ### 🎯 Conclusion:
 While the session API seems useful, it doesn't provide persistent, per-client access tracking. Therefore, it's not suitable for our "last accessed" use case. The **client-reported tracking** remains the most viable and accurate approach given our architecture and permissions.
+
+---
+
+## 🧰 Developer Experience: Avoiding Duplication Across Apps
+
+As multiple frontend applications will need to report "last accessed" events to the shared API, it's important to minimize code duplication and ensure consistent behavior.
+
+> 🧩 **Recommendation:** Create a **shared JavaScript SDK** (e.g., `@yourorg/shared-tracking-sdk`) that encapsulates:
+> - Decoding the Keycloak access token
+> - Extracting `user_id` and `client_id`
+> - Making the tracking API call to `/track-access`
+
+This SDK can be imported into any React (or other JS-based) app and used with a single function call.
+
+### ✅ Benefits
+- Reduces logic duplication across apps
+- Enforces consistent behavior and security
+- Easier to test and maintain
+- Faster adoption across teams
+
+### 🧪 Example usage in an app:
+```ts
+import { reportLastAccess } from '@yourorg/shared-tracking-sdk';
+
+useEffect(() => {
+  const token = getAccessToken(); // e.g., from auth context or storage
+  reportLastAccess({
+    token,
+    endpoint: 'https://shared-api.myco.com/track-access'
+  });
+}, []);
+```
+
+> 🧱 The SDK can be versioned and distributed via GitHub, private npm, or even `npm link` for local development.
