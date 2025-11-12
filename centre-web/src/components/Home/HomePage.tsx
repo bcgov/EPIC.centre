@@ -1,12 +1,8 @@
-import { Button, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { PageContainer } from "@/components/Shared/PageGrid";
 
-type HomePageProps = Readonly<{
-  onSignIn: () => void;
-}>;
-
-export default function HomePage({ onSignIn }: HomePageProps) {
+export default function HomePage() {
   return (
     <PageContainer
       display="flex"
