@@ -4,18 +4,41 @@ import { Box, Grid, Stack, Typography } from "@mui/material";
 import { BCDesignTokens } from "epic.theme";
 import { NewAccessRequests } from "./NewAccessRequests";
 import { CurrentAccessLevel } from "./CurrentAccessLevel";
-import { useGetUser } from "@/hooks/api/useUsers";
+import { useGetUser, useUpdateUser } from "@/hooks/api/useUsers";
 import { useParams } from "@tanstack/react-router";
 import { UserAccessSkeleton } from "./UserAccessSkeleton";
+import { LoadingButton } from "@/components/Shared/LoadingButton";
+import { useState } from "react";
 
 export const UserAccess = () => {
   const { username } = useParams({
     from: "/_authenticated/request-access/auth/users/$username",
   });
-  const { data: user, isPending } = useGetUser({
+  const {
+    data: user,
+    isPending,
+    refetch: refetchUser,
+  } = useGetUser({
     username: String(username),
     enabled: !!username,
   });
+
+  const { mutateAsync: updateUser } = useUpdateUser();
+
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleEnableUser = async (enable: boolean) => {
+    if (!user) return;
+
+    setIsUpdating(true);
+    await updateUser({
+      username: user.username,
+      enabled: enable,
+    });
+
+    await refetchUser();
+    setIsUpdating(false);
+  };
 
   if (isPending) {
     return <UserAccessSkeleton />;
@@ -60,6 +83,21 @@ export const UserAccess = () => {
               </Typography>
             </Stack>
           </Grid>
+        </Grid>
+        <Grid
+          item
+          xs={12}
+          container
+          alignItems={"flex-end"}
+          justifyContent={"flex-end"}
+        >
+          <LoadingButton
+            variant="outlined"
+            onClick={() => handleEnableUser(!user?.enabled)}
+            loading={isUpdating}
+          >
+            {user?.enabled ? "Disable User" : "Enable User"}
+          </LoadingButton>
         </Grid>
         <Grid item xs={12} mt={"24px"}>
           <NewAccessRequests user={user} />

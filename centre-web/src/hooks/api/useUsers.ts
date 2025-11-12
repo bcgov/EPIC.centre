@@ -103,3 +103,32 @@ export const useRevokeUserAccess = (options?: UseRevokeUserAccessOptions) => {
     ...options,
   });
 };
+
+type UpdateUserParams = {
+  username: string;
+  enabled?: boolean;
+  firstName?: string;
+  lastName?: string;
+};
+
+export const updateUser = (params: UpdateUserParams) => {
+  const { username, ...data } = params;
+  return centreRequest<CentreUser>({
+    url: `users/username/${username}`,
+    method: "PATCH",
+    data,
+  });
+};
+
+type UseUpdateUserOptions = UseMutationOptions<
+  CentreUser,
+  unknown,
+  UpdateUserParams
+>;
+
+export const useUpdateUser = (options?: UseUpdateUserOptions) => {
+  return useMutation({
+    mutationFn: (params: UpdateUserParams) => updateUser(params),
+    ...options,
+  });
+};
