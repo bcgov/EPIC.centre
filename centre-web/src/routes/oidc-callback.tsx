@@ -18,7 +18,7 @@ function OidcCallback() {
   }
 
   if (!isLoading && isAuthenticated) {
-    return <Navigate to="/launchpad" />;
+    return <Navigate to="/launchpad/" />;
   }
 
   return <PageLoader />;

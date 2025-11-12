@@ -32,6 +32,7 @@ export default function AppBarActions() {
     setAnchorEl(null);
     auth.signinRedirect({
       redirect_uri: `${OidcConfig.redirect_uri}${window.location.search}`,
+      prompt: "login",
     });
   };
 
