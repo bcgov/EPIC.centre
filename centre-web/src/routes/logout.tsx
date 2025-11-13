@@ -12,13 +12,10 @@ function Logout() {
 
   useEffect(() => {
     const handleLogout = async () => {
-      try {
+
         await signoutSilent();
-      } catch {
-        await removeUser();
-      } finally {
         navigate({ to: "/", replace: true });
-      }
+      
     };
 
     void handleLogout();
