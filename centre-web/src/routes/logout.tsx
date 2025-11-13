@@ -7,7 +7,7 @@ export const Route = createFileRoute("/logout")({
 });
 
 function Logout() {
-  const { signoutSilent, removeUser, isAuthenticated } = useAuth();
+  const { signoutSilent, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,7 +19,7 @@ function Logout() {
     };
 
     void handleLogout();
-  }, [navigate, removeUser, signoutSilent]);
+  }, [navigate, signoutSilent]);
 
   useEffect(() => {
     if (!isAuthenticated) {
