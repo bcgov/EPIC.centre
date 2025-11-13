@@ -2,10 +2,18 @@ import { AppBar, Box, Grid } from "@mui/material";
 import EAO_Logo from "@/assets/images/EAO_Logo.png";
 import { BCDesignTokens } from "epic.theme";
 import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "react-oidc-context";
 import AppBarActions from "./AppBarActions";
 
 export default function EAOAppBar() {
   const navigate = useNavigate();
+  const auth = useAuth();
+
+  const handleLogoClick = () => {
+    navigate({
+      to: auth.isAuthenticated ? "/launchpad/" : "/",
+    });
+  };
 
   return (
     <AppBar
@@ -26,11 +34,7 @@ export default function EAOAppBar() {
           display="flex"
           justifyContent="start"
           alignItems="center"
-          onClick={() =>
-            navigate({
-              to: `/launchpad`,
-            })
-          }
+          onClick={handleLogoClick}
           sx={{
             cursor: "pointer",
           }}
