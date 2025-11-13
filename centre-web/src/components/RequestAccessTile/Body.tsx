@@ -1,5 +1,5 @@
 import { RequestAccessCatalog, RequestAccessStatus } from "@/models/EpicApp";
-import { Box, Button, Divider } from "@mui/material";
+import { Box, Button, Divider, Tooltip } from "@mui/material";
 import { AccessLogSection } from "../LaunchAppTile/AccessLogSection";
 import { BCDesignTokens } from "epic.theme";
 import { LoadingButton } from "../Shared/LoadingButton";
@@ -10,15 +10,20 @@ import {
 import { useState } from "react";
 import { isAxiosError } from "axios";
 import { notify } from "../Shared/Snackbar/snackbarStore";
+import { useAuth } from "react-oidc-context";
+import { isDSTUser } from "@/utils/roleUtils";
 
 type RequestAccessButton = {
   appId: number;
   status: RequestAccessStatus;
 };
 const RequestAccessButton = ({ appId, status }: RequestAccessButton) => {
+  const auth = useAuth();
   const { mutateAsync: createAccessRequest } = useCreateAccessRequest();
   const { refetch: refetchRequestCatalog } = useGetRequestCatalogApplications();
   const [loading, setLoading] = useState(false);
+
+  const isDST = isDSTUser(auth.user?.access_token);
 
   const handleRequestAccess = async () => {
     setLoading(true);
@@ -49,6 +54,18 @@ const RequestAccessButton = ({ appId, status }: RequestAccessButton) => {
       >
         Request Sent
       </Button>
+    );
+  }
+
+  if (isDST) {
+    return (
+      <Tooltip title="As an EPIC.centre admin, you can grant yourself access through EPIC.auth">
+        <span>
+          <Button variant="contained" fullWidth disabled>
+            Request Access
+          </Button>
+        </span>
+      </Tooltip>
     );
   }
 
