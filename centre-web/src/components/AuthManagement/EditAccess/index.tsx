@@ -10,7 +10,7 @@ import {
 import { useGeteApplicationAccessLevels } from "@/hooks/api/useApplications";
 import { CentreUser, CentreUserApp } from "@/models/CentreUser";
 import { useModal } from "@/components/Shared/Modals/modalStore";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { modalStyle } from "@/components/Shared/Modals/constants";
 import { getAppChipTitle } from "../utils";
 import { Unless, When } from "react-if";
@@ -21,6 +21,9 @@ import { AccessRequest } from "@/models/AccessRequest";
 import { AccessLevelWarning } from "./AccessLevelWarning";
 import { AccessLevelSelection } from "./AccessLevelSelection";
 import { useAccessActions } from "./useAccessActions";
+import { useAuth } from "react-oidc-context";
+import { isDSTUser, getAdminStatusPerApp } from "@/utils/roleUtils";
+import { EpicAppName } from "@/models/EpicApp";
 
 type EditAccessModalProps = {
   user: CentreUser;
@@ -37,6 +40,7 @@ export const EditAccessModal = ({
   username,
   request,
 }: EditAccessModalProps) => {
+  const auth = useAuth();
   const { refetch } = useGetUser({
     username: String(username),
     enabled: !!username,
@@ -65,6 +69,18 @@ export const EditAccessModal = ({
   });
 
   const currentRole = app.role;
+
+  const isDST = isDSTUser(auth.user?.access_token);
+  const adminStatus = getAdminStatusPerApp(auth.user?.access_token);
+  const isComplianceAdmin = adminStatus[EpicAppName.EPIC_COMPLIANCE];
+  const isEpicCompliance = app.name === EpicAppName.EPIC_COMPLIANCE;
+
+  const disabledOptions = useMemo(() => {
+    if (isEpicCompliance && isDST && !isComplianceAdmin) {
+      return accessLevels.map((level) => level.group_path);
+    }
+    return [];
+  }, [isEpicCompliance, isDST, isComplianceAdmin, accessLevels]);
 
   const handleConfirm = async () => {
     const success = await executeAction(
@@ -143,6 +159,7 @@ export const EditAccessModal = ({
             currentRole={currentRole}
             request={request}
             onRoleChange={setSelectedRole}
+            disabledOptions={disabledOptions}
           />
 
           {selectedRole && <AccessLevelWarning groupPath={selectedRole} />}

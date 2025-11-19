@@ -17,6 +17,7 @@ type AccessLevelSelectionProps = {
   currentRole: string | null;
   request?: AccessRequest;
   onRoleChange: (role: string) => void;
+  disabledOptions?: string[];
 };
 
 export const AccessLevelSelection = ({
@@ -26,6 +27,7 @@ export const AccessLevelSelection = ({
   currentRole,
   request,
   onRoleChange,
+  disabledOptions = [],
 }: AccessLevelSelectionProps) => {
   return (
     <Grid item xs={12} mt={2}>
@@ -34,12 +36,16 @@ export const AccessLevelSelection = ({
           What access level would you like this user to have in{" "}
           {getAppChipTitle(appName)}?
         </FormLabel>
-        <RadioGroup value={selectedRole} onChange={(e) => onRoleChange(e.target.value)}>
+        <RadioGroup
+          value={selectedRole}
+          onChange={(e) => onRoleChange(e.target.value)}
+        >
           {accessLevels.map((accessLevel) => (
             <CentreRadio
               key={accessLevel.name}
               value={accessLevel.group_path}
               label={accessLevel.name}
+              disabled={disabledOptions.includes(accessLevel.group_path)}
             />
           ))}
           {currentRole && (

@@ -106,3 +106,8 @@ export const hasAnyRole = (
   const roles = getUserRolesFromToken(accessToken);
   return requiredRoles.some((role) => roles.includes(role));
 };
+
+export const isDSTUser = (accessToken?: string): boolean => {
+  const adminStatus = getAdminStatusPerApp(accessToken);
+  return adminStatus[EpicAppName.EPIC_CENTRE] || false;
+};
