@@ -1,5 +1,5 @@
 import { RequestAccessCatalog, RequestAccessStatus } from "@/models/EpicApp";
-import { Box, Button, Divider, Tooltip } from "@mui/material";
+import { Box, Button, Divider } from "@mui/material";
 import { AccessLogSection } from "../LaunchAppTile/AccessLogSection";
 import { BCDesignTokens } from "epic.theme";
 import { LoadingButton } from "../Shared/LoadingButton";
@@ -59,13 +59,9 @@ const RequestAccessButton = ({ appId, status }: RequestAccessButton) => {
 
   if (isDST) {
     return (
-      <Tooltip title="As an EPIC.centre admin, you can grant yourself access through EPIC.auth">
-        <span>
-          <Button variant="contained" fullWidth disabled>
-            Request Access
-          </Button>
-        </span>
-      </Tooltip>
+      <Button variant="contained" fullWidth disabled>
+        Request Access
+      </Button>
     );
   }
 
