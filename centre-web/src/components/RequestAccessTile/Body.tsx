@@ -1,5 +1,5 @@
 import { RequestAccessCatalog, RequestAccessStatus } from "@/models/EpicApp";
-import { Box, Button, Divider, Tooltip } from "@mui/material";
+import { Box, Button, Divider } from "@mui/material";
 import { AccessLogSection } from "../LaunchAppTile/AccessLogSection";
 import { BCDesignTokens } from "epic.theme";
 import { LoadingButton } from "../Shared/LoadingButton";
