@@ -162,6 +162,10 @@ class ApplicationsService:
         now = datetime.datetime.utcnow()
         requested_at = convert_utc_to_local_str(now)
         recipients = [admin.get('email') for admin in admins if admin.get('email')]
+        auth_link = (
+            f"{os.getenv('EPIC_CENTRE_WEB_URL')}/request-access/auth/users/"
+            f"{user_details.get('username', '')}"
+        )
         email_queue = EmailQueue(
             template_name=EmailQueueTemplate.ACCESS_REQUEST_RECEIVED_NOTIFICATION.value,
             payload={
@@ -169,7 +173,7 @@ class ApplicationsService:
                 'user_name': f"{user_details.get('first_name', '')} {user_details.get('last_name', '')}".strip(),
                 'user_email': user_details.get('email_address'),
                 'application_name': app.title,
-                'auth_link': f"{os.getenv('EPIC_CENTRE_WEB_URL')}",
+                'auth_link': auth_link,
                 'requested_at': requested_at,
                 'sender': os.getenv('DST_EMAIL')
             },
@@ -182,6 +186,10 @@ class ApplicationsService:
         user_details = TokenInfo.get_user_data()
         now = datetime.datetime.utcnow()
         requested_at = convert_utc_to_local_str(now)
+        auth_link = (
+            f"{os.getenv('EPIC_CENTRE_WEB_URL')}/request-access/auth/users/"
+            f"{user_details.get('username', '')}"
+        )
         email_queue = EmailQueue(
             template_name=EmailQueueTemplate.ACCESS_REQUEST_RECEIVED_NOTIFICATION.value,
             payload={
@@ -189,7 +197,7 @@ class ApplicationsService:
                 'user_name': f"{user_details.get('first_name', '')} {user_details.get('last_name', '')}".strip(),
                 'user_email': user_details.get('email_address'),
                 'application_name': app.title,
-                'auth_link': f"{os.getenv('EPIC_CENTRE_WEB_URL')}/request-access",
+                'auth_link': auth_link,
                 'requested_at': requested_at,
                 'sender': os.getenv('DST_EMAIL')
             },

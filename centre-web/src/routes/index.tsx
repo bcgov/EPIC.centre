@@ -1,7 +1,6 @@
+import HomePage from "@/components/Home/HomePage";
 import { PageLoader } from "@/components/PageLoader";
-
-import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "react-oidc-context";
 
 export const Route = createFileRoute("/")({
@@ -9,17 +8,13 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { isAuthenticated, isLoading, signinRedirect } = useAuth();
+  const {isLoading, signinRedirect } = useAuth();
 
-  useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
-      signinRedirect();
-    }
-  }, [isAuthenticated, isLoading, signinRedirect]);
-
-  if (isAuthenticated) {
-    return <Navigate to="/oidc-callback" />;
+  if (isLoading) {
+    return <PageLoader />;
   }
 
-  return <PageLoader />;
+
+
+  return <HomePage onSignIn={() => signinRedirect()} />;
 }
