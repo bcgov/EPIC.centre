@@ -8,7 +8,8 @@ import requests
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import (
-    APP_NAME_TO_GROUP_MAP, CLIENT_NAME_TO_APP_NAME_MAP, GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppName)
+    APP_NAME_TO_GROUP_MAP, CLIENT_NAME_TO_APP_NAME_MAP, GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppName,
+    EpicAppClientName)
 from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
@@ -240,6 +241,11 @@ class ApplicationsService:
 
         accessed_apps = {CLIENT_NAME_TO_APP_NAME_MAP[client] for client in accessed_clients
                          if client in CLIENT_NAME_TO_APP_NAME_MAP}
+
+        epic_public_access = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_PUBLIC.value)
+        if epic_public_access:
+            accessed_apps.add(EpicAppName.EPIC_PUBLIC.value)
+
         return accessed_apps
 
     @classmethod

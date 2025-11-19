@@ -11,4 +11,5 @@ export const EPIC_ADMIN_ROLES: Record<string, string[]> = {
   "epic-compliance": ["super_user"],
   "epic-condition": [""],
   "epic-submit": ["extended_eao_edit"],
+  "epic-public": ["inspector"],
 };

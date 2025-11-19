@@ -59,13 +59,9 @@ const RequestAccessButton = ({ appId, status }: RequestAccessButton) => {
 
   if (isDST) {
     return (
-      <Tooltip title="As an EPIC.centre admin, you can grant yourself access through EPIC.auth">
-        <span>
-          <Button variant="contained" fullWidth disabled>
-            Request Access
-          </Button>
-        </span>
-      </Tooltip>
+      <Button variant="contained" fullWidth disabled>
+        Request Access
+      </Button>
     );
   }
 
