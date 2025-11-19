@@ -51,6 +51,7 @@ class EpicGroups(Enum):
     TRACK = 'TRACK'
     ENGAGE = 'ENGAGE'
     CENTRE = 'CENTRE'
+    PUBLIC = 'PUBLIC'
 
 
 class EpicAdminSubGroups(Enum):
@@ -70,6 +71,7 @@ GROUP_MAP = {
     EpicGroups.TRACK.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
     EpicGroups.ENGAGE.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
     EpicGroups.CENTRE.value: EpicAdminSubGroups.SUPER_USER.value,
+    EpicGroups.PUBLIC.value: EpicAdminSubGroups.ADMIN.value,
 }
 
 APP_NAME_TO_GROUP_MAP = {
@@ -79,6 +81,7 @@ APP_NAME_TO_GROUP_MAP = {
     EpicAppName.EPIC_TRACK.value: EpicGroups.TRACK.value,
     EpicAppName.EPIC_ENGAGE.value: EpicGroups.ENGAGE.value,
     EpicAppName.EPIC_CENTRE.value: EpicGroups.CENTRE.value,
+    EpicAppName.EPIC_PUBLIC.value: EpicGroups.PUBLIC.value,
 }
 
 CONDITION_REPOSITORY = 'condition_repository'
@@ -96,6 +99,7 @@ GROUP_TO_APP_NAME_MAP = {
     'CONDITION-REPO': 'condition_repository',
     'ENGAGE': 'epic_engage',
     'CENTRE': 'epic_centre',
+    'PUBLIC': 'epic_public',
 }
 
 CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP = {
