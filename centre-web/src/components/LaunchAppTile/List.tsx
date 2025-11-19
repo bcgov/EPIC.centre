@@ -116,9 +116,9 @@ export const List = ({ items }: ListProps) => {
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={sortedItems} strategy={rectSortingStrategy}>
-        <Grid container rowSpacing={4} spacing={2} direction={"row"}>
+        <Grid container rowSpacing={4} spacing={2} direction={"row"} sx={{ maxWidth: "1090px" }}>
           {sortedItems.map((item) => (
-            <Grid item key={item.id}>
+            <Grid item xs={12} sm={6} md={4} key={item.id}>
               <SortableItem item={item} />
             </Grid>
           ))}
