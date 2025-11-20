@@ -261,8 +261,13 @@ class ApplicationsService:
                 'level': role_group.get('attributes', {}).get('level', [''])[0],
                 'group_name': role_group.get('name'),
                 'group_path': role_group.get('path'),
-                'description': role_group.get('attributes', {}).get('description', [''])[0]
+                'description': role_group.get('attributes', {}).get('description', [''])[0],
+                'hide_in_centre': role_group.get('attributes', {}).get('hide_in_centre', ['false'])[0] == 'true',
             }
             for role_group in role_groups
         ]
+        access_levels = [access_level for access_level in access_levels if not access_level['hide_in_centre']]
+
+        access_levels.sort(key=lambda x: int(x['level']))
+
         return access_levels
