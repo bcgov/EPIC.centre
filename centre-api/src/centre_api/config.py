@@ -99,6 +99,7 @@ class _Config():  # pylint: disable=too-few-public-methods
         'epic_public': os.getenv('EPIC_PUBLIC_LAUNCH_URL', ''),
         'epic_submit': os.getenv('EPIC_SUBMIT_LAUNCH_URL', ''),
         'epic_engage': os.getenv('EPIC_ENGAGE_LAUNCH_URL', ''),
+        'intranet': os.getenv('INTRANET_LAUNCH_URL', ''),
     }
 
     # Application User Management URLs Configuration
