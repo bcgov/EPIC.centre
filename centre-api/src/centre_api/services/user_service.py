@@ -15,7 +15,12 @@
 from collections import defaultdict
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
-from centre_api.enums.epic_app import APP_NAME_TO_CLIENT_NAME_MAP, GROUP_TO_APP_NAME_MAP, EpicAppClientName
+from centre_api.enums.epic_app import (
+    APP_NAME_TO_CLIENT_NAME_MAP,
+    APP_NAME_TO_GROUP_MAP,
+    GROUP_TO_APP_NAME_MAP,
+    EpicAppClientName
+)
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.services.auth_api_service import AuthApiService
 from centre_api.utils.token_info import TokenInfo
@@ -102,13 +107,28 @@ class UserService:
 
     @classmethod
     def revoke_user_access(cls, username: str, access_data: dict):
-        """Update user group."""
-        had_admin_access_on_app = cls.has_admin_access_on_app(access_data.get('app_name'))
+        """Revoke user access from a specific app."""
+        app_name = access_data.get('app_name')
+
+        # Check permissions
+        had_admin_access_on_app = cls.has_admin_access_on_app(app_name)
         if not had_admin_access_on_app:
             raise PermissionError(f'User does not have permission to update access for app'
-                                  f' "{access_data.get("app_name")}".')
+                                  f' "{app_name}".')
 
-        response = AuthApiService.delete_all_user_group_mapping(username)
+        # Map app_name to group_name using existing mapping
+        # e.g., 'epic_track' -> 'TRACK'
+        group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
+
+        if not group_name:
+            raise ValueError(f'Invalid app_name: {app_name}')
+
+        # Delete from app-specific parent group + all subgroups
+        response = AuthApiService.delete_user_group(
+            username,
+            group_name,
+            del_sub_group_mappings=True
+        )
 
         return response
 
