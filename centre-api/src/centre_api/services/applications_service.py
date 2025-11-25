@@ -62,7 +62,7 @@ class ApplicationsService:
     def get_all(cls):
         """Get all apps."""
         accessed_apps = cls.get_user_accessed_apps_names()
-        public_apps = [EpicAppName.DOCUMENT_SEARCH.value]
+        public_apps = [EpicAppName.DOCUMENT_SEARCH.value, EpicAppName.INTRANET.value]
         accessed_apps.update(public_apps)
 
         if not accessed_apps:
@@ -81,6 +81,7 @@ class ApplicationsService:
                 'description': app.description,
                 'launch_url': get_app_launch_url(app.name),
                 'is_active': app.is_active,
+                'is_public': app.name in public_apps,
                 'user': {
                     'user_auth_guid': user_app.user_auth_guid if user_app else None,
                     'access_level': user_access_levels.get(app.name) or (user_app.access_level if user_app else None),
@@ -98,7 +99,7 @@ class ApplicationsService:
         """Get request access catalog."""
         apps = ApplicationModel.get_all()
         exception_apps = {EpicAppName.CONDITION_REPOSITORY.value, EpicAppName.EPIC_COMPLIANCE.value,
-                          EpicAppName.DOCUMENT_SEARCH.value}
+                          EpicAppName.DOCUMENT_SEARCH.value, EpicAppName.INTRANET.value}
         filtered_apps = [(app, user_app) for app, user_app in apps if app.name not in exception_apps]
         accessed_apps = cls.get_user_accessed_apps_names()
         access_requests = AccessRequestsModal.get_all_requests_by_user(TokenInfo.get_id(),

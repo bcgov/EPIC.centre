@@ -13,6 +13,7 @@ class EpicAppName(Enum):
     EPIC_SUBMIT = 'epic_submit'
     EPIC_ENGAGE = 'epic_engage'
     EPIC_CENTRE = 'epic_centre'
+    INTRANET = 'intranet'
 
 
 class EpicAppClientName(Enum):
