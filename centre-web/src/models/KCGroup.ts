@@ -16,6 +16,7 @@ export const enum EpicGroups {
   TRACK = "TRACK",
   ENGAGE = "ENGAGE",
   PUBLIC = "PUBLIC",
+  CENTRE = "CENTRE",
 }
 
 export const EPIC_APP_TO_GROUP = {
@@ -25,6 +26,7 @@ export const EPIC_APP_TO_GROUP = {
   [EpicAppName.EPIC_TRACK]: EpicGroups.TRACK,
   [EpicAppName.EPIC_ENGAGE]: EpicGroups.ENGAGE,
   [EpicAppName.EPIC_PUBLIC]: EpicGroups.PUBLIC,
+  [EpicAppName.EPIC_CENTRE]: EpicGroups.CENTRE,
 };
 
 const RAW_EPIC_GROUPS = {
