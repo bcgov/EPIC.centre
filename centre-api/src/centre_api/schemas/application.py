@@ -17,6 +17,7 @@ class ApplicationSchema(Schema):
     description = fields.Str(allow_none=True)
     launch_url = fields.Str(required=True)
     is_active = fields.Bool(required=True)
+    is_public = fields.Bool(required=True)
     user = fields.Nested(
         UserApplicationSchema(),
         allow_none=True,

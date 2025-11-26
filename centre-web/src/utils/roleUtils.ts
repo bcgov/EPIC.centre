@@ -24,6 +24,18 @@ export const getUserGroupsFromToken = (accessToken?: string): string[] => {
   }
 };
 
+export const getRealmAccessFromToken = (
+  accessToken?: string,
+): { roles: string[] } => {
+  if (!accessToken) return { roles: [] };
+  try {
+    const tokenData: any = jwtDecode(accessToken);
+    return tokenData?.realm_access || { roles: [] };
+  } catch (error) {
+    return { roles: [] };
+  }
+};
+
 /**
  * Get resource_access from JWT token
  * @param accessToken - The user's access token
@@ -76,6 +88,15 @@ export const getAdminStatusPerApp = (
     );
   }
 
+  const realmAccess = getRealmAccessFromToken(accessToken);
+  const realmRoles = realmAccess.roles || [];
+
+  if (
+    realmRoles.includes(EPIC_ADMIN_ROLES[EpicAppClientName.EPIC_PUBLIC]?.[0])
+  ) {
+    result[EpicAppName.EPIC_PUBLIC] = true;
+  }
+
   return result;
 };
 
@@ -105,4 +126,9 @@ export const hasAnyRole = (
 
   const roles = getUserRolesFromToken(accessToken);
   return requiredRoles.some((role) => roles.includes(role));
+};
+
+export const isDSTUser = (accessToken?: string): boolean => {
+  const adminStatus = getAdminStatusPerApp(accessToken);
+  return adminStatus[EpicAppName.EPIC_CENTRE] || false;
 };

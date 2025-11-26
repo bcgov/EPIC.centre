@@ -176,6 +176,38 @@ class AuthApiService:
             raise error
 
     @staticmethod
+    def delete_user_group(username: str, group_name: str, del_sub_group_mappings: bool = True):
+        """Delete user from a specific group and optionally its subgroups.
+
+        Args:
+            username: The Keycloak username
+            group_name: The parent group name (e.g., 'TRACK', 'COMPLIANCE')
+            del_sub_group_mappings: If True, removes from all subgroups too
+
+        Returns:
+            Response from auth-api
+        """
+        try:
+            query_params = urlencode({'del_sub_group_mappings': str(del_sub_group_mappings).lower()})
+            base_url = f'{os.getenv("AUTH_API")}/api/users/{username}/groups/{group_name}?{query_params}'
+            body = {
+                'app_name': group_name
+            }
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': g.authorization_header,
+            }
+
+            timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
+            response = requests.delete(base_url, headers=headers, timeout=timeout, json=body)
+            response.raise_for_status()
+
+            return response
+        except requests.RequestException as error:
+            current_app.logger.error(f'Error deleting user group mapping for {username}/{group_name}: {error}')
+            raise error
+
+    @staticmethod
     def patch_user(username: str, patch_data: dict):
         """Patch a user's information in the Auth API.
 

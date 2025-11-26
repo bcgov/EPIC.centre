@@ -20,6 +20,7 @@ export type EpicApp = {
   launch_url: string;
   is_active: boolean;
   user: UserEpicAppData;
+  is_public: boolean;
 };
 
 export enum EpicAppName {

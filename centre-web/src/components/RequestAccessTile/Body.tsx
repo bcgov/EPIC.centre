@@ -10,15 +10,20 @@ import {
 import { useState } from "react";
 import { isAxiosError } from "axios";
 import { notify } from "../Shared/Snackbar/snackbarStore";
+import { useAuth } from "react-oidc-context";
+import { isDSTUser } from "@/utils/roleUtils";
 
 type RequestAccessButton = {
   appId: number;
   status: RequestAccessStatus;
 };
 const RequestAccessButton = ({ appId, status }: RequestAccessButton) => {
+  const auth = useAuth();
   const { mutateAsync: createAccessRequest } = useCreateAccessRequest();
   const { refetch: refetchRequestCatalog } = useGetRequestCatalogApplications();
   const [loading, setLoading] = useState(false);
+
+  const isDST = isDSTUser(auth.user?.access_token);
 
   const handleRequestAccess = async () => {
     setLoading(true);
@@ -48,6 +53,14 @@ const RequestAccessButton = ({ appId, status }: RequestAccessButton) => {
         disabled
       >
         Request Sent
+      </Button>
+    );
+  }
+
+  if (isDST) {
+    return (
+      <Button variant="contained" fullWidth disabled>
+        Request Access
       </Button>
     );
   }

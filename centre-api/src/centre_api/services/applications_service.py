@@ -8,7 +8,8 @@ import requests
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import (
-    APP_NAME_TO_GROUP_MAP, CLIENT_NAME_TO_APP_NAME_MAP, GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppName)
+    APP_NAME_TO_GROUP_MAP, CLIENT_NAME_TO_APP_NAME_MAP, GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppClientName,
+    EpicAppName)
 from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
@@ -61,7 +62,7 @@ class ApplicationsService:
     def get_all(cls):
         """Get all apps."""
         accessed_apps = cls.get_user_accessed_apps_names()
-        public_apps = [EpicAppName.DOCUMENT_SEARCH.value]
+        public_apps = [EpicAppName.DOCUMENT_SEARCH.value, EpicAppName.INTRANET.value]
         accessed_apps.update(public_apps)
 
         if not accessed_apps:
@@ -80,6 +81,7 @@ class ApplicationsService:
                 'description': app.description,
                 'launch_url': get_app_launch_url(app.name),
                 'is_active': app.is_active,
+                'is_public': app.name in public_apps,
                 'user': {
                     'user_auth_guid': user_app.user_auth_guid if user_app else None,
                     'access_level': user_access_levels.get(app.name) or (user_app.access_level if user_app else None),
@@ -97,7 +99,7 @@ class ApplicationsService:
         """Get request access catalog."""
         apps = ApplicationModel.get_all()
         exception_apps = {EpicAppName.CONDITION_REPOSITORY.value, EpicAppName.EPIC_COMPLIANCE.value,
-                          EpicAppName.DOCUMENT_SEARCH.value}
+                          EpicAppName.DOCUMENT_SEARCH.value, EpicAppName.INTRANET.value}
         filtered_apps = [(app, user_app) for app, user_app in apps if app.name not in exception_apps]
         accessed_apps = cls.get_user_accessed_apps_names()
         access_requests = AccessRequestsModal.get_all_requests_by_user(TokenInfo.get_id(),
@@ -162,6 +164,10 @@ class ApplicationsService:
         now = datetime.datetime.utcnow()
         requested_at = convert_utc_to_local_str(now)
         recipients = [admin.get('email') for admin in admins if admin.get('email')]
+        auth_link = (
+            f"{os.getenv('EPIC_CENTRE_WEB_URL')}/request-access/auth/users/"
+            f"{user_details.get('username', '')}"
+        )
         email_queue = EmailQueue(
             template_name=EmailQueueTemplate.ACCESS_REQUEST_RECEIVED_NOTIFICATION.value,
             payload={
@@ -169,7 +175,7 @@ class ApplicationsService:
                 'user_name': f"{user_details.get('first_name', '')} {user_details.get('last_name', '')}".strip(),
                 'user_email': user_details.get('email_address'),
                 'application_name': app.title,
-                'auth_link': f"{os.getenv('EPIC_CENTRE_WEB_URL')}",
+                'auth_link': auth_link,
                 'requested_at': requested_at,
                 'sender': os.getenv('DST_EMAIL')
             },
@@ -182,6 +188,10 @@ class ApplicationsService:
         user_details = TokenInfo.get_user_data()
         now = datetime.datetime.utcnow()
         requested_at = convert_utc_to_local_str(now)
+        auth_link = (
+            f"{os.getenv('EPIC_CENTRE_WEB_URL')}/request-access/auth/users/"
+            f"{user_details.get('username', '')}"
+        )
         email_queue = EmailQueue(
             template_name=EmailQueueTemplate.ACCESS_REQUEST_RECEIVED_NOTIFICATION.value,
             payload={
@@ -189,7 +199,7 @@ class ApplicationsService:
                 'user_name': f"{user_details.get('first_name', '')} {user_details.get('last_name', '')}".strip(),
                 'user_email': user_details.get('email_address'),
                 'application_name': app.title,
-                'auth_link': f"{os.getenv('EPIC_CENTRE_WEB_URL')}/request-access",
+                'auth_link': auth_link,
                 'requested_at': requested_at,
                 'sender': os.getenv('DST_EMAIL')
             },
@@ -232,6 +242,11 @@ class ApplicationsService:
 
         accessed_apps = {CLIENT_NAME_TO_APP_NAME_MAP[client] for client in accessed_clients
                          if client in CLIENT_NAME_TO_APP_NAME_MAP}
+
+        epic_public_access = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_PUBLIC.value)
+        if epic_public_access:
+            accessed_apps.add(EpicAppName.EPIC_PUBLIC.value)
+
         return accessed_apps
 
     @classmethod
@@ -247,8 +262,13 @@ class ApplicationsService:
                 'level': role_group.get('attributes', {}).get('level', [''])[0],
                 'group_name': role_group.get('name'),
                 'group_path': role_group.get('path'),
-                'description': role_group.get('attributes', {}).get('description', [''])[0]
+                'description': role_group.get('attributes', {}).get('description', [''])[0],
+                'hide_in_centre': role_group.get('attributes', {}).get('hide_in_centre', ['false'])[0] == 'true',
             }
             for role_group in role_groups
         ]
+        access_levels = [access_level for access_level in access_levels if not access_level['hide_in_centre']]
+
+        access_levels.sort(key=lambda x: int(x['level']))
+
         return access_levels

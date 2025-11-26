@@ -1,11 +1,14 @@
 import { Box, Typography } from "@mui/material";
 import { BCDesignTokens } from "epic.theme";
+import { useLaunchpadStore } from "@/stores/launchpadStore";
 
 export const Header = () => {
+  const { showDescription } = useLaunchpadStore();
+
   return (
     <Box
       sx={{
-        height: "81px",
+        height: showDescription ? "81px" : "50px",
         backgroundColor: BCDesignTokens.surfaceColorBackgroundLightBlue,
       }}
     >
@@ -31,9 +34,11 @@ export const Header = () => {
             Document Search
           </Typography>
         </Box>
-        <Typography variant="body2" width="100%">
-          Search all the documents in EPIC
-        </Typography>
+        {showDescription && (
+          <Typography variant="body2" width="100%">
+            Search all the documents in EPIC
+          </Typography>
+        )}
       </Box>
     </Box>
   );

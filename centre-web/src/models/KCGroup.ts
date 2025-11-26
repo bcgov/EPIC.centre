@@ -9,22 +9,14 @@ export type KCGroup = {
   display_name: string;
 };
 
-export const EPIC_ADMIN_GROUPS = {
-  [EpicAppName.CONDITION_REPOSITORY]: "ADMIN",
-  [EpicAppName.EPIC_COMPLIANCE]: "SUPERUSER",
-  [EpicAppName.EPIC_SUBMIT]: "EAO_MANAGER",
-  [EpicAppName.EPIC_TRACK]: "INSTANCE_ADMIN",
-  [EpicAppName.EPIC_PUBLIC]: "INSTANCE_ADMIN",
-  [EpicAppName.EPIC_ENGAGE]: "INSTANCE_ADMIN",
-  [EpicAppName.EPIC_CENTRE]: "INSTANCE_ADMIN",
-};
-
 export const enum EpicGroups {
   COMPLIANCE = "COMPLIANCE",
   CONDITION_REPO = "CONDITION-REPO",
   SUBMIT = "SUBMIT",
   TRACK = "TRACK",
   ENGAGE = "ENGAGE",
+  PUBLIC = "PUBLIC",
+  CENTRE = "CENTRE",
 }
 
 export const EPIC_APP_TO_GROUP = {
@@ -33,6 +25,8 @@ export const EPIC_APP_TO_GROUP = {
   [EpicAppName.EPIC_SUBMIT]: EpicGroups.SUBMIT,
   [EpicAppName.EPIC_TRACK]: EpicGroups.TRACK,
   [EpicAppName.EPIC_ENGAGE]: EpicGroups.ENGAGE,
+  [EpicAppName.EPIC_PUBLIC]: EpicGroups.PUBLIC,
+  [EpicAppName.EPIC_CENTRE]: EpicGroups.CENTRE,
 };
 
 const RAW_EPIC_GROUPS = {
