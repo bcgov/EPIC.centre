@@ -190,14 +190,16 @@ class AuthApiService:
         try:
             query_params = urlencode({'del_sub_group_mappings': str(del_sub_group_mappings).lower()})
             base_url = f'{os.getenv("AUTH_API")}/api/users/{username}/groups/{group_name}?{query_params}'
-
+            body = {
+                'app_name': group_name
+            }
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': g.authorization_header,
             }
 
             timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
-            response = requests.delete(base_url, headers=headers, timeout=timeout)
+            response = requests.delete(base_url, headers=headers, timeout=timeout, json=body)
             response.raise_for_status()
 
             return response
