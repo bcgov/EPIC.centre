@@ -58,11 +58,9 @@ export const EditAccessModal = ({
     if (accessLevelsLoading || accessLevels.length === 0 || !app.group_path) {
       return;
     }
-    const normalizePath = (path: string) => path.replace(/^\/+/, '');
-    const normalizedAppPath = normalizePath(app.group_path);
     
     const matchingLevel = accessLevels.find(
-      (level) => normalizePath(level.group_path) === normalizedAppPath,
+      (level) => level.group_path.includes(app.group_path!),
     );
     
     if (matchingLevel) {
