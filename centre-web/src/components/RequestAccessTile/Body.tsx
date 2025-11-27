@@ -10,7 +10,6 @@ import {
 import { useState } from "react";
 import { isAxiosError } from "axios";
 import { notify } from "../Shared/Snackbar/snackbarStore";
-import { useAuth } from "react-oidc-context";
 import { useCurrentUser } from "@/contexts/UserContext";
 
 type RequestAccessButton = {
@@ -18,7 +17,6 @@ type RequestAccessButton = {
   status: RequestAccessStatus;
 };
 const RequestAccessButton = ({ appId, status }: RequestAccessButton) => {
-  const auth = useAuth();
   const { isDstAdmin } = useCurrentUser();
   const { mutateAsync: createAccessRequest } = useCreateAccessRequest();
   const { refetch: refetchRequestCatalog } = useGetRequestCatalogApplications();

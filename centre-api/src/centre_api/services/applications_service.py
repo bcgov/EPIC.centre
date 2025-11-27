@@ -7,9 +7,7 @@ import requests
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
-from centre_api.enums.epic_app import (
-    APP_NAME_TO_GROUP_MAP, CLIENT_NAME_TO_APP_NAME_MAP, GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppClientName,
-    EpicAppName, EPIC_ADMIN_GROUPS_PATHS_TO_CLIENT, EpicGroups)
+from centre_api.enums.epic_app import APP_NAME_TO_GROUP_MAP, GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppName
 from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal

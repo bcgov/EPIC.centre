@@ -21,7 +21,6 @@ import { AccessRequest } from "@/models/AccessRequest";
 import { AccessLevelWarning } from "./AccessLevelWarning";
 import { AccessLevelSelection } from "./AccessLevelSelection";
 import { useAccessActions } from "./useAccessActions";
-import { useAuth } from "react-oidc-context";
 import { useCurrentUser } from "@/contexts/UserContext";
 import { EpicAppName } from "@/models/EpicApp";
 
@@ -40,7 +39,6 @@ export const EditAccessModal = ({
   username,
   request,
 }: EditAccessModalProps) => {
-  const auth = useAuth();
   const { isDstAdmin, adminStatusPerApp } = useCurrentUser();
   const { refetch } = useGetUser({
     username: String(username),

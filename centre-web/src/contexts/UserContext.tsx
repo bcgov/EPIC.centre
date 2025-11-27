@@ -99,6 +99,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
  * @throws Error if used outside of UserProvider
  * @returns UserContextValue containing user data and loading states
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useCurrentUser = () => {
   const context = useContext(UserContext);
   if (context === undefined) {
