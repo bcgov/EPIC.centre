@@ -35,7 +35,7 @@ function Layout() {
       onCatch={() => navigate({ to: "/error" })}
     >
       <EAOAppBar />
-      <Box minHeight={"calc(100vh - 88px)"}>
+      <Box>
         <Outlet />
       </Box>
       <Footer />

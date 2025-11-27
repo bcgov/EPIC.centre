@@ -13,8 +13,13 @@ const Footer = () => {
           backgroundColor: FOOTER_COLORS.BACKGROUND,
           borderTop: `6px solid ${FOOTER_COLORS.BORDER}`,
           borderBottom: `6px solid ${FOOTER_COLORS.BORDER}`,
+          maxWidth: "68.75em",
         }}
-        padding={{ xs: "2em 1em", md: "2em 6em" }}
+        paddingLeft={{ xs: "10.4375em", md: "10.4375em" }}
+        paddingRight={{ xs: "10.4375em", md: "10.4375em" }}
+        paddingTop="2em"
+        paddingBottom="2em"
+        zIndex={1}
       >
         <Typography variant="body1" color="white">
           {FOOTER_DESCRIPTION}
@@ -23,7 +28,7 @@ const Footer = () => {
       <Grid
         item
         xs={12}
-        padding={{ xs: "2em 1em", md: "2em 6em" }}
+        padding={{ xs: "2em 10.4375em", md: "2em 10.4375em" }}
         container
         justifyContent={"flex-start"}
         alignItems="flex-start"
