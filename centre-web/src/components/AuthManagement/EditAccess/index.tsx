@@ -10,7 +10,7 @@ import {
 import { useGeteApplicationAccessLevels } from "@/hooks/api/useApplications";
 import { CentreUser, CentreUserApp } from "@/models/CentreUser";
 import { useModal } from "@/components/Shared/Modals/modalStore";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { modalStyle } from "@/components/Shared/Modals/constants";
 import { getAppChipTitle } from "../utils";
 import { Unless, When } from "react-if";
@@ -46,14 +46,26 @@ export const EditAccessModal = ({
   });
 
   const { setClose } = useModal();
-  const [selectedRole, setSelectedRole] = useState<string | null>(
-    app.group_path ?? null,
-  );
-
+  
   const { data: accessLevels = [], isLoading: accessLevelsLoading } =
     useGeteApplicationAccessLevels({
       appName: app.name,
     });
+
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  useEffect(() => {
+    if (accessLevelsLoading || accessLevels.length === 0 || !app.group_path) {
+      return;
+    }
+    
+    const matchingLevel = accessLevels.find(
+      (level) => level.group_path.includes(app.group_path!),
+    );
+    
+    if (matchingLevel) {
+      setSelectedRole(matchingLevel.group_path);
+    }
+  }, [app.group_path, accessLevels, accessLevelsLoading]);
 
   const handleClose = () => {
     setClose();
