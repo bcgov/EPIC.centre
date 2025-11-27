@@ -18,7 +18,7 @@ from urllib.parse import urlencode
 import requests
 from flask import current_app, g
 
-from centre_api.enums.epic_app import EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS, CLIENT_NAME_TO_APP_NAME_MAP
+from centre_api.enums.epic_app import CLIENT_NAME_TO_APP_NAME_MAP, EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS
 
 
 class AuthApiService:
