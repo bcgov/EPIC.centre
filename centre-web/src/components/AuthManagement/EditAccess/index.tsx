@@ -22,7 +22,7 @@ import { AccessLevelWarning } from "./AccessLevelWarning";
 import { AccessLevelSelection } from "./AccessLevelSelection";
 import { useAccessActions } from "./useAccessActions";
 import { useAuth } from "react-oidc-context";
-import { isDSTUser, getAdminStatusPerApp } from "@/utils/roleUtils";
+import { useCurrentUser } from "@/contexts/UserContext";
 import { EpicAppName } from "@/models/EpicApp";
 
 type EditAccessModalProps = {
@@ -41,6 +41,7 @@ export const EditAccessModal = ({
   request,
 }: EditAccessModalProps) => {
   const auth = useAuth();
+  const { isDstAdmin, adminStatusPerApp } = useCurrentUser();
   const { refetch } = useGetUser({
     username: String(username),
     enabled: !!username,
@@ -70,17 +71,15 @@ export const EditAccessModal = ({
 
   const currentRole = app.role;
 
-  const isDST = isDSTUser(auth.user?.access_token);
-  const adminStatus = getAdminStatusPerApp(auth.user?.access_token);
-  const isComplianceAdmin = adminStatus[EpicAppName.EPIC_COMPLIANCE];
+  const isComplianceAdmin = adminStatusPerApp[EpicAppName.EPIC_COMPLIANCE];
   const isEpicCompliance = app.name === EpicAppName.EPIC_COMPLIANCE;
 
   const disabledOptions = useMemo(() => {
-    if (isEpicCompliance && isDST && !isComplianceAdmin) {
+    if (isEpicCompliance && isDstAdmin && !isComplianceAdmin) {
       return accessLevels.map((level) => level.group_path);
     }
     return [];
-  }, [isEpicCompliance, isDST, isComplianceAdmin, accessLevels]);
+  }, [isEpicCompliance, isDstAdmin, isComplianceAdmin, accessLevels]);
 
   const handleConfirm = async () => {
     const success = await executeAction(
