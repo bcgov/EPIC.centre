@@ -11,8 +11,11 @@ class AccessRequestsService:
     @classmethod
     def get_all(cls, args):
         """Return all access requests by status, enriched with user details."""
+        current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
+        administrated_apps = set(AuthApiService.get_administered_apps(current_user))
         access_requests = AccessRequestsModal.get_all(args)
-        serialized_requests = [req.to_dict() for req in access_requests]
+        filtered_requests = [req for req in access_requests if req.app.name in administrated_apps]
+        serialized_requests = [req.to_dict() for req in filtered_requests]
         enriched_requests = cls._enrich_with_user_details(serialized_requests)
         return enriched_requests
 

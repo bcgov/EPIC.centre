@@ -46,7 +46,7 @@ export const EditAccessModal = ({
   });
 
   const { setClose } = useModal();
-  
+
   const { data: accessLevels = [], isLoading: accessLevelsLoading } =
     useGeteApplicationAccessLevels({
       appName: app.name,
@@ -57,11 +57,11 @@ export const EditAccessModal = ({
     if (accessLevelsLoading || accessLevels.length === 0 || !app.group_path) {
       return;
     }
-    
-    const matchingLevel = accessLevels.find(
-      (level) => level.group_path.includes(app.group_path!),
+
+    const matchingLevel = accessLevels.find((level) =>
+      level.group_path.includes(app.group_path!),
     );
-    
+
     if (matchingLevel) {
       setSelectedRole(matchingLevel.group_path);
     }

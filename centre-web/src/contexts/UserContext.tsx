@@ -41,7 +41,6 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   // Get username from JWT token
   const username = auth.user?.profile.preferred_username as string | undefined;
 
-  // Fetch user data using the existing hook
   const {
     data: user,
     isLoading,
@@ -68,7 +67,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     (appName: EpicAppName) => {
       return checkIsAdminOfApp(user?.groups, appName);
     },
-    [user?.groups]
+    [user?.groups],
   );
 
   // Compute admin status for all apps

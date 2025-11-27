@@ -39,7 +39,8 @@ export const useGetUser = (params: GetUserParams) => {
   const { username, ...rest } = params;
   return useQuery({
     queryKey: [QUERY_KEY.USER, username],
-    queryFn: () => getUser({ username, ...rest }),
+    queryFn: () => getUser({ username }),
+    ...rest,
   });
 };
 
