@@ -5,9 +5,10 @@ Revises: 0ace214f26a2
 Create Date: 2025-01-XX XX:XX:XX.XXXXXX
 
 """
+from datetime import datetime
+
 import sqlalchemy as sa
 from alembic import op
-from datetime import datetime
 
 
 # revision identifiers, used by Alembic.

@@ -10,6 +10,7 @@ import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import ModalProvider from "./components/Shared/Modals/ModalProvider";
 import SnackBarProvider from "./components/Shared/Snackbar/SnackBarProvider";
+import { UserProvider } from "@/contexts/UserContext";
 
 function App() {
   const queryClient = new QueryClient();
@@ -32,9 +33,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <AuthProvider {...OidcConfig}>
-          <ModalProvider />
-          <SnackBarProvider />
-          <RouterProviderWithAuthContext router={router} />
+          <UserProvider>
+            <ModalProvider />
+            <SnackBarProvider />
+            <RouterProviderWithAuthContext router={router} />
+          </UserProvider>
         </AuthProvider>
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />

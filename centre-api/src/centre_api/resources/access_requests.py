@@ -68,7 +68,7 @@ class UserAccessRequest(Resource):
     @ApiHelper.swagger_decorators(API, endpoint_description='Update an access request')
     @auth.require
     def put(access_request_id):
-        """Fetch all access requests."""
+        """Update access request."""
         args = request.args.to_dict()
         status = args.get('status')
         access_requests = AccessRequestsService.process_access_request(access_request_id, status)
