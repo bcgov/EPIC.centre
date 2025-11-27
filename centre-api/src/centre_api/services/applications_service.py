@@ -9,7 +9,7 @@ from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import (
     APP_NAME_TO_GROUP_MAP, CLIENT_NAME_TO_APP_NAME_MAP, GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppClientName,
-    EpicAppName)
+    EpicAppName, EPIC_ADMIN_GROUPS_PATHS_TO_CLIENT, EpicGroups)
 from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
@@ -61,7 +61,8 @@ class ApplicationsService:
     @classmethod
     def get_all(cls):
         """Get all apps."""
-        accessed_apps = cls.get_user_accessed_apps_names()
+        access_levels = cls._get_current_user_access_levels()
+        accessed_apps = set(access_levels.keys())
         public_apps = [EpicAppName.DOCUMENT_SEARCH.value, EpicAppName.INTRANET.value]
         accessed_apps.update(public_apps)
 
@@ -101,7 +102,9 @@ class ApplicationsService:
         exception_apps = {EpicAppName.CONDITION_REPOSITORY.value, EpicAppName.EPIC_COMPLIANCE.value,
                           EpicAppName.DOCUMENT_SEARCH.value, EpicAppName.INTRANET.value}
         filtered_apps = [(app, user_app) for app, user_app in apps if app.name not in exception_apps]
-        accessed_apps = cls.get_user_accessed_apps_names()
+
+        access_levels = cls._get_current_user_access_levels()
+        accessed_apps = set(access_levels.keys())
         access_requests = AccessRequestsModal.get_all_requests_by_user(TokenInfo.get_id(),
                                                                        status=AccessRequestsStatusEnum.PENDING.value)
 
@@ -232,22 +235,6 @@ class ApplicationsService:
             session.commit()
 
         return new_request
-
-    @classmethod
-    def get_user_accessed_apps_names(cls):
-        """Get names of apps the user has accessed."""
-        user_data = TokenInfo.get_user_data()
-        resource_access = user_data.get('resource_access', {})
-        accessed_clients = list(resource_access.keys())
-
-        accessed_apps = {CLIENT_NAME_TO_APP_NAME_MAP[client] for client in accessed_clients
-                         if client in CLIENT_NAME_TO_APP_NAME_MAP}
-
-        epic_public_access = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_PUBLIC.value)
-        if epic_public_access:
-            accessed_apps.add(EpicAppName.EPIC_PUBLIC.value)
-
-        return accessed_apps
 
     @classmethod
     def get_app_access_levels(cls, app_name):

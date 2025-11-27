@@ -59,6 +59,7 @@ class UserByUsername(Resource):
         user = UserService.get_user_by_username(username)
         if not user:
             return {'message': 'User not found'}, HTTPStatus.NOT_FOUND
+        print(user)
         return UserSchema().dump(user), HTTPStatus.OK
 
     @staticmethod
