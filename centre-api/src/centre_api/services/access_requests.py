@@ -1,8 +1,13 @@
 """Service for applications management."""
+import os
+from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.epic_app import APP_NAME_TO_CLIENT_NAME_MAP, EpicAppClientName
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
+from centre_api.models.db import session_scope
 from centre_api.services.auth_api_service import AuthApiService
 from centre_api.utils.token_info import TokenInfo
+from centre_api.models.email_queue import EmailQueue
+from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 
 
 class AccessRequestsService:
@@ -66,8 +71,14 @@ class AccessRequestsService:
             raise PermissionError(
                 f"User does not have permission to update access requests for app '{app_name}'."
             )
-
-        return cls._do_update_access_request(access_request, status)
+        with session_scope() as session:
+            access_request_response = None
+            app = access_request.app
+            auth_user_response = AuthApiService.get_user_by_id(access_request.user_auth_guid)
+            access_request_response = cls._do_update_access_request(access_request, status, session)
+            _queue_access_request_email(session, app, auth_user_response, status)
+            session.commit()
+        return access_request_response.to_dict()
 
     @classmethod
     def has_admin_access_on_app(cls, app_name: str):
@@ -85,8 +96,26 @@ class AccessRequestsService:
         return AuthApiService.is_admin_of_app(current_user, client_name)
 
     @classmethod
-    def _do_update_access_request(cls, access_request, status):
+    def _do_update_access_request(cls, access_request, status, session):
         """Perform the update of an access request."""
         access_request.status = status
-        access_request.save()
-        return access_request.to_dict()
+        session.add(access_request)
+        return access_request
+
+
+def _queue_access_request_email(session, app, auth_user_response, status):
+    """Queue access request denied email."""
+    if status == AccessRequestsStatusEnum.REJECTED.value:
+        email_queue = EmailQueue(
+            template_name=EmailQueueTemplate.ACCESS_DENIED_NOTIFICATION.value,
+            payload={
+                'recipients': [auth_user_response.get('email_address')],
+                'user_name': (
+                    f"{auth_user_response.get('first_name', '')} "
+                    f"{auth_user_response.get('last_name', '')}"
+                ).strip(),
+                'application_name': app.title,
+                'sender': os.getenv('DST_EMAIL')
+            },
+        )
+        session.add(email_queue)

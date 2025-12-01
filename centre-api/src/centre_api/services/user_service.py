@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """user functions."""
+import os
 from collections import defaultdict
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.epic_app import (
     APP_NAME_TO_CLIENT_NAME_MAP, APP_NAME_TO_GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppClientName)
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
+from centre_api.models.db import session_scope
 from centre_api.services.auth_api_service import AuthApiService
+from centre_api.models.email_queue import EmailQueue
+from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.utils.token_info import TokenInfo
 
 
@@ -97,8 +101,13 @@ class UserService:
         if access_request_id:
             access_request = AccessRequestsModal.find_by_id(access_request_id)
             if access_request:
-                access_request.status = AccessRequestsStatusEnum.APPROVED.value
-                access_request.save()
+                auth_user_response = AuthApiService.get_user_by_id(access_request.user_auth_guid)
+                app = access_request.app
+                with session_scope() as session:
+                    access_request.status = AccessRequestsStatusEnum.APPROVED.value
+                    session.add(access_request)
+                    _queue_access_granted_email(session, app, auth_user_response, access_data.get('group_name'))
+                    session.commit()
         return response
 
     @classmethod
@@ -151,3 +160,22 @@ class UserService:
         :return: Updated user dict
         """
         return AuthApiService.patch_user(username, patch_data)
+
+
+def _queue_access_granted_email(session, app, auth_user_response, access_level):
+    """Queue access request granted email."""
+    email_queue = EmailQueue(
+        template_name=EmailQueueTemplate.ACCESS_GRANTED_NOTIFICATION.value,
+        payload={
+            'recipients': [auth_user_response.get('email_address')],
+            'user_name': (
+                f"{auth_user_response.get('first_name', '')} "
+                f"{auth_user_response.get('last_name', '')}"
+            ).strip(),
+            'application_name': app.title,
+            'auth_link': f"{os.getenv('EPIC_CENTRE_WEB_URL')}/launchpad",
+            'access_level': access_level,
+            'sender': os.getenv('DST_EMAIL')
+        },
+    )
+    session.add(email_queue)
