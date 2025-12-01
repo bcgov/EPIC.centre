@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build output (optional - uncomment if you don't want to commit dist)
+# dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+

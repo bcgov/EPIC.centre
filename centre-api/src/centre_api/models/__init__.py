@@ -19,3 +19,4 @@ from .db import db, ma, migrate
 from .email_queue import EmailQueue
 from .user_applications import UserApplication
 from .user_settings import UserSettings
+from .eao_analytics import EaoAnalytics
