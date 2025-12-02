@@ -31,11 +31,9 @@ const applications = [
   },
 ];
 
-type HomePageProps = Readonly<{
-  onSignIn?: () => void;
-}>;
 
-export default function HomePage(_props: HomePageProps) {
+
+export default function HomePage() {
   return (
     <Box
       sx={{ marginBottom: "-0.5em" }}
