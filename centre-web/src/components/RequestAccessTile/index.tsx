@@ -12,7 +12,7 @@ export const RequestAccessTile = ({ data }: RequestAccessTileProps) => {
       elevation={3}
       sx={{
         width: "345px",
-        height: "255px",
+        height: "239px",
       }}
     >
       <Header data={data} />

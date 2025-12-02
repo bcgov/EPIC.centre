@@ -12,7 +12,11 @@ type HeaderProps = {
   dragListeners?: any;
   dragAttributes?: any;
 };
-export const Header = ({ data, dragListeners, dragAttributes }: HeaderProps) => {
+export const Header = ({
+  data,
+  dragListeners,
+  dragAttributes,
+}: HeaderProps) => {
   const { showDescription } = useLaunchpadStore();
   const { title, description } = data;
 
@@ -41,7 +45,7 @@ export const Header = ({ data, dragListeners, dragAttributes }: HeaderProps) => 
             width: "100%",
           }}
         >
-          <Typography variant="h6" component="div">
+          <Typography variant="h4" component="div">
             {title}
           </Typography>
           <IconButton

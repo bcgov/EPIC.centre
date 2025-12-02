@@ -87,7 +87,6 @@ export const Body = ({ data }: BodyProps) => {
         justifyContent: "center",
         alignItems: "center",
         padding: "16px 12px 12px 12px",
-        gap: "8px",
       }}
     >
       <RequestAccessButton appId={data.id} status={data.status} />

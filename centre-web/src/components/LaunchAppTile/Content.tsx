@@ -9,7 +9,7 @@ type ContentProps = {
   epicApp: EpicApp;
 };
 export const Content = ({ epicApp }: ContentProps) => {
-  const { launch_url,is_public } = epicApp;
+  const { launch_url, is_public } = epicApp;
   return (
     <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
       <Box
@@ -44,10 +44,11 @@ export const Content = ({ epicApp }: ContentProps) => {
             }}
           />
         </Box>
-       { !is_public && ( <Box sx={{ width: "100%", marginTop: "auto" }}>
-          <AccessLogSection user={epicApp.user} />
-        </Box>
-      )}
+        {!is_public && (
+          <Box sx={{ width: "100%", marginTop: "auto" }}>
+            <AccessLogSection user={epicApp.user} />
+          </Box>
+        )}
       </Box>
     </Box>
   );
