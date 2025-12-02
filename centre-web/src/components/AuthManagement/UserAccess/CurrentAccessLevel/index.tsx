@@ -7,7 +7,7 @@ type CurrentAccessLevelProps = {
 };
 export const CurrentAccessLevel = ({ user }: CurrentAccessLevelProps) => {
   return (
-    <Grid container spacing={2}>
+    <Grid container>
       <Grid item xs={12}>
         <Typography variant="h5" fontWeight={"normal"}>
           Current Access Level

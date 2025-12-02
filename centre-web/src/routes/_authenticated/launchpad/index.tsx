@@ -31,7 +31,11 @@ function Launchpad() {
   }
 
   return (
-    <PageContainer>
+    <PageContainer
+      sx={{
+        padding: "10px 24px 36px 24px",
+      }}
+    >
       <Box
         sx={{
           display: "flex",

@@ -59,7 +59,7 @@ export const UserAccess = () => {
   return (
     <Box
       sx={{
-        padding: "16px",
+        padding: "0 16px 16px 16px",
         border: `1px solid ${BCDesignTokens.surfaceColorBorderDefault}`,
       }}
     >
@@ -121,7 +121,7 @@ export const UserAccess = () => {
             </Tooltip>
           )}
         </Grid>
-        <Grid item xs={12} mt={"24px"}>
+        <Grid item xs={12}>
           <NewAccessRequests user={user} />
         </Grid>
         <Grid item xs={12} mt={"24px"}>

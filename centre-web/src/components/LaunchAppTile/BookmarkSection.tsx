@@ -54,7 +54,7 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
         width="100%"
         padding="8px 0"
       >
-        <Typography variant="h5" fontWeight={400}>
+        <Typography variant="h6" fontWeight={400}>
           Bookmarks
         </Typography>
         <AddBookmarkButton color="secondary" onClick={handleAddEditBookmarks} />
@@ -80,7 +80,13 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
                     }}
                   >
                     {bookmark.label && bookmark.label.length > 0 && (
-                      <Circle sx={{ marginRight: "5px", fontSize: "7px", flexShrink: 0 }} />
+                      <Circle
+                        sx={{
+                          marginRight: "5px",
+                          fontSize: "7px",
+                          flexShrink: 0,
+                        }}
+                      />
                     )}
                     <Typography
                       variant="body1"

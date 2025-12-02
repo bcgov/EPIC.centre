@@ -11,7 +11,7 @@ import { getAppChipTitle } from "../../utils";
 import { useModal } from "@/components/Shared/Modals/modalStore";
 import { EditAccessModal } from "../../EditAccess";
 import { useAppConfigs } from "@/hooks/api/useAppConfigs";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { AppUserManagementButton } from "../AppUserManagementButton";
 import { useParams } from "@tanstack/react-router";
 
@@ -27,8 +27,6 @@ export const NewRequestsTable = ({
   });
   const { setOpen: setModalOpen } = useModal();
   const { data: appConfigs = [] } = useAppConfigs();
-
-  const editButtonRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
 
   const appUrlMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -48,23 +46,6 @@ export const NewRequestsTable = ({
     return map;
   }, [appConfigs]);
 
-  const appUserManagementTabIndex = useMemo(() => {
-    let currentTabIndex = requests.length + 1;
-    const tabIndexMap = new Map<number, number>();
-
-    requests.forEach((request, index) => {
-      if (
-        appSupportsGranularRoleManagementMap.get(request.app.name) &&
-        appUrlMap.get(request.app.name)
-      ) {
-        tabIndexMap.set(index, currentTabIndex);
-        currentTabIndex++;
-      }
-    });
-
-    return tabIndexMap;
-  }, [requests, appSupportsGranularRoleManagementMap, appUrlMap]);
-
   const handleEditAccess = (request: AccessRequest) => {
     if (!user) return;
 
@@ -82,12 +63,6 @@ export const NewRequestsTable = ({
         user={user}
         app={app}
         username={String(username)}
-        onClose={() => {
-          const buttonRef = editButtonRefs.current.get(request.id.toString());
-          if (buttonRef) {
-            setTimeout(() => buttonRef.focus(), 100);
-          }
-        }}
         request={request}
       />
     );
@@ -113,24 +88,14 @@ export const NewRequestsTable = ({
         </CentreTableHead>
         <TableBody>
           {requests.length > 0 ? (
-            requests.map((request, index) => (
+            requests.map((request) => (
               <TableRow key={request.id}>
                 <CentreTableCell>
                   {getAppChipTitle(request.app.name)}
                 </CentreTableCell>
                 <CentreTableCell>--</CentreTableCell>
                 <CentreTableCell>
-                  <CentreLink
-                    onClick={() => handleEditAccess(request)}
-                    tabIndex={index + 1}
-                    ref={(el) => {
-                      if (el) {
-                        editButtonRefs.current.set(request.id.toString(), el);
-                      } else {
-                        editButtonRefs.current.delete(request.id.toString());
-                      }
-                    }}
-                  >
+                  <CentreLink onClick={() => handleEditAccess(request)}>
                     Edit Access
                   </CentreLink>
                 </CentreTableCell>
@@ -142,7 +107,6 @@ export const NewRequestsTable = ({
                         request.app.name,
                       ) ?? false
                     }
-                    tabIndex={appUserManagementTabIndex.get(index) || -1}
                   />
                 </CentreTableCell>
               </TableRow>
