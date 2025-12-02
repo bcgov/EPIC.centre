@@ -1,4 +1,5 @@
 """Enums for the application."""
+from collections import defaultdict
 from enum import Enum
 
 
@@ -28,7 +29,7 @@ class EpicAppClientName(Enum):
     EPIC_CENTRE = 'epic-centre'
 
 
-CLIENT_NAME_TO_APP_NAME_MAP = {
+CLIENT_NAME_TO_APP_NAME_MAP = defaultdict(lambda: None, {
     EpicAppClientName.CONDITION_REPOSITORY.value: EpicAppName.CONDITION_REPOSITORY.value,
     EpicAppClientName.EPIC_COMPLIANCE.value: EpicAppName.EPIC_COMPLIANCE.value,
     EpicAppClientName.EPIC_TRACK.value: EpicAppName.EPIC_TRACK.value,
@@ -36,7 +37,7 @@ CLIENT_NAME_TO_APP_NAME_MAP = {
     EpicAppClientName.EPIC_SUBMIT.value: EpicAppName.EPIC_SUBMIT.value,
     EpicAppClientName.EPIC_ENGAGE.value: EpicAppName.EPIC_ENGAGE.value,
     EpicAppClientName.EPIC_CENTRE.value: EpicAppName.EPIC_CENTRE.value,
-}
+})
 
 APP_NAME_TO_CLIENT_NAME_MAP = {
     v: k for k, v in CLIENT_NAME_TO_APP_NAME_MAP.items()
@@ -63,6 +64,33 @@ class EpicAdminSubGroups(Enum):
     INSTANCE_ADMIN = 'INSTANCE_ADMIN'
     SUPERUSER = 'SUPERUSER'
     SUPER_USER = 'SUPER_USER',
+
+
+class EpicAdminGroupsPath(Enum):
+    """Enum representing Epic admin group paths."""
+
+    COMPLIANCE = 'COMPLIANCE/SUPERUSER'
+    CONDITION_REPO = 'CONDITION-REPO/ADMIN'
+    SUBMIT = 'SUBMIT/EAO_MANAGER'
+    TRACK = 'TRACK/INSTANCE_ADMIN'
+    ENGAGE = 'ENGAGE/INSTANCE_ADMIN'
+    CENTRE = 'CENTRE/SUPER_USER'
+    PUBLIC = 'PUBLIC/ADMIN'
+
+
+EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS = {
+    EpicAppClientName.EPIC_COMPLIANCE.value: EpicAdminGroupsPath.COMPLIANCE.value,
+    EpicAppClientName.CONDITION_REPOSITORY.value: EpicAdminGroupsPath.CONDITION_REPO.value,
+    EpicAppClientName.EPIC_SUBMIT.value: EpicAdminGroupsPath.SUBMIT.value,
+    EpicAppClientName.EPIC_TRACK.value: EpicAdminGroupsPath.TRACK.value,
+    EpicAppClientName.EPIC_ENGAGE.value: EpicAdminGroupsPath.ENGAGE.value,
+    EpicAppClientName.EPIC_CENTRE.value: EpicAdminGroupsPath.CENTRE.value,
+    EpicAppClientName.EPIC_PUBLIC.value: EpicAdminGroupsPath.PUBLIC.value,
+}
+
+EPIC_ADMIN_GROUPS_PATHS_TO_CLIENT = defaultdict(lambda: None, {
+    v: k for k, v in EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS.items()
+})
 
 
 GROUP_MAP = {

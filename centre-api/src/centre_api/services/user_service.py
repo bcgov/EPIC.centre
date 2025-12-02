@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """user functions."""
+import os
 from collections import defaultdict
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.epic_app import (
     APP_NAME_TO_CLIENT_NAME_MAP, APP_NAME_TO_GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppClientName)
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
+from centre_api.models.db import session_scope
 from centre_api.services.auth_api_service import AuthApiService
+from centre_api.models.email_queue import EmailQueue
+from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.utils.token_info import TokenInfo
 
 
@@ -42,8 +46,8 @@ class UserService:
         """Enrich a single user dictionary with app names and highest level roles based on their groups."""
         app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None, 'group_name': None, 'group_path': None})
 
-        current_user_is_dst_admin = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
-        current_user_admin_roles_map = TokenInfo.get_admin_roles_map()
+        current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
+        current_user_is_dst_admin = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
         for group in user.get('groups', []):
             path = group.get('path', '')
             level = group.get('level', float('-inf'))
@@ -76,9 +80,9 @@ class UserService:
 
         filtered_apps = [
             app for app in apps
-            if current_user_is_dst_admin or current_user_admin_roles_map.get(
-                APP_NAME_TO_CLIENT_NAME_MAP.get(app['name']), False
-            )
+            if current_user_is_dst_admin or AuthApiService.is_admin_of_app(current_user,
+                                                                           APP_NAME_TO_CLIENT_NAME_MAP.get(app['name'])
+                                                                           )
         ]
 
         user['apps'] = filtered_apps
@@ -97,8 +101,13 @@ class UserService:
         if access_request_id:
             access_request = AccessRequestsModal.find_by_id(access_request_id)
             if access_request:
-                access_request.status = AccessRequestsStatusEnum.APPROVED.value
-                access_request.save()
+                auth_user_response = AuthApiService.get_user_by_id(access_request.user_auth_guid)
+                app = access_request.app
+                with session_scope() as session:
+                    access_request.status = AccessRequestsStatusEnum.APPROVED.value
+                    session.add(access_request)
+                    _queue_access_granted_email(session, app, auth_user_response, access_data.get('group_name'))
+                    session.commit()
         return response
 
     @classmethod
@@ -131,12 +140,13 @@ class UserService:
     @classmethod
     def has_admin_access_on_app(cls, app_name: str):
         """Check if the user had admin access on the given app."""
-        has_dst_admin_roles = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
+        current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
+        has_dst_admin_roles = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
         if has_dst_admin_roles:
             return True
 
         client_name = APP_NAME_TO_CLIENT_NAME_MAP.get(app_name)
-        return TokenInfo.has_admin_roles(client_name)
+        return AuthApiService.is_admin_of_app(current_user, client_name)
 
     @classmethod
     def update_user_status(cls, username: str, patch_data: dict):
@@ -150,3 +160,22 @@ class UserService:
         :return: Updated user dict
         """
         return AuthApiService.patch_user(username, patch_data)
+
+
+def _queue_access_granted_email(session, app, auth_user_response, access_level):
+    """Queue access request granted email."""
+    email_queue = EmailQueue(
+        template_name=EmailQueueTemplate.ACCESS_GRANTED_NOTIFICATION.value,
+        payload={
+            'recipients': [auth_user_response.get('email_address')],
+            'user_name': (
+                f"{auth_user_response.get('first_name', '')} "
+                f"{auth_user_response.get('last_name', '')}"
+            ).strip(),
+            'application_name': app.title,
+            'auth_link': f"{os.getenv('EPIC_CENTRE_WEB_URL')}/launchpad",
+            'access_level': access_level,
+            'sender': os.getenv('DST_EMAIL')
+        },
+    )
+    session.add(email_queue)

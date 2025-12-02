@@ -3,8 +3,7 @@ import { UserAccess } from "@/components/AuthManagement/UserAccess";
 import { PageContainer } from "@/components/Shared/PageGrid";
 import { Grid } from "@mui/material";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { useAuth } from "react-oidc-context";
-import { isAdministrator } from "@/utils/roleUtils";
+import { useCurrentUser } from "@/contexts/UserContext";
 
 export const Route = createFileRoute(
   "/_authenticated/request-access/auth/users/$username",
@@ -13,10 +12,10 @@ export const Route = createFileRoute(
 });
 
 function AuthRequestAccess() {
-  const { user } = useAuth();
+  const { isAdmin } = useCurrentUser();
 
   // Check if user has Administrator role
-  if (!isAdministrator(user?.access_token)) {
+  if (!isAdmin) {
     return <Navigate to="/access-denied" />;
   }
 

@@ -1,5 +1,6 @@
 import { PageLoader } from "@/components/PageLoader";
 import SideNavBar from "@/components/SideNav/SideNavBar";
+import { useCurrentUser } from "@/contexts/UserContext";
 import { OidcConfig } from "@/utils/config";
 import { Box } from "@mui/material";
 import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
@@ -23,8 +24,9 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedRoute() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { isLoading: userLoading } = useCurrentUser();
 
-  if (isLoading) {
+  if (isLoading || userLoading) {
     return <PageLoader />;
   }
 
