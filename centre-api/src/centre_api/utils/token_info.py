@@ -34,6 +34,12 @@ class TokenInfo:
         return user_data
 
     @staticmethod
+    def get_username():
+        """Get the username from the token."""
+        token_info = g.jwt_oidc_token_info
+        return token_info.get('preferred_username', None)
+
+    @staticmethod
     def has_admin_roles(client_name):
         """Check if the user has admin roles for the given client."""
         if client_name == EpicAppClientName.EPIC_PUBLIC.value:

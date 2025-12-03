@@ -46,8 +46,8 @@ class UserService:
         """Enrich a single user dictionary with app names and highest level roles based on their groups."""
         app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None, 'group_name': None, 'group_path': None})
 
-        current_user_is_dst_admin = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
-        current_user_admin_roles_map = TokenInfo.get_admin_roles_map()
+        current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
+        current_user_is_dst_admin = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
         for group in user.get('groups', []):
             path = group.get('path', '')
             level = group.get('level', float('-inf'))
@@ -80,9 +80,9 @@ class UserService:
 
         filtered_apps = [
             app for app in apps
-            if current_user_is_dst_admin or current_user_admin_roles_map.get(
-                APP_NAME_TO_CLIENT_NAME_MAP.get(app['name']), False
-            )
+            if current_user_is_dst_admin or AuthApiService.is_admin_of_app(current_user,
+                                                                           APP_NAME_TO_CLIENT_NAME_MAP.get(app['name'])
+                                                                           )
         ]
 
         user['apps'] = filtered_apps
@@ -140,12 +140,13 @@ class UserService:
     @classmethod
     def has_admin_access_on_app(cls, app_name: str):
         """Check if the user had admin access on the given app."""
-        has_dst_admin_roles = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
+        current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
+        has_dst_admin_roles = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
         if has_dst_admin_roles:
             return True
 
         client_name = APP_NAME_TO_CLIENT_NAME_MAP.get(app_name)
-        return TokenInfo.has_admin_roles(client_name)
+        return AuthApiService.is_admin_of_app(current_user, client_name)
 
     @classmethod
     def update_user_status(cls, username: str, patch_data: dict):

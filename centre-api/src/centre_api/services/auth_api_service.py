@@ -18,6 +18,8 @@ from urllib.parse import urlencode
 import requests
 from flask import current_app, g
 
+from centre_api.enums.epic_app import CLIENT_NAME_TO_APP_NAME_MAP, EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS
+
 
 class AuthApiService:
     """Keycloak services."""
@@ -190,14 +192,16 @@ class AuthApiService:
         try:
             query_params = urlencode({'del_sub_group_mappings': str(del_sub_group_mappings).lower()})
             base_url = f'{os.getenv("AUTH_API")}/api/users/{username}/groups/{group_name}?{query_params}'
-
+            body = {
+                'app_name': group_name
+            }
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': g.authorization_header,
             }
 
             timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
-            response = requests.delete(base_url, headers=headers, timeout=timeout)
+            response = requests.delete(base_url, headers=headers, timeout=timeout, json=body)
             response.raise_for_status()
 
             return response
@@ -231,3 +235,28 @@ class AuthApiService:
         except requests.RequestException as error:
             current_app.logger.error(f'Error patching user "{username}": {error}')
             raise error
+
+    @staticmethod
+    def is_admin(user):
+        """Check if the user has admin privileges."""
+        groups = user.get('groups', [])
+        return any(group.get('path') in EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS.values() for group in groups)
+
+    @staticmethod
+    def is_admin_of_app(user, client_name):
+        """Check if the user has admin privileges for a specific application."""
+        admin_group_path = EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS.get(client_name)
+        if not admin_group_path:
+            return False
+        groups = user.get('groups', [])
+        return any(group.get('path') == admin_group_path for group in groups)
+
+    @staticmethod
+    def get_administered_apps(user):
+        """Get a list of applications the user has admin privileges for."""
+        administered_apps = []
+        groups = user.get('groups', [])
+        for client_name, admin_group_path in EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS.items():
+            if any(group.get('path') == admin_group_path for group in groups):
+                administered_apps.append(CLIENT_NAME_TO_APP_NAME_MAP.get(client_name))
+        return administered_apps

@@ -16,8 +16,12 @@ class AccessRequestsService:
     @classmethod
     def get_all(cls, args):
         """Return all access requests by status, enriched with user details."""
+        current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
+        is_dst_admin = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
+        administrated_apps = set(AuthApiService.get_administered_apps(current_user))
         access_requests = AccessRequestsModal.get_all(args)
-        serialized_requests = [req.to_dict() for req in access_requests]
+        filtered_requests = [req for req in access_requests if is_dst_admin or req.app.name in administrated_apps]
+        serialized_requests = [req.to_dict() for req in filtered_requests]
         enriched_requests = cls._enrich_with_user_details(serialized_requests)
         return enriched_requests
 
@@ -39,14 +43,14 @@ class AccessRequestsService:
             **args,
             'user_auth_guid': user_auth_guid
         })
-        is_dst_admin = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
-        admin_roles_map = TokenInfo.get_admin_roles_map()
+
+        current_user = AuthApiService.get_user_by_username(TokenInfo.get_user_data().get('username'))
+
+        is_dst_admin = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
         filtered_requests = [
             req for req in access_requests
-            if is_dst_admin or admin_roles_map.get(
-                APP_NAME_TO_CLIENT_NAME_MAP.get(req.app.name),
-                False
-            )
+            if is_dst_admin or AuthApiService.is_admin_of_app(current_user,
+                                                              APP_NAME_TO_CLIENT_NAME_MAP.get(req.app.name))
         ]
 
         user = AuthApiService.get_user_by_id(user_auth_guid)
@@ -80,12 +84,17 @@ class AccessRequestsService:
     @classmethod
     def has_admin_access_on_app(cls, app_name: str):
         """Check if the user had admin access on the given app."""
-        had_dst_admin_roles = TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value)
-        if had_dst_admin_roles:
+        current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
+        had_dst_admin_roles = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
+
+        requires_app_admin = [
+            EpicAppClientName.EPIC_COMPLIANCE.value,
+        ]
+        if had_dst_admin_roles and app_name not in requires_app_admin:
             return True
 
         client_name = APP_NAME_TO_CLIENT_NAME_MAP.get(app_name)
-        return TokenInfo.has_admin_roles(client_name)
+        return AuthApiService.is_admin_of_app(current_user, client_name)
 
     @classmethod
     def _do_update_access_request(cls, access_request, status, session):

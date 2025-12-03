@@ -1,6 +1,5 @@
-import { Box } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { BCDesignTokens } from "epic.theme";
+import { CentreLink } from "@/components/Shared/CentreLink";
 
 type AppUserManagementButtonProps = {
   appUserManagementUrl?: string;
@@ -11,7 +10,6 @@ type AppUserManagementButtonProps = {
 export const AppUserManagementButton = ({
   appUserManagementUrl,
   supportsGranularRoleManagement,
-  tabIndex,
 }: AppUserManagementButtonProps) => {
   // Don't render if the app doesn't support granular role management or if no URL is provided
   if (!supportsGranularRoleManagement || !appUserManagementUrl) {
@@ -24,43 +22,12 @@ export const AppUserManagementButton = ({
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      handleClick();
-    }
-  };
-
   return (
-    <Box
-      component="span"
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      tabIndex={tabIndex}
-      role="button"
-      sx={{
-        color: BCDesignTokens.themeBlue90,
-        textDecoration: "underline",
-        cursor: "pointer",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "4px",
-        fontSize: "inherit",
-        lineHeight: "inherit",
-        "&:focus": {
-          outline: `2px solid ${BCDesignTokens.themeBlue90}`,
-          outlineOffset: "2px",
-          borderRadius: "2px",
-        },
-        "&:focus-visible": {
-          outline: `2px solid ${BCDesignTokens.themeBlue90}`,
-          outlineOffset: "2px",
-          borderRadius: "2px",
-        },
-      }}
-    >
+    <CentreLink onClick={handleClick}>
       App User Management
-      <OpenInNewIcon sx={{ fontSize: "1rem", verticalAlign: "middle" }} />
-    </Box>
+      <OpenInNewIcon
+        sx={{ fontSize: "1rem", verticalAlign: "middle", marginLeft: "4px" }}
+      />
+    </CentreLink>
   );
 };

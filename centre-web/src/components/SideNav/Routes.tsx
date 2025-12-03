@@ -1,12 +1,10 @@
 import { BCDesignTokens } from "epic.theme";
-import { useAuth } from "react-oidc-context";
 import { MainListItem } from "./MainListItem";
 import { SubListItem } from "./SubListItem";
-import { isAdministrator } from "@/utils/roleUtils";
+import { useCurrentUser } from "@/contexts/UserContext";
 
 export default function Routes() {
-  const { user } = useAuth();
-  const hasAdminRole = isAdministrator(user?.access_token);
+  const { isAdmin } = useCurrentUser();
 
   return (
     <>
@@ -23,7 +21,7 @@ export default function Routes() {
           path: "/request-access",
         }}
       />
-      {hasAdminRole && (
+      {isAdmin && (
         <SubListItem
           key={`sub-list-auth-management`}
           route={{

@@ -7,7 +7,7 @@ import {
 import { CentreUser, CentreUserApp } from "@/models/CentreUser";
 import { Table, TableBody, TableContainer, TableRow } from "@mui/material";
 import { getAppChipTitle } from "../../utils";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { useModal } from "@/components/Shared/Modals/modalStore";
 import { EditAccessModal } from "../../EditAccess";
 import { useAppConfigs } from "@/hooks/api/useAppConfigs";
@@ -29,8 +29,6 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
     user_auth_guid: user?.id || "",
     enabled: !!user?.id,
   });
-
-  const editButtonRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
 
   const appUrlMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -59,12 +57,6 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
       <EditAccessModal
         user={user}
         app={app}
-        onClose={() => {
-          const buttonRef = editButtonRefs.current.get(app.name);
-          if (buttonRef) {
-            setTimeout(() => buttonRef.focus(), 100);
-          }
-        }}
         username={String(username)}
         request={request}
       />
@@ -82,20 +74,6 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
         appSupportsGranularRoleManagementMap.get(app.name) ?? false,
     }));
   }, [user, appSupportsGranularRoleManagementMap]);
-
-  const appUserManagementTabIndex = useMemo(() => {
-    let currentTabIndex = apps.length + 1;
-    const tabIndexMap = new Map<number, number>();
-
-    apps.forEach((app, index) => {
-      if (app.supportsGranularRoleManagement && appUrlMap.get(app.name)) {
-        tabIndexMap.set(index, currentTabIndex);
-        currentTabIndex++;
-      }
-    });
-
-    return tabIndexMap;
-  }, [apps, appUrlMap]);
 
   return (
     <TableContainer>
@@ -116,22 +94,12 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
         </CentreTableHead>
         <TableBody>
           {apps.length > 0 ? (
-            apps.map((app, index) => (
+            apps.map((app) => (
               <TableRow key={app.name}>
                 <CentreTableCell>{getAppChipTitle(app.name)}</CentreTableCell>
                 <CentreTableCell>{app.role ?? "--"}</CentreTableCell>
                 <CentreTableCell>
-                  <CentreLink
-                    onClick={() => handleAddEditAccess(app)}
-                    tabIndex={index + 1}
-                    ref={(el) => {
-                      if (el) {
-                        editButtonRefs.current.set(app.name, el);
-                      } else {
-                        editButtonRefs.current.delete(app.name);
-                      }
-                    }}
-                  >
+                  <CentreLink onClick={() => handleAddEditAccess(app)}>
                     Edit Access
                   </CentreLink>
                 </CentreTableCell>
@@ -141,7 +109,6 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
                     supportsGranularRoleManagement={
                       app.supportsGranularRoleManagement ?? false
                     }
-                    tabIndex={appUserManagementTabIndex.get(index) || -1}
                   />
                 </CentreTableCell>
               </TableRow>

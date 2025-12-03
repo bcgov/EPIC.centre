@@ -10,10 +10,11 @@ import { UserAccessSkeleton } from "./UserAccessSkeleton";
 import { LoadingButton } from "@/components/Shared/LoadingButton";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
-import { isDSTUser } from "@/utils/roleUtils";
+import { useCurrentUser } from "@/contexts/UserContext";
 
 export const UserAccess = () => {
   const auth = useAuth();
+  const { isDstAdmin } = useCurrentUser();
   const { username } = useParams({
     from: "/_authenticated/request-access/auth/users/$username",
   });
@@ -30,7 +31,6 @@ export const UserAccess = () => {
 
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const isDST = isDSTUser(auth.user?.access_token);
   const currentUsername = auth.user?.profile.preferred_username;
   const isSelf = currentUsername === user?.username;
 
@@ -51,7 +51,7 @@ export const UserAccess = () => {
     return <UserAccessSkeleton />;
   }
 
-  const canManageUserStatus = isDST && !isSelf;
+  const canManageUserStatus = isDstAdmin && !isSelf;
   const disableButtonTooltip = isSelf
     ? "You cannot disable your own account"
     : "Only EPIC.centre admins can enable/disable users";
@@ -59,7 +59,7 @@ export const UserAccess = () => {
   return (
     <Box
       sx={{
-        padding: "16px",
+        padding: "0 16px 16px 16px",
         border: `1px solid ${BCDesignTokens.surfaceColorBorderDefault}`,
       }}
     >
@@ -121,7 +121,7 @@ export const UserAccess = () => {
             </Tooltip>
           )}
         </Grid>
-        <Grid item xs={12} mt={"24px"}>
+        <Grid item xs={12}>
           <NewAccessRequests user={user} />
         </Grid>
         <Grid item xs={12} mt={"24px"}>

@@ -32,6 +32,7 @@ export enum EpicAppName {
   EPIC_SUBMIT = "epic_submit",
   EPIC_ENGAGE = "epic_engage",
   EPIC_CENTRE = "epic_centre",
+  INTRANET = "intranet",
 }
 
 export enum EpicAppClientName {
@@ -61,6 +62,7 @@ export const EPIC_APP_NAME_TO_CLIENT_NAME: Readonly<
   [EpicAppName.EPIC_SUBMIT]: EpicAppClientName.EPIC_SUBMIT,
   [EpicAppName.EPIC_ENGAGE]: EpicAppClientName.EPIC_ENGAGE,
   [EpicAppName.EPIC_CENTRE]: EpicAppClientName.EPIC_CENTRE,
+  [EpicAppName.INTRANET]: EpicAppClientName.EPIC_PUBLIC,
 };
 
 /**
