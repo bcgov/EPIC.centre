@@ -17,9 +17,10 @@ class AccessRequestsService:
     def get_all(cls, args):
         """Return all access requests by status, enriched with user details."""
         current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
+        is_dst_admin = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
         administrated_apps = set(AuthApiService.get_administered_apps(current_user))
         access_requests = AccessRequestsModal.get_all(args)
-        filtered_requests = [req for req in access_requests if req.app.name in administrated_apps]
+        filtered_requests = [req for req in access_requests if is_dst_admin or req.app.name in administrated_apps]
         serialized_requests = [req.to_dict() for req in filtered_requests]
         enriched_requests = cls._enrich_with_user_details(serialized_requests)
         return enriched_requests
