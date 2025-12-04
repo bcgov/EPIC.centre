@@ -23,25 +23,7 @@ npm install
 
 **Note:** Since the package is in the `eao-analytics` subdirectory, you may need to adjust the import path or configure your build tool to resolve the subdirectory correctly.
 
-### Option 2: Clone and link locally (for development)
-
-For local development, you can clone the repository and use npm link:
-
-```bash
-# Clone the repository
-git clone https://github.com/bcgov/EPIC.centre.git
-cd EPIC.centre/eao-analytics
-
-# Install dependencies and create link
-npm install
-npm link
-
-# In your application directory
-cd /path/to/your/app
-npm link @epic/eao-analytics
-```
-
-### Option 3: Use local file path (for monorepo setups)
+### Option 2: Use local file path (for monorepo setups)
 
 If you have the EPIC.centre repository cloned locally:
 
