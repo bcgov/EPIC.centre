@@ -17,8 +17,9 @@ Manages user analytics tracking across EPIC applications
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, ForeignKey, Index, UniqueConstraint
+from sqlalchemy.dialects.postgresql import insert
 
 from .base_model import BaseModel
 from .db import db
@@ -36,35 +37,46 @@ class EaoAnalytics(BaseModel):
     # created_by and updated_by are inherited from BaseModel
 
     __table_args__ = (
-        UniqueConstraint('user_auth_guid', name='uq_user_auth_guid'),
+        UniqueConstraint('user_auth_guid', 'app_id', name='uq_login_history_user_auth_guid_app_id'),
         Index('ix_login_history_last_login_time', 'last_login_time'),
         Index('ix_login_history_app_id', 'app_id'),
     )
 
     @classmethod
     def record_login(cls, user_auth_guid: str, app_id: int):
-        """Record or update login analytics for user."""
-        existing = cls.query.filter_by(user_auth_guid=user_auth_guid).first()
-
-        if existing:
-            existing.last_login_time = datetime.utcnow()
-            existing.app_id = app_id
-            existing.save()
-            return existing
-
-        # Create new record
-        new_record = cls(
+        """Record or update a user's login for a specific application."""
+        now = datetime.now(timezone.utc)
+        
+        stmt = insert(cls).values(
             user_auth_guid=user_auth_guid,
-            last_login_time=datetime.utcnow(),
-            app_id=app_id
+            app_id=app_id,
+            last_login_time=now,
+            created_date=now,  # Only set on insert, preserved on update
+            updated_date=now
         )
-        new_record.save()
-        return new_record
+        
+        stmt = stmt.on_conflict_do_update(
+            constraint='uq_login_history_user_auth_guid_app_id',
+            set_={
+                'last_login_time': stmt.excluded.last_login_time,
+                'updated_date': stmt.excluded.updated_date
+            }
+        )
+        
+        db.session.execute(stmt)
+        db.session.commit()
+        
+        return cls.query.filter_by(user_auth_guid=user_auth_guid, app_id=app_id).first()
 
     @classmethod
     def get_user_analytics(cls, user_auth_guid: str):
         """Get analytics record for a user."""
         return cls.query.filter_by(user_auth_guid=user_auth_guid).first()
+
+    @classmethod
+    def get_user_app_login(cls, user_auth_guid: str, app_id: int):
+        """Get login analytics record for a specific user and app."""
+        return cls.query.filter_by(user_auth_guid=user_auth_guid, app_id=app_id).first()
 
     @classmethod
     def get_all_analytics(cls, sort_by='last_login_time', order='desc', limit=None):

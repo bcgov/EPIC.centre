@@ -20,7 +20,6 @@ export async function trackLogin(
     throw new Error('Access token is required');
   }
 
-  // Ensure API URL doesn't end with slash
   const baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
   const endpoint = `${baseUrl}/api/eao-analytics`;
 
@@ -33,23 +32,20 @@ export async function trackLogin(
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-        timeout: 10000, // 10 second timeout
+        timeout: 10000,
       }
     );
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response) {
-        // Server responded with error status
         throw new Error(
           `EAO Analytics recording failed: ${axiosError.response.status} ${axiosError.response.statusText}`
         );
       } else if (axiosError.request) {
-        // Request made but no response
         throw new Error('EAO Analytics recording failed: No response from server');
       }
     }
-    // Re-throw if it's already an Error, otherwise wrap it
     throw error instanceof Error ? error : new Error('EAO Analytics recording failed: Unknown error');
   }
 }

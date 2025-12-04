@@ -24,18 +24,14 @@ export function useEaoAnalytics(options: EaoAnalyticsOptions) {
   const recordingRef = useRef(false);
 
   useEffect(() => {
-    // Skip if disabled or not authenticated
     if (!enabled || !isAuthenticated || !user) {
       return;
     }
 
-    // Skip if already recording
     if (recordingRef.current) {
       return;
     }
 
-    // Check if we've already recorded this session
-    try {
       const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
       if (stored) {
         const state: AnalyticsState = JSON.parse(stored);
@@ -46,9 +42,6 @@ export function useEaoAnalytics(options: EaoAnalyticsOptions) {
           return;
         }
       }
-    } catch (e) {
-      // Ignore sessionStorage errors (e.g., in private mode)
-    }
 
     // Extract user info from token
     const userInfo = extractUserInfo(user);
@@ -77,7 +70,6 @@ export function useEaoAnalytics(options: EaoAnalyticsOptions) {
         });
 
         // Store analytics state in sessionStorage
-        try {
           sessionStorage.setItem(
             SESSION_STORAGE_KEY,
             JSON.stringify({
@@ -85,17 +77,13 @@ export function useEaoAnalytics(options: EaoAnalyticsOptions) {
               appName,
             } as AnalyticsState)
           );
-        } catch (e) {
-          // Ignore sessionStorage errors
-        }
+
 
         onSuccess?.();
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Unknown error');
         setError(error);
         onError?.(error);
-        // Silently handle errors - don't break the app
-        console.warn('EAO Analytics recording failed:', error.message);
       } finally {
         setIsRecording(false);
         recordingRef.current = false;

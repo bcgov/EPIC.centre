@@ -11,6 +11,7 @@ from centre_api.enums.epic_app import APP_NAME_TO_GROUP_MAP, GROUP_MAP, GROUP_TO
 from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
+from centre_api.models.eao_analytics import EaoAnalytics
 from centre_api.models.db import session_scope
 from centre_api.services.auth_api_service import AuthApiService
 from centre_api.utils.app_config import get_app_launch_url
@@ -20,6 +21,16 @@ from centre_api.utils.token_info import TokenInfo
 
 class ApplicationsService:
     """Applications service."""
+
+    @classmethod
+    def _get_last_accessed_from_login_history(cls, user_auth_guid: str, app_id: int):
+        """Get last accessed time from login_history table for a specific user and app."""
+        if not user_auth_guid:
+            return None
+        login_record = EaoAnalytics.get_user_app_login(user_auth_guid, app_id)
+        if login_record and login_record.last_login_time:
+            return login_record.last_login_time
+        return None
 
     @classmethod
     def _get_current_user_access_levels(cls):
@@ -71,6 +82,7 @@ class ApplicationsService:
         apps = [(app, user_app) for app, user_app in apps if app.name in accessed_apps]
 
         user_access_levels = cls._get_current_user_access_levels()
+        user_auth_username = TokenInfo.get_username()
 
         return [
             {
@@ -84,8 +96,7 @@ class ApplicationsService:
                 'user': {
                     'user_auth_guid': user_app.user_auth_guid if user_app else None,
                     'access_level': user_access_levels.get(app.name) or (user_app.access_level if user_app else None),
-                    'last_accessed': user_app.last_accessed.isoformat() if (
-                        user_app and user_app.last_accessed) else None,
+                    'last_accessed': cls._get_last_accessed_from_login_history(user_auth_username, app.id),
                     'sort_order': user_app.sort_order if user_app else None,
                     'bookmarks': user_app.bookmarks if user_app else []
                 }
@@ -108,6 +119,8 @@ class ApplicationsService:
 
         user_access_levels = cls._get_current_user_access_levels()
 
+        user_auth_guid = TokenInfo.get_id()
+
         return [
             {
                 'id': app.id,
@@ -120,8 +133,7 @@ class ApplicationsService:
                 'user': {
                     'user_auth_guid': user_app.user_auth_guid if user_app else None,
                     'access_level': user_access_levels.get(app.name) or (user_app.access_level if user_app else None),
-                    'last_accessed': user_app.last_accessed.isoformat() if (
-                        user_app and user_app.last_accessed) else None,
+                    'last_accessed': cls._get_last_accessed_from_login_history(user_auth_guid, app.id),
                     'sort_order': user_app.sort_order if user_app else None,
                 }
             }
