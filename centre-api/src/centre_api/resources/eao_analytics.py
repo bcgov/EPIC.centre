@@ -18,13 +18,12 @@ from flask import request
 from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
-from centre_api.models.applications import Application
-from centre_api.models.eao_analytics import EaoAnalytics
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.schemas.eao_analytics import (
     EaoAnalyticsCreateSchema,
     EaoAnalyticsSchema,
 )
+from centre_api.services.eao_analytics_service import EaoAnalyticsService
 from centre_api.utils.util import cors_preflight
 
 
@@ -49,23 +48,9 @@ class CreateEaoAnalytics(Resource):
             user_auth_guid = validated_data.get('user_auth_guid')
             app_name = validated_data.get('app_name')
 
-            if not all([user_auth_guid, app_name]):
-                return {
-                    'message': 'Missing required fields: user_auth_guid, app_name'
-                }, HTTPStatus.BAD_REQUEST
-
-            # Look up app_id from app_name
-            application = Application.query.filter_by(name=app_name).first()
-            if not application:
-                return {
-                    'message': f'Application with name "{app_name}" not found'
-                }, HTTPStatus.NOT_FOUND
-
-            app_id = application.id
-
-            analytics = EaoAnalytics.record_login(
+            analytics = EaoAnalyticsService.record_login_by_app_name(
                 user_auth_guid=user_auth_guid,
-                app_id=app_id
+                app_name=app_name
             )
 
             return EaoAnalyticsSchema().dump(analytics), HTTPStatus.OK
@@ -92,7 +77,7 @@ class GetEaoAnalytics(Resource):
             order = request.args.get('order', 'desc')
             limit = request.args.get('limit', type=int)
 
-            analytics = EaoAnalytics.get_all_analytics(
+            analytics = EaoAnalyticsService.get_all_analytics(
                 sort_by=sort_by,
                 order=order,
                 limit=limit
@@ -115,7 +100,7 @@ class GetUserEaoAnalytics(Resource):
     def get(user_auth_guid: str):
         """Get EAO Analytics for a specific user."""
         try:
-            analytics = EaoAnalytics.get_user_analytics(user_auth_guid)
+            analytics = EaoAnalyticsService.get_user_analytics(user_auth_guid)
 
             if not analytics:
                 return {'message': 'No analytics record found for user'}, HTTPStatus.NOT_FOUND
