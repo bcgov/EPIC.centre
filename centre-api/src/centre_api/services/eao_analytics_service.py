@@ -11,14 +11,14 @@ class EaoAnalyticsService:
     def record_login_by_app_name(cls, user_auth_guid: str, app_name: str):
         """
         Record or update login analytics for a user and application by app name.
-        
+
         Args:
             user_auth_guid: The user's authentication GUID
             app_name: The name of the application
-            
+
         Returns:
             EaoAnalytics: The created or updated analytics record
-            
+
         Raises:
             ValueError: If required fields are missing or application not found
         """
@@ -43,12 +43,12 @@ class EaoAnalyticsService:
     def get_all_analytics(cls, sort_by: str = 'last_login_time', order: str = 'desc', limit: int = None):
         """
         Get all analytics records with optional sorting and pagination.
-        
+
         Args:
             sort_by: Field to sort by (default: 'last_login_time')
             order: Sort order 'asc' or 'desc' (default: 'desc')
             limit: Maximum number of records to return (optional)
-            
+
         Returns:
             List[EaoAnalytics]: List of analytics records
         """
@@ -62,10 +62,10 @@ class EaoAnalyticsService:
     def get_user_analytics(cls, user_auth_guid: str):
         """
         Get analytics record for a specific user.
-        
+
         Args:
             user_auth_guid: The user's authentication GUID
-            
+
         Returns:
             EaoAnalytics or None: The analytics record if found, None otherwise
         """
@@ -75,11 +75,11 @@ class EaoAnalyticsService:
     def get_user_app_login(cls, user_auth_guid: str, app_id: int):
         """
         Get login analytics record for a specific user and app.
-        
+
         Args:
             user_auth_guid: The user's authentication GUID
             app_id: The application ID
-            
+
         Returns:
             EaoAnalytics or None: The analytics record if found, None otherwise
         """

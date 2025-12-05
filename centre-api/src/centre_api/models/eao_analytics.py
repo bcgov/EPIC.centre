@@ -46,7 +46,7 @@ class EaoAnalytics(BaseModel):
     def record_login(cls, user_auth_guid: str, app_id: int):
         """Record or update a user's login for a specific application."""
         now = datetime.now(timezone.utc)
-        
+
         stmt = insert(cls).values(
             user_auth_guid=user_auth_guid,
             app_id=app_id,
@@ -54,7 +54,7 @@ class EaoAnalytics(BaseModel):
             created_date=now,  # Only set on insert, preserved on update
             updated_date=now
         )
-        
+
         stmt = stmt.on_conflict_do_update(
             constraint='uq_login_history_user_auth_guid_app_id',
             set_={
@@ -62,10 +62,10 @@ class EaoAnalytics(BaseModel):
                 'updated_date': stmt.excluded.updated_date
             }
         )
-        
+
         db.session.execute(stmt)
         db.session.commit()
-        
+
         return cls.query.filter_by(user_auth_guid=user_auth_guid, app_id=app_id).first()
 
     @classmethod

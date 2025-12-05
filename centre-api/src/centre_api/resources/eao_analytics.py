@@ -57,7 +57,7 @@ class CreateEaoAnalytics(Resource):
 
         except ValueError as e:
             return {'message': f'Invalid data: {str(e)}'}, HTTPStatus.BAD_REQUEST
-        except Exception as e:
+        except (RuntimeError, AttributeError) as e:
             return {'message': f'Error creating analytics record: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
@@ -85,7 +85,7 @@ class GetEaoAnalytics(Resource):
 
             return EaoAnalyticsSchema(many=True).dump(analytics), HTTPStatus.OK
 
-        except Exception as e:
+        except (RuntimeError, AttributeError) as e:
             return {'message': f'Error fetching analytics: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
@@ -107,6 +107,5 @@ class GetUserEaoAnalytics(Resource):
 
             return EaoAnalyticsSchema().dump(analytics), HTTPStatus.OK
 
-        except Exception as e:
+        except (RuntimeError, AttributeError) as e:
             return {'message': f'Error fetching analytics: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
-
