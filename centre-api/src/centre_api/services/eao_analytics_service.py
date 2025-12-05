@@ -84,4 +84,3 @@ class EaoAnalyticsService:
             EaoAnalytics or None: The analytics record if found, None otherwise
         """
         return EaoAnalytics.get_user_app_login(user_auth_guid, app_id)
-

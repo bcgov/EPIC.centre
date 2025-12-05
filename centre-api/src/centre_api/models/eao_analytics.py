@@ -98,4 +98,3 @@ class EaoAnalytics(BaseModel):
             query = query.limit(limit)
 
         return query.all()
-
