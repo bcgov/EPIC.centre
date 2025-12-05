@@ -16,7 +16,7 @@
 
 from .applications import Application
 from .db import db, ma, migrate
+from .eao_analytics import EaoAnalytics
 from .email_queue import EmailQueue
 from .user_applications import UserApplication
 from .user_settings import UserSettings
-from .eao_analytics import EaoAnalytics

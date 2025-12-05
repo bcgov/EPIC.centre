@@ -11,8 +11,8 @@ from centre_api.enums.epic_app import APP_NAME_TO_GROUP_MAP, GROUP_MAP, GROUP_TO
 from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
-from centre_api.models.eao_analytics import EaoAnalytics
 from centre_api.models.db import session_scope
+from centre_api.models.eao_analytics import EaoAnalytics
 from centre_api.services.auth_api_service import AuthApiService
 from centre_api.utils.app_config import get_app_launch_url
 from centre_api.utils.datetime_util import convert_utc_to_local_str

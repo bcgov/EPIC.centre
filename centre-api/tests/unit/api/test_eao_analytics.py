@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for EAO Analytics API endpoints."""
-import pytest
 from http import HTTPStatus
 from unittest.mock import patch
 
@@ -108,7 +107,7 @@ class TestEaoAnalyticsAPI:
         session.commit()
 
         # Create analytics record
-        analytics = EaoAnalytics.record_login(
+        EaoAnalytics.record_login(
             user_auth_guid='test-user-1',
             app_id=app.id
         )
@@ -139,7 +138,7 @@ class TestEaoAnalyticsAPI:
         session.commit()
 
         user_guid = 'test-user-specific'
-        analytics = EaoAnalytics.record_login(
+        EaoAnalytics.record_login(
             user_auth_guid=user_guid,
             app_id=app.id
         )
@@ -179,7 +178,7 @@ class TestEaoAnalyticsAPI:
         session.commit()
 
         user_guid = 'test-user-update'
-        
+
         # Create initial record
         analytics1 = EaoAnalytics.record_login(
             user_auth_guid=user_guid,
@@ -210,4 +209,3 @@ class TestEaoAnalyticsAPI:
         # Should update last_login_time (check that it's different)
         updated_analytics = EaoAnalytics.get_user_analytics(user_guid)
         assert updated_analytics.last_login_time > initial_time
-

@@ -31,4 +31,3 @@ class EaoAnalyticsCreateSchema(Schema):
 
     user_auth_guid = fields.Str(required=True)
     app_name = fields.Str(required=True)
-
