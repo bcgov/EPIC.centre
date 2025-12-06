@@ -35,7 +35,7 @@ class ApplicationsService:
     @classmethod
     def _get_last_accessed_batch(cls, user_auth_guid: str, app_ids: list[int]):
         """Get last accessed times from login_history table for a specific user and multiple apps in one query.
-        
+
         Returns a dictionary mapping app_id to last_login_time.
         """
         if not user_auth_guid:

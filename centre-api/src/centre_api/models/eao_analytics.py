@@ -81,17 +81,17 @@ class EaoAnalytics(BaseModel):
     @classmethod
     def get_user_app_logins_batch(cls, user_auth_guid: str, app_ids: list[int]):
         """Get login analytics records for a specific user and multiple apps in one query.
-        
+
         Returns a dictionary mapping app_id to last_login_time.
         """
         if not user_auth_guid or not app_ids:
             return {}
-        
+
         records = cls.query.filter(
             cls.user_auth_guid == user_auth_guid,
             cls.app_id.in_(app_ids)
         ).all()
-        
+
         return {record.app_id: record.last_login_time for record in records if record.last_login_time}
 
     @classmethod
