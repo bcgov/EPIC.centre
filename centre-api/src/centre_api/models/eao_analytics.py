@@ -79,6 +79,22 @@ class EaoAnalytics(BaseModel):
         return cls.query.filter_by(user_auth_guid=user_auth_guid, app_id=app_id).first()
 
     @classmethod
+    def get_user_app_logins_batch(cls, user_auth_guid: str, app_ids: list[int]):
+        """Get login analytics records for a specific user and multiple apps in one query.
+        
+        Returns a dictionary mapping app_id to last_login_time.
+        """
+        if not user_auth_guid or not app_ids:
+            return {}
+        
+        records = cls.query.filter(
+            cls.user_auth_guid == user_auth_guid,
+            cls.app_id.in_(app_ids)
+        ).all()
+        
+        return {record.app_id: record.last_login_time for record in records if record.last_login_time}
+
+    @classmethod
     def get_all_analytics(cls, sort_by='last_login_time', order='desc', limit=None):
         """Get all analytics records with optional sorting and limit."""
         query = cls.query

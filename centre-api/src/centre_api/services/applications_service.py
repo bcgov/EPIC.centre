@@ -33,6 +33,16 @@ class ApplicationsService:
         return None
 
     @classmethod
+    def _get_last_accessed_batch(cls, user_auth_guid: str, app_ids: list[int]):
+        """Get last accessed times from login_history table for a specific user and multiple apps in one query.
+        
+        Returns a dictionary mapping app_id to last_login_time.
+        """
+        if not user_auth_guid:
+            return {}
+        return EaoAnalytics.get_user_app_logins_batch(user_auth_guid, app_ids)
+
+    @classmethod
     def _get_current_user_access_levels(cls):
         """Get the current logged-in user's access levels (roles) for all apps from their Keycloak groups."""
         try:
@@ -84,6 +94,9 @@ class ApplicationsService:
         user_access_levels = cls._get_current_user_access_levels()
         user_auth_username = TokenInfo.get_username()
 
+        app_ids = [app.id for app, _ in apps]
+        last_accessed_map = cls._get_last_accessed_batch(user_auth_username, app_ids)
+
         return [
             {
                 'id': app.id,
@@ -95,8 +108,11 @@ class ApplicationsService:
                 'is_public': app.name in public_apps,
                 'user': {
                     'user_auth_guid': user_app.user_auth_guid if user_app else None,
-                    'access_level': user_access_levels.get(app.name) or (user_app.access_level if user_app else None),
-                    'last_accessed': cls._get_last_accessed_from_login_history(user_auth_username, app.id),
+                    'access_level': (
+                        user_access_levels.get(app.name) or
+                        (user_app.access_level if user_app else None)
+                    ),
+                    'last_accessed': last_accessed_map.get(app.id),
                     'sort_order': user_app.sort_order if user_app else None,
                     'bookmarks': user_app.bookmarks if user_app else []
                 }
@@ -119,7 +135,9 @@ class ApplicationsService:
 
         user_access_levels = cls._get_current_user_access_levels()
 
-        user_auth_guid = TokenInfo.get_id()
+        user_auth_username = TokenInfo.get_username()
+        app_ids = [app.id for app, _ in filtered_apps]
+        last_accessed_map = cls._get_last_accessed_batch(user_auth_username, app_ids)
 
         return [
             {
@@ -133,7 +151,7 @@ class ApplicationsService:
                 'user': {
                     'user_auth_guid': user_app.user_auth_guid if user_app else None,
                     'access_level': user_access_levels.get(app.name) or (user_app.access_level if user_app else None),
-                    'last_accessed': cls._get_last_accessed_from_login_history(user_auth_guid, app.id),
+                    'last_accessed': last_accessed_map.get(app.id),
                     'sort_order': user_app.sort_order if user_app else None,
                 }
             }
