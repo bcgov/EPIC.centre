@@ -43,3 +43,26 @@ python:
   connectTimeout: 60
 cors:
   origin: "https://dev.centre.eao.gov.bc.ca,"
+
+app:
+  name: "EPIC Centre"
+
+urls:
+  intranetLaunch: ""
+  epicCentreWeb: ""
+  epicPublicUserManagement: ""
+  epicEngageUserManagement: ""
+  epicTrackUserManagement: ""
+  epicComplianceUserManagement: ""
+  epicEngageLaunch: ""
+  epicSubmitLaunch: ""
+  epicPublicLaunch: ""
+  epicTrackLaunch: ""
+  epicComplianceLaunch: ""
+  conditionRepositoryLaunch: ""
+
+email:
+  dstEmail: ""
+
+apis:
+  authApi: ""
