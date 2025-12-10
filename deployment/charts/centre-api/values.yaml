@@ -48,21 +48,21 @@ app:
   name: "EPIC Centre"
 
 urls:
-  intranetLaunch: ""
-  epicCentreWeb: ""
-  epicPublicUserManagement: ""
-  epicEngageUserManagement: ""
-  epicTrackUserManagement: ""
-  epicComplianceUserManagement: ""
-  epicEngageLaunch: ""
-  epicSubmitLaunch: ""
-  epicPublicLaunch: ""
-  epicTrackLaunch: ""
-  epicComplianceLaunch: ""
-  conditionRepositoryLaunch: ""
+  intranetLaunch:
+  epicCentreWeb:
+  epicPublicUserManagement:
+  epicEngageUserManagement:
+  epicTrackUserManagement:
+  epicComplianceUserManagement:
+  epicEngageLaunch:
+  epicSubmitLaunch:
+  epicPublicLaunch:
+  epicTrackLaunch:
+  epicComplianceLaunch:
+  conditionRepositoryLaunch:
 
 email:
-  dstEmail: ""
+  dstEmail:
 
 apis:
-  authApi: ""
+  authApi:
