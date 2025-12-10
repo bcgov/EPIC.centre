@@ -136,6 +136,81 @@ spec:
                 configMapKeyRef:
                   name: {{ .Chart.Name }}
                   key: CORS_ORIGIN
+            - name: APP_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: APP_NAME
+            - name: INTRANET_LAUNCH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: INTRANET_LAUNCH_URL
+            - name: EPIC_CENTRE_WEB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_CENTRE_WEB_URL
+            - name: EPIC_PUBLIC_USER_MANAGEMENT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_PUBLIC_USER_MANAGEMENT_URL
+            - name: EPIC_ENGAGE_USER_MANAGEMENT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ENGAGE_USER_MANAGEMENT_URL
+            - name: EPIC_TRACK_USER_MANAGEMENT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_TRACK_USER_MANAGEMENT_URL
+            - name: EPIC_COMPLIANCE_USER_MANAGEMENT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_COMPLIANCE_USER_MANAGEMENT_URL
+            - name: EPIC_ENGAGE_LAUNCH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ENGAGE_LAUNCH_URL
+            - name: EPIC_SUBMIT_LAUNCH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_SUBMIT_LAUNCH_URL
+            - name: EPIC_PUBLIC_LAUNCH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_PUBLIC_LAUNCH_URL
+            - name: EPIC_TRACK_LAUNCH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_TRACK_LAUNCH_URL
+            - name: EPIC_COMPLIANCE_LAUNCH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_COMPLIANCE_LAUNCH_URL
+            - name: CONDITION_REPOSITORY_LAUNCH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: CONDITION_REPOSITORY_LAUNCH_URL
+            - name: DST_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: DST_EMAIL
+            - name: AUTH_API
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: AUTH_API
           resources:
             limits:
               cpu: {{ .Values.resources.cpu.limit }}
