@@ -8,6 +8,7 @@ export const Route = createFileRoute("/oidc-callback")({
 
 function OidcCallback() {
   const { isAuthenticated, isLoading, error } = useAuth();
+  const path = new URLSearchParams(window.location.search).get("path");
 
   if (isLoading) {
     return <PageLoader />;
@@ -17,8 +18,8 @@ function OidcCallback() {
     return <Navigate to="/error" />;
   }
 
-  if (!isLoading && isAuthenticated) {
-    return <Navigate to="/launchpad/" />;
+  if (isAuthenticated) {
+    return <Navigate to={path || "/launchpad/"} />;
   }
 
   return <PageLoader />;
