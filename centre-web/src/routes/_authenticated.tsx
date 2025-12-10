@@ -4,12 +4,18 @@ import { useCurrentUser } from "@/contexts/UserContext";
 import { OidcConfig } from "@/utils/config";
 import { Box } from "@mui/material";
 import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 
 export const Route = createFileRoute("/_authenticated")({
-  beforeLoad: ({ context }) => {
-    const { isAuthenticated, signinRedirect, isLoading } =
-      context.authentication;
+  component: AuthenticatedRoute,
+});
+
+function AuthenticatedRoute() {
+  const { isAuthenticated, signinRedirect, isLoading } = useAuth();
+  const { isLoading: userLoading } = useCurrentUser();
+
+  useEffect(() => {
     if (!isAuthenticated && !isLoading) {
       signinRedirect({
         redirect_uri: window.location.href,
@@ -18,13 +24,7 @@ export const Route = createFileRoute("/_authenticated")({
         },
       });
     }
-  },
-  component: AuthenticatedRoute,
-});
-
-function AuthenticatedRoute() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const { isLoading: userLoading } = useCurrentUser();
+  }, [isAuthenticated, isLoading, signinRedirect]);
 
   if (isLoading || userLoading) {
     return <PageLoader />;
