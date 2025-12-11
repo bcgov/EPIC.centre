@@ -45,7 +45,17 @@ export const Header = ({
             width: "100%",
           }}
         >
-          <Typography variant="h4" component="div">
+          <Typography 
+            variant="h4" 
+            component="div"
+            sx={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              flex: 1,
+              minWidth: 0,
+            }}
+          >
             {title}
           </Typography>
           <IconButton
@@ -69,7 +79,14 @@ export const Header = ({
           </IconButton>
         </Box>
         {showDescription && (
-          <Typography variant="body2" width="100%" title={description}>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              width: "100%", 
+              minWidth: 0,
+            }} 
+            title={description}
+          >
             <LinesEllipsis
               text={description}
               maxLine={2}
