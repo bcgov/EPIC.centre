@@ -25,6 +25,10 @@ const AddBookmarkButton = (props: ButtonProps) => {
         padding: "12px 8px",
         color: BCDesignTokens.themePrimaryBlue,
         border: `2px solid ${BCDesignTokens.themePrimaryBlue}`,
+        minWidth: 0,
+        textTransform: "none",
+        whiteSpace: "nowrap",
+        flexShrink: 0,
       }}
     >
       Add/Edit Bookmarks
@@ -54,7 +58,18 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
         width="100%"
         padding="8px 0"
       >
-        <Typography variant="h6" fontWeight={400}>
+        <Typography 
+          variant="h6" 
+          fontWeight={400}
+          sx={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            minWidth: 0,
+            flex: 1,
+            marginRight: 1,
+          }}
+        >
           Bookmarks
         </Typography>
         <AddBookmarkButton color="secondary" onClick={handleAddEditBookmarks} />

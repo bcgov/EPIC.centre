@@ -17,11 +17,14 @@ export const LaunchAppTile = ({ item, dragListeners, dragAttributes }: LaunchApp
     <Paper
       elevation={2}
       sx={{
-        width: "345px",
+        width: "100%",
+        maxWidth: "345px",
         height: showDescription ? "386px" : "340px",
         boxShadow: BCDesignTokens.surfaceShadowMedium,
         display: "flex",
         flexDirection: "column",
+        overflow: "hidden",
+        boxSizing: "border-box",
       }}
     >
       <Header data={item} dragListeners={dragListeners} dragAttributes={dragAttributes} />
