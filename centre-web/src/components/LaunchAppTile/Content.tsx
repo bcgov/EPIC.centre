@@ -49,7 +49,7 @@ export const Content = ({ epicApp }: ContentProps) => {
           />
         </Box>
         {!is_public && (
-          <Box sx={{ width: "100%", marginTop: "auto" }}>
+          <Box sx={{ width: "100%" }}>
             <AccessLogSection user={epicApp.user} />
           </Box>
         )}

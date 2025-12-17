@@ -1,3 +1,4 @@
+import { useLaunchpadStore } from "@/stores/launchpadStore";
 import { Box, Typography } from "@mui/material";
 import { BCDesignTokens } from "epic.theme";
 import LinesEllipsis from "react-lines-ellipsis";
@@ -10,10 +11,11 @@ type HeaderProps = {
 };
 export const Header = ({ data }: HeaderProps) => {
   const { title, description } = data;
+  const { showDescription } = useLaunchpadStore();
   return (
     <Box
       sx={{
-        height: "100px",
+        height: showDescription ? "90px" : "50px",
         backgroundColor: BCDesignTokens.surfaceColorBackgroundLightBlue,
       }}
     >
@@ -24,7 +26,6 @@ export const Header = ({ data }: HeaderProps) => {
           flexDirection: "column",
           alignItems: "flex-start",
           justifyContent: "flex-start",
-          gap: "8px",
         }}
       >
         <Box
@@ -35,19 +36,19 @@ export const Header = ({ data }: HeaderProps) => {
             width: "100%",
           }}
         >
-          <Typography variant="h6" component="div">
-            {title}
-          </Typography>
+          <Typography variant="h4">{title}</Typography>
         </Box>
-        <Typography variant="body2" width="100%">
-          <LinesEllipsis
-            text={description}
-            maxLine={2}
-            ellipsis="..."
-            trimRight
-            basedOn="letters"
-          />
-        </Typography>
+        {showDescription && (
+          <Typography variant="body2" width="100%">
+            <LinesEllipsis
+              text={description}
+              maxLine={2}
+              ellipsis="..."
+              trimRight
+              basedOn="letters"
+            />
+          </Typography>
+        )}
       </Box>
     </Box>
   );
