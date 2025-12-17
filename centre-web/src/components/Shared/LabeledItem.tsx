@@ -18,8 +18,8 @@ export const LabeledItem = ({
     <Stack
       direction="row"
       alignItems="center"
-      justifyContent={"space-between"}
-      spacing={2}
+      justifyContent={"flex-start"}
+      spacing={1}
     >
       <Typography
         variant="body2"
