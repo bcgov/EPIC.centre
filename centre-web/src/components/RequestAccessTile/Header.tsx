@@ -1,4 +1,3 @@
-import { useLaunchpadStore } from "@/stores/launchpadStore";
 import { Box, Typography } from "@mui/material";
 import { BCDesignTokens } from "epic.theme";
 import LinesEllipsis from "react-lines-ellipsis";
@@ -11,12 +10,12 @@ type HeaderProps = {
 };
 export const Header = ({ data }: HeaderProps) => {
   const { title, description } = data;
-  const { showDescription } = useLaunchpadStore();
   return (
     <Box
       sx={{
-        height: showDescription ? "90px" : "50px",
+        height: "90px",
         backgroundColor: BCDesignTokens.surfaceColorBackgroundLightBlue,
+        overflow: "hidden",
       }}
     >
       <Box
@@ -26,6 +25,9 @@ export const Header = ({ data }: HeaderProps) => {
           flexDirection: "column",
           alignItems: "flex-start",
           justifyContent: "flex-start",
+          gap: "8px",
+          width: "100%",
+          boxSizing: "border-box",
         }}
       >
         <Box
@@ -36,19 +38,38 @@ export const Header = ({ data }: HeaderProps) => {
             width: "100%",
           }}
         >
-          <Typography variant="h4">{title}</Typography>
-        </Box>
-        {showDescription && (
-          <Typography variant="body2" width="100%">
-            <LinesEllipsis
-              text={description}
-              maxLine={2}
-              ellipsis="..."
-              trimRight
-              basedOn="letters"
-            />
+          <Typography
+            variant="h4"
+            component="div"
+            sx={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              flex: 1,
+              minWidth: 0,
+            }}
+          >
+            {title}
           </Typography>
-        )}
+        </Box>
+        <Typography
+          variant="body2"
+          sx={{
+            width: "100%",
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+          title={description}
+        >
+          <LinesEllipsis
+            text={description}
+            maxLine={2}
+            ellipsis="..."
+            trimRight
+            basedOn="letters"
+          />
+        </Typography>
       </Box>
     </Box>
   );
