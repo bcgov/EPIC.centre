@@ -18,12 +18,20 @@ export const AccessLogSection = ({ user }: AccessLogSectionProps) => {
         gap: "8px",
       }}
     >
-      <LabeledItem label="Access Level">
-        <Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
-          <Typography variant="body2">{user.access_level ?? ""}</Typography>
-        </Box>
+      <LabeledItem
+        label="Access Level"
+        labelProps={{
+          sx: { width: "95px" },
+        }}
+      >
+        <Typography variant="body2">{user.access_level ?? ""}</Typography>
       </LabeledItem>
-      <LabeledItem label="Last Accessed">
+      <LabeledItem
+        label="Last Accessed"
+        labelProps={{
+          sx: { width: "95px" },
+        }}
+      >
         <Typography variant="body2">{user.last_accessed ?? ""}</Typography>
       </LabeledItem>
     </Box>

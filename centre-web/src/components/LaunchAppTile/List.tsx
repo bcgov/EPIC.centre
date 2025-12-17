@@ -126,11 +126,9 @@ export const List = ({ items }: ListProps) => {
             display: "grid",
             gridTemplateColumns: "repeat(3, minmax(0, 345px))",
             gap: "16px",
-            justifyContent: "center",
             width: "100%",
             maxWidth: "1090px",
             boxSizing: "border-box",
-            padding: "0 16px",
             "@media (max-width: 1080px)": {
               gridTemplateColumns: "repeat(2, minmax(0, 345px))",
             },

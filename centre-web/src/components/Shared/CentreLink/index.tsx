@@ -1,9 +1,6 @@
-import { LinkProps, Link as MuiLink } from "@mui/material";
+import { Link as MuiLink } from "@mui/material";
 import { BCDesignTokens } from "epic.theme";
-
-type CentreLinkProps = {
-  disabled?: boolean;
-} & LinkProps;
+import { CentreLinkProps } from "./type";
 
 export const CentreLink = (props: CentreLinkProps) => {
   const { children, disabled, sx, onClick, ...rest } = props;
@@ -18,7 +15,7 @@ export const CentreLink = (props: CentreLinkProps) => {
       sx={{
         color: BCDesignTokens.themeBlue90,
         textDecoration: "none",
-        cursor: onClick ? "pointer" : "inherit",
+        cursor: "pointer",
         "&:hover": {
           textDecoration: "underline",
         },
