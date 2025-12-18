@@ -63,6 +63,31 @@ function RequestAccess() {
             </Box>
           </Grid>
         )}
+        {isDstAdmin && (
+          <Grid item xs={12} mt="32px">
+            <Box
+              sx={{
+                backgroundColor: "#FEF1D8",
+                border: "1px solid #F8BB47",
+                borderRadius: "4px",
+                padding: "8px",
+                maxWidth: "1060px",
+              }}
+            >
+              <Typography
+                variant="body1"
+                sx={{
+                  fontSize: "16px",
+                  fontStyle: "normal",
+                  fontWeight: 400,
+                  lineHeight: "27.008px",
+                }}
+              >
+                As a EPIC.auth Superuser, you can assign yourself Access Levels for all the EPIC applications from your EPIC.auth user profile.
+              </Typography>
+            </Box>
+          </Grid>
+        )}
         <Grid container item xs={12} mt="32px">
           <RequestAccessTileList items={applications} />
         </Grid>

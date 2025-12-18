@@ -23,7 +23,7 @@ export const Header = ({
   return (
     <Box
       sx={{
-        height: showDescription ? "100px" : "50px",
+        height: showDescription ? "90px" : "50px",
         backgroundColor: BCDesignTokens.surfaceColorBackgroundLightBlue,
       }}
     >
@@ -34,7 +34,6 @@ export const Header = ({
           flexDirection: "column",
           alignItems: "flex-start",
           justifyContent: "flex-start",
-          gap: "8px",
         }}
       >
         <Box
@@ -45,7 +44,17 @@ export const Header = ({
             width: "100%",
           }}
         >
-          <Typography variant="h4" component="div">
+          <Typography
+            variant="h4"
+            component="div"
+            sx={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              flex: 1,
+              minWidth: 0,
+            }}
+          >
             {title}
           </Typography>
           <IconButton
@@ -69,7 +78,14 @@ export const Header = ({
           </IconButton>
         </Box>
         {showDescription && (
-          <Typography variant="body2" width="100%" title={description}>
+          <Typography
+            variant="body2"
+            sx={{
+              width: "100%",
+              minWidth: 0,
+            }}
+            title={description}
+          >
             <LinesEllipsis
               text={description}
               maxLine={2}

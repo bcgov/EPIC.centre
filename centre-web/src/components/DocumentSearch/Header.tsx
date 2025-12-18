@@ -19,7 +19,6 @@ export const Header = () => {
           flexDirection: "column",
           alignItems: "flex-start",
           justifyContent: "flex-start",
-          gap: "8px",
         }}
       >
         <Box
@@ -30,9 +29,7 @@ export const Header = () => {
             width: "100%",
           }}
         >
-          <Typography variant="h6" component="div">
-            Document Search
-          </Typography>
+          <Typography variant="h4">Document Search</Typography>
         </Box>
         {showDescription && (
           <Typography variant="body2" width="100%">

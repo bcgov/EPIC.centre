@@ -1,34 +1,23 @@
 import { EpicApp } from "@/models/EpicApp";
-import {
-  Box,
-  Button,
-  ButtonProps,
-  Stack,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Stack, Tooltip, Typography } from "@mui/material";
 import { Circle } from "@mui/icons-material";
 import { CentreLink } from "../Shared/CentreLink";
 import { useModal } from "../Shared/Modals/modalStore";
 import { AddBookmark } from "./AddBookmark";
-import { BCDesignTokens } from "epic.theme";
+import { CentreLinkProps } from "../Shared/CentreLink/type";
 
-const AddBookmarkButton = (props: ButtonProps) => {
+const AddBookmarkButton = (props: CentreLinkProps) => {
   const { sx, ...otherProps } = props;
   return (
-    <Button
+    <CentreLink
       {...otherProps}
       sx={{
         ...(sx ?? {}),
-        height: "32px",
         fontSize: "12px",
-        padding: "12px 8px",
-        color: BCDesignTokens.themePrimaryBlue,
-        border: `2px solid ${BCDesignTokens.themePrimaryBlue}`,
       }}
     >
       Add/Edit Bookmarks
-    </Button>
+    </CentreLink>
   );
 };
 
@@ -46,15 +35,25 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
   const bookmarks = epicApp?.user?.bookmarks || [];
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box id="bookmark-section" sx={{ width: "100%", padding: "12px 0 0 0" }}>
       <Stack
         direction={"row"}
         justifyContent={"space-between"}
         alignItems={"center"}
         width="100%"
-        padding="8px 0"
       >
-        <Typography variant="h6" fontWeight={400}>
+        <Typography
+          variant="h6"
+          fontWeight={400}
+          sx={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            minWidth: 0,
+            flex: 1,
+            marginRight: 1,
+          }}
+        >
           Bookmarks
         </Typography>
         <AddBookmarkButton color="secondary" onClick={handleAddEditBookmarks} />
