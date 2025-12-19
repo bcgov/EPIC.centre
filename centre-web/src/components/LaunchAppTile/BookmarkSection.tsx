@@ -14,6 +14,10 @@ const AddBookmarkButton = (props: CentreLinkProps) => {
       sx={{
         ...(sx ?? {}),
         fontSize: "12px",
+        minWidth: 0,
+        textTransform: "none",
+        whiteSpace: "nowrap",
+        flexShrink: 0,
       }}
     >
       Add/Edit Bookmarks
