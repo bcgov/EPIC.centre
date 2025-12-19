@@ -80,16 +80,52 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
       <Table>
         <CentreTableHead>
           <TableRow>
-            <CentreTableHeadCell sx={{ width: "35%" }}>
+            <CentreTableHeadCell
+              sx={{
+                width: {
+                  xs: "28%",
+                  sm: "30%",
+                  md: "20%",
+                  lg: "25%",
+                },
+              }}
+            >
               Application
             </CentreTableHeadCell>
-            <CentreTableHeadCell sx={{ width: "35%" }}>
+            <CentreTableHeadCell
+              sx={{
+                width: {
+                  xs: "28%",
+                  sm: "30%",
+                  md: "20%",
+                  lg: "25%",
+                },
+              }}
+            >
               Current Access Level
             </CentreTableHeadCell>
-            <CentreTableHeadCell sx={{ width: "10%" }}>
+            <CentreTableHeadCell
+              sx={{
+                width: {
+                  xs: "22%",
+                  sm: "20%",
+                  md: "20%",
+                  lg: "20%",
+                },
+              }}
+            >
               Actions
             </CentreTableHeadCell>
-            <CentreTableHeadCell sx={{ width: "20%" }}></CentreTableHeadCell>
+            <CentreTableHeadCell
+              sx={{
+                width: {
+                  xs: "22%",
+                  sm: "20%",
+                  md: "40%",
+                  lg: "30%",
+                },
+              }}
+            ></CentreTableHeadCell>
           </TableRow>
         </CentreTableHead>
         <TableBody>
