@@ -16,4 +16,7 @@ export type CentreUser = {
   apps: CentreUserApp[];
   enabled: boolean;
   groups: KCGroup[];
+  attributes?: {
+    idir_username?: string[];
+  };
 };

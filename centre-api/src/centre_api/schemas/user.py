@@ -17,3 +17,4 @@ class UserSchema(Schema):
     apps = fields.List(fields.Dict())
     enabled = fields.Bool()
     groups = fields.List(fields.Dict())
+    attributes = fields.Dict()
