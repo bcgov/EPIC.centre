@@ -18,4 +18,3 @@ class UserSchema(Schema):
     enabled = fields.Bool()
     groups = fields.List(fields.Dict())
     attributes = fields.Dict()
-    
