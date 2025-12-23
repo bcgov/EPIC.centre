@@ -76,6 +76,14 @@ export const UserAccess = () => {
               <Typography variant="h4" gutterBottom>
                 {user?.last_name ?? ""}, {user?.first_name ?? ""}
               </Typography>
+              <Typography variant="h6" gutterBottom>
+                {user?.email ?? ""}
+                {user?.attributes?.idir_username?.[0] && (
+                  <span style={{ marginLeft: "8px", color: "#99A6B4" }}>
+                    ({user.attributes.idir_username[0]})
+                  </span>
+                )}
+              </Typography>
             </BarTitle>
           </Grid>
           <Grid item>
