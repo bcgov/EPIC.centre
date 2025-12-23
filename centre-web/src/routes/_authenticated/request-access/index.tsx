@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/request-access/")({
 function RequestAccess() {
   const { data: applications = [], isPending } =
     useGetRequestCatalogApplications();
-  const { isDstAdmin } = useCurrentUser();
+  const { isAdmin } = useCurrentUser();
 
   if (isPending) {
     return <PageLoader />;
@@ -33,12 +33,12 @@ function RequestAccess() {
             responsibilities.
           </Typography>
         </Grid>
-        {!isDstAdmin && (<Grid item xs={12} mt="32px">
+        {!isAdmin && (<Grid item xs={12} mt="32px">
           <Typography variant="body1" fontWeight={"bold"}>
             You will receive an email when your request has been processed.
           </Typography>
         </Grid>)}
-        {isDstAdmin && (
+        {isAdmin && (
           <Grid item xs={12} mt="32px">
             <Box
               sx={{
