@@ -73,14 +73,16 @@ export const UserAccess = () => {
         >
           <Grid item>
             <BarTitle>
-              <Typography variant="h4" gutterBottom>
+              <Typography variant="h4"  sx={{ mb: 0 }}>
                 {user?.last_name ?? ""}, {user?.first_name ?? ""}
               </Typography>
-              <Typography variant="h6" gutterBottom>
-                {user?.email ?? ""}
+              <Typography variant="body1" sx={{ mb: 0, mt: "-3px" }}>
+                <a href={`mailto:${user?.email ?? ""}`}>{user?.email ?? ""}</a>
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 0, mt: "-3px" }}>
                 {user?.attributes?.idir_username?.[0] && (
-                  <span style={{ marginLeft: "8px", color: "#99A6B4" }}>
-                    ({user.attributes.idir_username[0]})
+                  <span style={{ color: "#99A6B4" }}>
+                    {user.attributes.idir_username[0]}
                   </span>
                 )}
               </Typography>
