@@ -61,23 +61,20 @@ class CreateEaoAnalytics(Resource):
 @cors_preflight('GET, OPTIONS')
 @API.route('', methods=['GET', 'OPTIONS'])
 class GetEaoAnalytics(Resource):
-    """Resource for fetching EAO Analytics."""
+    """Resource for fetching EAO Analytics with optional filtering."""
 
     @staticmethod
-    @ApiHelper.swagger_decorators(API, endpoint_description='Get all EAO Analytics records')
+    @ApiHelper.swagger_decorators(API, endpoint_description='Get EAO Analytics records with optional filters')
     @auth.require
     def get():
-        """Get all EAO Analytics records with optional pagination and sorting."""
+        """Get EAO Analytics records with optional filtering by user_auth_guid and/or app_name."""
         try:
-            sort_by = request.args.get('sort_by', 'last_login_time')
-            # Valid sort options: last_login_time, user_auth_guid
-            order = request.args.get('order', 'desc')
-            limit = request.args.get('limit', type=int)
+            user_auth_guid = request.args.get('user_auth_guid', type=str)
+            app_name = request.args.get('app_name', type=str)
 
-            analytics = EaoAnalyticsService.get_all_analytics(
-                sort_by=sort_by,
-                order=order,
-                limit=limit
+            analytics = EaoAnalyticsService.get_analytics(
+                user_auth_guid=user_auth_guid,
+                app_name=app_name
             )
 
             return EaoAnalyticsSchema(many=True).dump(analytics), HTTPStatus.OK
@@ -85,24 +82,3 @@ class GetEaoAnalytics(Resource):
         except (RuntimeError, AttributeError) as e:
             return {'message': f'Error fetching analytics: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
 
-
-@cors_preflight('GET, OPTIONS')
-@API.route('/<user_auth_guid>', methods=['GET', 'OPTIONS'])
-class GetUserEaoAnalytics(Resource):
-    """Resource for fetching EAO Analytics for a specific user."""
-
-    @staticmethod
-    @ApiHelper.swagger_decorators(API, endpoint_description='Get EAO Analytics for specific user')
-    @auth.require
-    def get(user_auth_guid: str):
-        """Get EAO Analytics for a specific user."""
-        try:
-            analytics = EaoAnalyticsService.get_user_analytics(user_auth_guid)
-
-            if not analytics:
-                return {'message': 'No analytics record found for user'}, HTTPStatus.NOT_FOUND
-
-            return EaoAnalyticsSchema().dump(analytics), HTTPStatus.OK
-
-        except (RuntimeError, AttributeError) as e:
-            return {'message': f'Error fetching analytics: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR

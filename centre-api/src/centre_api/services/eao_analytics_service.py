@@ -40,36 +40,38 @@ class EaoAnalyticsService:
         return analytics
 
     @classmethod
-    def get_all_analytics(cls, sort_by: str = 'last_login_time', order: str = 'desc', limit: int = None):
+    def get_analytics(cls, user_auth_guid: str = None, app_name: str = None):
         """
-        Get all analytics records with optional sorting and pagination.
+        Get analytics records with optional filtering by user_auth_guid and/or app_name.
 
         Args:
-            sort_by: Field to sort by (default: 'last_login_time')
-            order: Sort order 'asc' or 'desc' (default: 'desc')
-            limit: Maximum number of records to return (optional)
+            user_auth_guid: Optional user authentication GUID to filter by
+            app_name: Optional application name to filter by
 
         Returns:
-            List[EaoAnalytics]: List of analytics records
+            List[EaoAnalytics]: List of analytics records matching the filters
         """
-        return EaoAnalytics.get_all_analytics(
-            sort_by=sort_by,
-            order=order,
-            limit=limit
-        )
+        from centre_api.models.applications import Application
 
-    @classmethod
-    def get_user_analytics(cls, user_auth_guid: str):
-        """
-        Get analytics record for a specific user.
+        query = EaoAnalytics.query
 
-        Args:
-            user_auth_guid: The user's authentication GUID
+        # Filter by user_auth_guid if provided
+        if user_auth_guid:
+            query = query.filter(EaoAnalytics.user_auth_guid == user_auth_guid)
 
-        Returns:
-            EaoAnalytics or None: The analytics record if found, None otherwise
-        """
-        return EaoAnalytics.get_user_analytics(user_auth_guid)
+        # Filter by app_name if provided
+        if app_name:
+            application = Application.query.filter_by(name=app_name).first()
+            if application:
+                query = query.filter(EaoAnalytics.app_id == application.id)
+            else:
+                # If app_name is provided but not found, return empty list
+                return []
+
+        # Order by last_login_time descending
+        query = query.order_by(EaoAnalytics.last_login_time.desc())
+
+        return query.all()
 
     @classmethod
     def get_user_app_login(cls, user_auth_guid: str, app_id: int):

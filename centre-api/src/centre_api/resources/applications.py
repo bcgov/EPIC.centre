@@ -18,7 +18,6 @@ from http import HTTPStatus
 from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
-from centre_api.models.applications import Application
 from centre_api.services.applications_service import ApplicationsService
 from centre_api.utils.util import cors_preflight
 
@@ -100,7 +99,7 @@ class ApplicationByName(Resource):
     @auth.require
     def get(app_name):
         """Get application by name."""
-        app = Application.query.filter_by(name=app_name).first()
+        app = ApplicationsService.get_by_name(app_name)
         if not app:
             return {'message': f'Application with name {app_name} not found'}, HTTPStatus.NOT_FOUND
         return {'id': app.id, 'name': app.name, 'title': app.title}, HTTPStatus.OK

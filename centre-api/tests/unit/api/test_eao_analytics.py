@@ -17,6 +17,7 @@ from unittest.mock import patch
 
 from centre_api.models.applications import Application
 from centre_api.models.eao_analytics import EaoAnalytics
+from centre_api.services.eao_analytics_service import EaoAnalyticsService
 
 
 class TestEaoAnalyticsAPI:
@@ -93,77 +94,6 @@ class TestEaoAnalyticsAPI:
         assert 'not found' in data['message'].lower()
 
     @patch('centre_api.resources.eao_analytics.auth.require')
-    def test_get_all_analytics(self, mock_auth, client, session):
-        """Test getting all analytics records."""
-        # Create test data
-        app = Application(
-            title='Test App',
-            name='epic_submit',
-            description='Test',
-            launch_url='https://test.com',
-            is_active=True
-        )
-        session.add(app)
-        session.commit()
-
-        # Create analytics record
-        EaoAnalytics.record_login(
-            user_auth_guid='test-user-1',
-            app_id=app.id
-        )
-        session.commit()
-
-        response = client.get(
-            '/api/eao-analytics',
-            headers={'Authorization': 'Bearer test-token'}
-        )
-
-        assert response.status_code == HTTPStatus.OK
-        data = response.get_json()
-        assert isinstance(data, list)
-        assert len(data) >= 1
-
-    @patch('centre_api.resources.eao_analytics.auth.require')
-    def test_get_user_analytics(self, mock_auth, client, session):
-        """Test getting analytics for specific user."""
-        # Create test data
-        app = Application(
-            title='Test App',
-            name='epic_submit',
-            description='Test',
-            launch_url='https://test.com',
-            is_active=True
-        )
-        session.add(app)
-        session.commit()
-
-        user_guid = 'test-user-specific'
-        EaoAnalytics.record_login(
-            user_auth_guid=user_guid,
-            app_id=app.id
-        )
-        session.commit()
-
-        response = client.get(
-            f'/api/eao-analytics/{user_guid}',
-            headers={'Authorization': 'Bearer test-token'}
-        )
-
-        assert response.status_code == HTTPStatus.OK
-        data = response.get_json()
-        assert data['user_auth_guid'] == user_guid
-
-    @patch('centre_api.resources.eao_analytics.auth.require')
-    def test_get_user_analytics_not_found(self, mock_auth, client):
-        """Test getting analytics for non-existent user."""
-        response = client.get(
-            '/api/eao-analytics/non-existent-user',
-            headers={'Authorization': 'Bearer test-token'}
-        )
-
-        assert response.status_code == HTTPStatus.NOT_FOUND
-
-    @patch('centre_api.resources.eao_analytics.auth.require')
     def test_update_existing_analytics(self, mock_auth, client, session):
         """Test updating existing analytics record."""
         # Create test application
@@ -209,3 +139,141 @@ class TestEaoAnalyticsAPI:
         # Should update last_login_time (check that it's different)
         updated_analytics = EaoAnalytics.get_user_analytics(user_guid)
         assert updated_analytics.last_login_time > initial_time
+
+    def test_get_analytics_all(self, session):
+        """Test getting all analytics records without filters."""
+        # Create test applications
+        app1 = Application(
+            title='Test App 1',
+            name='epic_submit',
+            description='Test',
+            launch_url='https://test.com',
+            is_active=True
+        )
+        app2 = Application(
+            title='Test App 2',
+            name='epic_compliance',
+            description='Test',
+            launch_url='https://test.com',
+            is_active=True
+        )
+        session.add(app1)
+        session.add(app2)
+        session.commit()
+
+        # Create analytics records
+        EaoAnalytics.record_login(user_auth_guid='user1', app_id=app1.id)
+        EaoAnalytics.record_login(user_auth_guid='user2', app_id=app2.id)
+        session.commit()
+
+        # Test service method directly
+        analytics = EaoAnalyticsService.get_analytics()
+
+        assert isinstance(analytics, list)
+        assert len(analytics) >= 2
+
+    def test_get_analytics_by_user_auth_guid(self, session):
+        """Test getting analytics filtered by user_auth_guid."""
+        # Create test application
+        app = Application(
+            title='Test App',
+            name='epic_submit',
+            description='Test',
+            launch_url='https://test.com',
+            is_active=True
+        )
+        session.add(app)
+        session.commit()
+
+        user_guid = 'test-user-filter'
+        # Create analytics records for different users
+        EaoAnalytics.record_login(user_auth_guid=user_guid, app_id=app.id)
+        EaoAnalytics.record_login(user_auth_guid='other-user', app_id=app.id)
+        session.commit()
+
+        # Test service method directly
+        analytics = EaoAnalyticsService.get_analytics(user_auth_guid=user_guid)
+
+        assert isinstance(analytics, list)
+        assert len(analytics) == 1
+        assert analytics[0].user_auth_guid == user_guid
+
+    def test_get_analytics_by_app_name(self, session):
+        """Test getting analytics filtered by app_name."""
+        # Create test applications
+        app1 = Application(
+            title='Test App 1',
+            name='epic_submit',
+            description='Test',
+            launch_url='https://test.com',
+            is_active=True
+        )
+        app2 = Application(
+            title='Test App 2',
+            name='epic_compliance',
+            description='Test',
+            launch_url='https://test.com',
+            is_active=True
+        )
+        session.add(app1)
+        session.add(app2)
+        session.commit()
+
+        # Create analytics records for different apps
+        EaoAnalytics.record_login(user_auth_guid='user1', app_id=app1.id)
+        EaoAnalytics.record_login(user_auth_guid='user2', app_id=app2.id)
+        session.commit()
+
+        # Test service method directly
+        analytics = EaoAnalyticsService.get_analytics(app_name='epic_submit')
+
+        assert isinstance(analytics, list)
+        assert len(analytics) == 1
+        assert analytics[0].app_id == app1.id
+
+    def test_get_analytics_by_user_and_app(self, session):
+        """Test getting analytics filtered by both user_auth_guid and app_name."""
+        # Create test applications
+        app1 = Application(
+            title='Test App 1',
+            name='epic_submit',
+            description='Test',
+            launch_url='https://test.com',
+            is_active=True
+        )
+        app2 = Application(
+            title='Test App 2',
+            name='epic_compliance',
+            description='Test',
+            launch_url='https://test.com',
+            is_active=True
+        )
+        session.add(app1)
+        session.add(app2)
+        session.commit()
+
+        user_guid = 'test-user-combined'
+        # Create analytics records
+        EaoAnalytics.record_login(user_auth_guid=user_guid, app_id=app1.id)
+        EaoAnalytics.record_login(user_auth_guid=user_guid, app_id=app2.id)
+        EaoAnalytics.record_login(user_auth_guid='other-user', app_id=app1.id)
+        session.commit()
+
+        # Test service method directly
+        analytics = EaoAnalyticsService.get_analytics(
+            user_auth_guid=user_guid,
+            app_name='epic_submit'
+        )
+
+        assert isinstance(analytics, list)
+        assert len(analytics) == 1
+        assert analytics[0].user_auth_guid == user_guid
+        assert analytics[0].app_id == app1.id
+
+    def test_get_analytics_app_name_not_found(self, session):
+        """Test getting analytics with non-existent app_name returns empty list."""
+        # Test service method directly
+        analytics = EaoAnalyticsService.get_analytics(app_name='non_existent_app')
+
+        assert isinstance(analytics, list)
+        assert len(analytics) == 0

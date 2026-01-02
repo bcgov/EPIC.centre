@@ -287,3 +287,8 @@ class ApplicationsService:
         access_levels.sort(key=lambda x: int(x['level']))
 
         return access_levels
+
+    @classmethod
+    def get_by_name(cls, app_name: str):
+        """Get application by name."""
+        return ApplicationModel.query.filter_by(name=app_name).first()
