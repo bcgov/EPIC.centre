@@ -13,8 +13,9 @@ export const Header = ({ data }: HeaderProps) => {
   return (
     <Box
       sx={{
-        height: "100px",
+        height: "90px",
         backgroundColor: BCDesignTokens.surfaceColorBackgroundLightBlue,
+        overflow: "hidden",
       }}
     >
       <Box
@@ -25,6 +26,8 @@ export const Header = ({ data }: HeaderProps) => {
           alignItems: "flex-start",
           justifyContent: "flex-start",
           gap: "8px",
+          width: "100%",
+          boxSizing: "border-box",
         }}
       >
         <Box
@@ -35,11 +38,30 @@ export const Header = ({ data }: HeaderProps) => {
             width: "100%",
           }}
         >
-          <Typography variant="h6" component="div">
+          <Typography
+            variant="h4"
+            component="div"
+            sx={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              flex: 1,
+              minWidth: 0,
+            }}
+          >
             {title}
           </Typography>
         </Box>
-        <Typography variant="body2" width="100%">
+        <Typography
+          variant="body2"
+          sx={{
+            width: "100%",
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+          title={description}
+        >
           <LinesEllipsis
             text={description}
             maxLine={2}

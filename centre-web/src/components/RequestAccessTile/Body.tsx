@@ -87,18 +87,22 @@ export const Body = ({ data }: BodyProps) => {
         justifyContent: "center",
         alignItems: "center",
         padding: "16px 12px 12px 12px",
-        gap: "8px",
+        width: "100%",
+        boxSizing: "border-box",
+        flex: 1,
+        minWidth: 0,
       }}
     >
       <RequestAccessButton appId={data.id} status={data.status} />
       <Box
         sx={{
           padding: "8px 0 12px 0",
+          width: "100%",
         }}
       >
         <Divider
           sx={{
-            width: "320px",
+            width: "100%",
             backgroundColor: BCDesignTokens.themeGray50,
           }}
           aria-label="Bookmarks divider"

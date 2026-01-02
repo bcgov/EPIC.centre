@@ -12,14 +12,18 @@ type HeaderProps = {
   dragListeners?: any;
   dragAttributes?: any;
 };
-export const Header = ({ data, dragListeners, dragAttributes }: HeaderProps) => {
+export const Header = ({
+  data,
+  dragListeners,
+  dragAttributes,
+}: HeaderProps) => {
   const { showDescription } = useLaunchpadStore();
   const { title, description } = data;
 
   return (
     <Box
       sx={{
-        height: showDescription ? "100px" : "50px",
+        height: showDescription ? "90px" : "50px",
         backgroundColor: BCDesignTokens.surfaceColorBackgroundLightBlue,
       }}
     >
@@ -30,7 +34,6 @@ export const Header = ({ data, dragListeners, dragAttributes }: HeaderProps) => 
           flexDirection: "column",
           alignItems: "flex-start",
           justifyContent: "flex-start",
-          gap: "8px",
         }}
       >
         <Box
@@ -41,7 +44,17 @@ export const Header = ({ data, dragListeners, dragAttributes }: HeaderProps) => 
             width: "100%",
           }}
         >
-          <Typography variant="h6" component="div">
+          <Typography
+            variant="h4"
+            component="div"
+            sx={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              flex: 1,
+              minWidth: 0,
+            }}
+          >
             {title}
           </Typography>
           <IconButton
@@ -65,7 +78,14 @@ export const Header = ({ data, dragListeners, dragAttributes }: HeaderProps) => 
           </IconButton>
         </Box>
         {showDescription && (
-          <Typography variant="body2" width="100%" title={description}>
+          <Typography
+            variant="body2"
+            sx={{
+              width: "100%",
+              minWidth: 0,
+            }}
+            title={description}
+          >
             <LinesEllipsis
               text={description}
               maxLine={2}

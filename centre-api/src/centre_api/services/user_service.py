@@ -106,7 +106,7 @@ class UserService:
                 with session_scope() as session:
                     access_request.status = AccessRequestsStatusEnum.APPROVED.value
                     session.add(access_request)
-                    _queue_access_granted_email(session, app, auth_user_response, access_data.get('group_name'))
+                    _queue_access_granted_email(session, app, auth_user_response, access_data)
                     session.commit()
         return response
 
@@ -162,8 +162,13 @@ class UserService:
         return AuthApiService.patch_user(username, patch_data)
 
 
-def _queue_access_granted_email(session, app, auth_user_response, access_level):
+def _queue_access_granted_email(session, app, auth_user_response, access_data):
     """Queue access request granted email."""
+    app_name = access_data.get('app_name')
+    group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
+    app_group = AuthApiService.get_group(group_name)
+    role_groups = list(app_group.get('subGroups', []))
+    role_group = next(role_group for role_group in role_groups if role_group['name'] == access_data.get('group_name'))
     email_queue = EmailQueue(
         template_name=EmailQueueTemplate.ACCESS_GRANTED_NOTIFICATION.value,
         payload={
@@ -174,7 +179,7 @@ def _queue_access_granted_email(session, app, auth_user_response, access_level):
             ).strip(),
             'application_name': app.title,
             'auth_link': f"{os.getenv('EPIC_CENTRE_WEB_URL')}/launchpad",
-            'access_level': access_level,
+            'access_level': role_group.get('attributes', {}).get('display_name', [''])[0],
             'sender': os.getenv('DST_EMAIL')
         },
     )

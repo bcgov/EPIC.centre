@@ -9,7 +9,7 @@ type ContentProps = {
   epicApp: EpicApp;
 };
 export const Content = ({ epicApp }: ContentProps) => {
-  const { launch_url,is_public } = epicApp;
+  const { launch_url, is_public } = epicApp;
   return (
     <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
       <Box
@@ -28,6 +28,9 @@ export const Content = ({ epicApp }: ContentProps) => {
           href={launch_url}
           target="_blank"
           rel="noopener noreferrer"
+          sx={{
+            textTransform: "none",
+          }}
         >
           Open in new tab
         </Button>
@@ -35,19 +38,21 @@ export const Content = ({ epicApp }: ContentProps) => {
         <Box
           sx={{
             padding: "8px 0 12px 0",
+            width: "100%",
           }}
         >
           <Divider
             sx={{
-              width: "320px",
+              width: "100%",
               backgroundColor: BCDesignTokens.themeGray50,
             }}
           />
         </Box>
-       { !is_public && ( <Box sx={{ width: "100%", marginTop: "auto" }}>
-          <AccessLogSection user={epicApp.user} />
-        </Box>
-      )}
+        {!is_public && (
+          <Box sx={{ width: "100%" }}>
+            <AccessLogSection user={epicApp.user} />
+          </Box>
+        )}
       </Box>
     </Box>
   );

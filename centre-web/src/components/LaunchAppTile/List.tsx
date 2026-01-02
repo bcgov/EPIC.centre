@@ -1,5 +1,5 @@
 import { EpicApp } from "@/models/EpicApp";
-import { Grid } from "@mui/material";
+import { Box } from "@mui/material";
 import { LaunchAppTile } from ".";
 import {
   DndContext,
@@ -51,7 +51,12 @@ const SortableItem = ({ item }: SortableItemProps) => {
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{
+        ...style,
+        width: "100%",
+        maxWidth: "345px",
+        boxSizing: "border-box",
+      }}
       role="button"
       aria-grabbed={isDragging}
       aria-label={`Application card: ${item.title}`}
@@ -116,13 +121,37 @@ export const List = ({ items }: ListProps) => {
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={sortedItems} strategy={rectSortingStrategy}>
-        <Grid container rowSpacing={4} spacing={2} direction={"row"} sx={{ maxWidth: "1090px" }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, minmax(0, 345px))",
+            gap: "16px",
+            width: "100%",
+            maxWidth: "1090px",
+            boxSizing: "border-box",
+            "@media (max-width: 1080px)": {
+              gridTemplateColumns: "repeat(2, minmax(0, 345px))",
+            },
+            "@media (max-width: 720px)": {
+              gridTemplateColumns: "minmax(0, 345px)",
+            },
+          }}
+        >
           {sortedItems.map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item.id}>
+            <Box
+              key={item.id}
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                width: "100%",
+                maxWidth: "345px",
+                boxSizing: "border-box",
+              }}
+            >
               <SortableItem item={item} />
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       </SortableContext>
       <DragOverlay>
         {activeItem ? (
