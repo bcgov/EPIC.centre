@@ -51,8 +51,6 @@ class EaoAnalyticsService:
         Returns:
             List[EaoAnalytics]: List of analytics records matching the filters
         """
-        from centre_api.models.applications import Application
-
         query = EaoAnalytics.query
 
         # Filter by user_auth_guid if provided

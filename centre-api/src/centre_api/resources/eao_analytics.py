@@ -81,4 +81,3 @@ class GetEaoAnalytics(Resource):
 
         except (RuntimeError, AttributeError) as e:
             return {'message': f'Error fetching analytics: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
-
