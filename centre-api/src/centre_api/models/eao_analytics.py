@@ -28,7 +28,7 @@ from .db import db
 class EaoAnalytics(BaseModel):
     """Definition of the EaoAnalytics entity."""
 
-    __tablename__ = 'login_history'
+    __tablename__ = 'login_histories'
 
     id = Column(db.Integer, primary_key=True, autoincrement=True)
     user_auth_guid = Column(db.String, nullable=False)
@@ -37,9 +37,9 @@ class EaoAnalytics(BaseModel):
     # created_by and updated_by are inherited from BaseModel
 
     __table_args__ = (
-        UniqueConstraint('user_auth_guid', 'app_id', name='uq_login_history_user_auth_guid_app_id'),
-        Index('ix_login_history_last_login_time', 'last_login_time'),
-        Index('ix_login_history_app_id', 'app_id'),
+        UniqueConstraint('user_auth_guid', 'app_id', name='uq_login_histories_user_auth_guid_app_id'),
+        Index('ix_login_histories_last_login_time', 'last_login_time'),
+        Index('ix_login_histories_app_id', 'app_id'),
     )
 
     @classmethod
@@ -56,7 +56,7 @@ class EaoAnalytics(BaseModel):
         )
 
         stmt = stmt.on_conflict_do_update(
-            constraint='uq_login_history_user_auth_guid_app_id',
+            constraint='uq_login_histories_user_auth_guid_app_id',
             set_={
                 'last_login_time': stmt.excluded.last_login_time,
                 'updated_date': stmt.excluded.updated_date

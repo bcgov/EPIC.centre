@@ -24,7 +24,7 @@ class ApplicationsService:
 
     @classmethod
     def _get_last_accessed_from_login_history(cls, user_auth_guid: str, app_id: int):
-        """Get last accessed time from login_history table for a specific user and app."""
+        """Get last accessed time from login_histories table for a specific user and app."""
         if not user_auth_guid:
             return None
         login_record = EaoAnalytics.get_user_app_login(user_auth_guid, app_id)
@@ -34,7 +34,7 @@ class ApplicationsService:
 
     @classmethod
     def _get_last_accessed_batch(cls, user_auth_guid: str, app_ids: list[int]):
-        """Get last accessed times from login_history table for a specific user and multiple apps in one query.
+        """Get last accessed times from login_histories table for a specific user and multiple apps in one query.
 
         Returns a dictionary mapping app_id to last_login_time.
         """
