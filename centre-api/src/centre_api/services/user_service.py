@@ -16,13 +16,13 @@ import os
 from collections import defaultdict
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
+from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import (
     APP_NAME_TO_CLIENT_NAME_MAP, APP_NAME_TO_GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppClientName)
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.models.db import session_scope
-from centre_api.services.auth_api_service import AuthApiService
 from centre_api.models.email_queue import EmailQueue
-from centre_api.enums.emai_queue_templates import EmailQueueTemplate
+from centre_api.services.auth_api_service import AuthApiService
 from centre_api.utils.token_info import TokenInfo
 
 

@@ -27,6 +27,7 @@ from .access_requests import API as ACCESS_REQUESTS_API
 from .apihelper import Api
 from .app_config import API as APP_CONFIG_API
 from .applications import API as APPLICATIONS_API
+from .eao_analytics import API as EAO_ANALYTICS_API
 from .ops import API as OPS_API
 from .user_application import API as USER_APPLICATION_API
 from .user_settings import API as USER_SETTINGS_API
@@ -73,3 +74,4 @@ API.add_namespace(USER_APPLICATION_API)
 API.add_namespace(USERS_API)
 API.add_namespace(ACCESS_REQUESTS_API)
 API.add_namespace(USER_SETTINGS_API)
+API.add_namespace(EAO_ANALYTICS_API)

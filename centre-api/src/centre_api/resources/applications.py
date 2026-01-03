@@ -87,3 +87,19 @@ class ApplicationAccessLevels(Resource):
         """Fetch apps the user can request access to."""
         access_levels = ApplicationsService.get_app_access_levels(app_name)
         return access_levels, HTTPStatus.OK
+
+
+@cors_preflight('GET, OPTIONS')
+@API.route('/by-name/<app_name>', methods=['GET', 'OPTIONS'])
+class ApplicationByName(Resource):
+    """Resource for getting application by name."""
+
+    @staticmethod
+    @ApiHelper.swagger_decorators(API, endpoint_description='Get application by name')
+    @auth.require
+    def get(app_name):
+        """Get application by name."""
+        app = ApplicationsService.get_by_name(app_name)
+        if not app:
+            return {'message': f'Application with name {app_name} not found'}, HTTPStatus.NOT_FOUND
+        return {'id': app.id, 'name': app.name, 'title': app.title}, HTTPStatus.OK

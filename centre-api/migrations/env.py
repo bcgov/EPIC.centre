@@ -20,7 +20,7 @@ logger = logging.getLogger('alembic.env')
 # for 'autogenerate' support
 # Import all models to ensure they're registered with SQLAlchemy
 # Import other models if needed
-from centre_api.models import Application, EmailQueue, UserApplication, UserSettings  # noqa: F401
+from centre_api.models import Application, EaoAnalytics, EmailQueue, UserApplication, UserSettings  # noqa: F401
 
 
 config.set_main_option(
