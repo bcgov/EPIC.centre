@@ -1,5 +1,9 @@
 import { Box, Typography } from "@mui/material";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import { LabeledItem } from "../Shared/LabeledItem";
+
+dayjs.extend(utc);
 
 type AccessLogSectionProps = {
   user: {
@@ -10,9 +14,9 @@ type AccessLogSectionProps = {
 
 const formatLastAccessed = (isoDateString: string | null | undefined): string => {
   if (!isoDateString) return "";
-  const date = new Date(isoDateString);
-  if (Number.isNaN(date.getTime())) return "";
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const date = dayjs.utc(isoDateString);
+  if (!date.isValid()) return "";
+  return date.local().format("YYYY-MM-DD");
 };
 
 export const AccessLogSection = ({ user }: AccessLogSectionProps) => {
