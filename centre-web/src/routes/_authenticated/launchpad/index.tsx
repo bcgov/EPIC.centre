@@ -1,4 +1,5 @@
 import { DocumentSearch } from "@/components/DocumentSearch";
+import { AIDocumentSearch } from "@/components/AIDocumentSearch";
 import { List as EpicTileList } from "@/components/LaunchAppTile/List";
 import { LaunchAppListSkeleton } from "@/components/LaunchAppTile/ListSkeleton";
 import { ViewDescriptionSwitch } from "@/components/LaunchAppTile/ViewDescriptionSwitch";
@@ -8,12 +9,15 @@ import { EpicAppName } from "@/models/EpicApp";
 import { Box } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
+import { useCurrentUser } from "@/contexts/UserContext";
 
 export const Route = createFileRoute("/_authenticated/launchpad/")({
   component: Launchpad,
 });
 
 function Launchpad() {
+  const { isAISearchUser } = useCurrentUser();
+
   const { data: applications = [], isPending } = useGetApplications();
 
   const { documentSearchApp, otherApps } = useMemo(() => {
@@ -53,6 +57,8 @@ function Launchpad() {
           gap: 4,
         }}
       >
+
+        {isAISearchUser && <AIDocumentSearch />}
         <DocumentSearch epicApp={documentSearchApp} />
         <EpicTileList items={otherApps} />
       </Box>

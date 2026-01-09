@@ -1,6 +1,7 @@
 import { AppConfig, OidcConfig } from "@/utils/config";
 import axios, { AxiosError, AxiosInstance } from "axios";
 import { User } from "oidc-client-ts";
+import { jwtDecode } from "jwt-decode";
 
 export type OnErrorType = (error: AxiosError) => void;
 export type OnSuccessType = (data: any) => void;
@@ -37,4 +38,11 @@ export const centreRequest = async <T = any>({ ...options }) => {
 
   const response = await client.request<T>(options);
   return response.data;
+};
+
+export const getUserRolesFromToken = (token?: string) => {
+  if (!token) return [];
+  const tokenData: any = jwtDecode(token);
+  const appName = AppConfig.clientId;
+  return tokenData?.resource_access?.[appName]?.roles || [];
 };

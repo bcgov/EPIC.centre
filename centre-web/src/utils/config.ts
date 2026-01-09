@@ -10,6 +10,7 @@ declare global {
       VITE_CLIENT_ID: string;
       VITE_DOCUMENT_SEARCH_URL: string;
       VITE_BASE_PATH: string;
+      VITE_AI_SEARCH_URL: string;
     };
   }
 }
@@ -31,6 +32,8 @@ const DOCUMENT_SEARCH_URL =
   import.meta.env.VITE_DOCUMENT_SEARCH_URL;
 const BASE_PATH =
   window._env_?.VITE_BASE_PATH || import.meta.env.VITE_BASE_PATH;
+const AI_SEARCH_URL =
+  window._env_?.VITE_AI_SEARCH_URL || import.meta.env.VITE_AI_SEARCH_URL;
 
 export const AppConfig = {
   apiUrl: `${API_URL}`,
@@ -40,6 +43,7 @@ export const AppConfig = {
   documentSearchUrl: DOCUMENT_SEARCH_URL,
   clientId: CLIENT_ID,
   basepath: BASE_PATH,
+  aiSearchURL: AI_SEARCH_URL,
 };
 
 export const OidcConfig = {
