@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { LOCATION_CACHE_KEY, LOCATION_ENABLED_KEY, CACHE_DURATION_MS } from './locationConstants';
+
 
 export interface LocationData {
   latitude: number;
@@ -22,14 +24,6 @@ export interface LocationContextType {
 }
 
 const LocationContext = createContext<LocationContextType | null>(null);
-
-// Cache keys
-const LOCATION_CACHE_KEY = 'epic_search_user_location';
-const LOCATION_ENABLED_KEY = 'epic_search_location_enabled';
-// const LOCATION_PERMISSION_KEY = 'epic_search_location_permission';
-
-// Cache duration: 30 minutes
-const CACHE_DURATION_MS = 30 * 60 * 1000;
 
 export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [locationData, setLocationData] = useState<LocationData | null>(null);
@@ -67,6 +61,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   const requestLocation = useCallback(async () => {
     if (!navigator.geolocation) {
       setError('Geolocation is not supported by this browser');
@@ -139,6 +134,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setIsLoading(false);
     }
   }, []);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const clearLocation = useCallback(() => {
     setLocationData(null);
@@ -269,6 +265,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 };
 
+/* eslint-disable react-refresh/only-export-components */
 export const useLocation = (): LocationContextType => {
   const context = useContext(LocationContext);
   if (!context) {
@@ -276,5 +273,6 @@ export const useLocation = (): LocationContextType => {
   }
   return context;
 };
+/* eslint-enable react-refresh/only-export-components */
 
 export default LocationProvider;
