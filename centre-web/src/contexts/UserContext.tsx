@@ -16,6 +16,7 @@ import {
   EPIC_CLIENT_TO_ADMIN_GROUP_PATHS,
   hasAdminGroup,
 } from "@/utils/adminGroupPaths";
+import { getUserRolesFromToken } from "@/utils/axiosUtils";
 
 interface UserContextValue {
   user: CentreUser | undefined;
@@ -27,6 +28,7 @@ interface UserContextValue {
   isDstAdmin: boolean;
   isAdminOfApp: (appName: EpicAppName) => boolean;
   adminStatusPerApp: Record<EpicAppName, boolean>;
+  isAISearchUser: boolean;
 }
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
@@ -75,6 +77,13 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     return computeAdminStatusPerApp(user?.groups);
   }, [user?.groups]);
 
+  /**
+   * Check if user has the ai search user role
+   */
+  const token = auth.user?.access_token;
+  const parsedRoles = token ? getUserRolesFromToken(token) : [];
+  const isAISearchUser = parsedRoles.includes("ai_search_user");
+
   return (
     <UserContext.Provider
       value={{
@@ -86,6 +95,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         isDstAdmin,
         isAdminOfApp,
         adminStatusPerApp,
+        isAISearchUser,
       }}
     >
       {children}
