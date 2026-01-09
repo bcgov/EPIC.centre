@@ -45,13 +45,8 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   });
 
-  // Load cached location on mount
-  useEffect(() => {
-    loadCachedLocation();
-    checkExistingPermission();
-  }, []);
-
   const loadCachedLocation = useCallback(() => {
+    /* eslint-disable no-console */
     try {
       const cached = localStorage.getItem(LOCATION_CACHE_KEY);
       if (cached) {
@@ -71,92 +66,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       localStorage.removeItem(LOCATION_CACHE_KEY);
     }
   }, []);
-
-  const checkExistingPermission = useCallback(async () => {
-    if (!navigator.geolocation) {
-      setHasPermission(false);
-      return;
-    }
-
-    try {
-      const result = await navigator.permissions.query({ name: 'geolocation' });
-      setHasPermission(result.state === 'granted');
-      
-      // Listen for permission changes
-      result.addEventListener('change', () => {
-        setHasPermission(result.state === 'granted');
-        if (result.state === 'denied') {
-          clearLocation();
-          setLocationEnabled(false);
-        }
-      });
-    } catch (error) {
-      console.warn('Permission API not supported:', error);
-    }
-  }, []);
-
-  const setLocationEnabled = useCallback((enabled: boolean) => {
-    setIsLocationEnabledState(enabled);
-    try {
-      localStorage.setItem(LOCATION_ENABLED_KEY, JSON.stringify(enabled));
-    } catch (error) {
-      console.warn('Failed to save location preference:', error);
-    }
-
-    if (!enabled) {
-      clearLocation();
-    } else if (hasPermission) {
-      requestLocation();
-    }
-  }, [hasPermission]);
-
-  const clearLocation = useCallback(() => {
-    setLocationData(null);
-    setError(null);
-    try {
-      localStorage.removeItem(LOCATION_CACHE_KEY);
-    } catch (error) {
-      console.warn('Failed to clear location cache:', error);
-    }
-  }, []);
-
-  const reverseGeocode = async (latitude: number, longitude: number): Promise<Partial<LocationData>> => {
-    try {
-      // Using OpenStreetMap's Nominatim service for reverse geocoding
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-      
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&zoom=10`,
-        {
-          headers: {
-            'User-Agent': 'EPIC.Search/1.0'
-          },
-          signal: controller.signal
-        }
-      );
-      
-      clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        const data = await response.json();
-        const address = data.address || {};
-        
-        return {
-          city: address.city || address.town || address.village || address.municipality,
-          region: address.state || address.province || address.region,
-          country: address.country
-        };
-      }
-    } catch (error) {
-      // Reverse geocoding is optional - don't log errors unless they're unexpected
-      if (error instanceof Error && error.name !== 'AbortError') {
-        console.warn('Reverse geocoding failed:', error.message);
-      }
-    }
-    
-    return {};
-  };
 
   const requestLocation = useCallback(async () => {
     if (!navigator.geolocation) {
@@ -198,6 +107,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setError(null);
 
       // Cache the location
+      /* eslint-disable no-console */
       try {
         localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(newLocationData));
       } catch (error) {
@@ -229,6 +139,102 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setIsLoading(false);
     }
   }, []);
+
+  const clearLocation = useCallback(() => {
+    setLocationData(null);
+    setError(null);
+    /* eslint-disable no-console */
+    try {
+      localStorage.removeItem(LOCATION_CACHE_KEY);
+    } catch (error) {
+      console.warn('Failed to clear location cache:', error);
+    }
+  }, []);
+
+  const setLocationEnabled = useCallback((enabled: boolean) => {
+    setIsLocationEnabledState(enabled);
+    /* eslint-disable no-console */
+    try {
+      localStorage.setItem(LOCATION_ENABLED_KEY, JSON.stringify(enabled));
+    } catch (error) {
+      console.warn('Failed to save location preference:', error);
+    }
+
+    if (!enabled) {
+      clearLocation();
+    } else if (hasPermission) {
+      requestLocation();
+    }
+  }, [hasPermission, clearLocation, requestLocation]);
+
+  const checkExistingPermission = useCallback(async () => {
+    if (!navigator.geolocation) {
+      setHasPermission(false);
+      return;
+    }
+
+    /* eslint-disable no-console */
+    try {
+      const result = await navigator.permissions.query({ name: 'geolocation' });
+      setHasPermission(result.state === 'granted');
+      
+      // Listen for permission changes
+      result.addEventListener('change', () => {
+        setHasPermission(result.state === 'granted');
+        if (result.state === 'denied') {
+          clearLocation();
+          setLocationEnabled(false);
+        }
+      });
+    } catch (error) {
+      console.warn('Permission API not supported:', error);
+    }
+  }, [clearLocation, setLocationEnabled]);
+
+  // Load cached location on mount
+  useEffect(() => {
+    loadCachedLocation();
+    checkExistingPermission();
+  }, [loadCachedLocation, checkExistingPermission]);
+
+  const reverseGeocode = async (latitude: number, longitude: number): Promise<Partial<LocationData>> => {
+    /* eslint-disable no-console */
+    try {
+      // Using OpenStreetMap's Nominatim service for reverse geocoding
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&zoom=10`,
+        {
+          headers: {
+            'User-Agent': 'EPIC.Search/1.0'
+          },
+          signal: controller.signal
+        }
+      );
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const address = data.address || {};
+        
+        return {
+          city: address.city || address.town || address.village || address.municipality,
+          region: address.state || address.province || address.region,
+          country: address.country
+        };
+      }
+    } catch (error) {
+      // Reverse geocoding is optional - don't log errors unless they're unexpected
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.warn('Reverse geocoding failed:', error.message);
+      }
+    }
+    
+    return {};
+  };
 
   // Auto-request location if enabled and permission granted but no data
   useEffect(() => {
