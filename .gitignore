@@ -141,3 +141,5 @@ centre-api/.DS_Store
 .vscode/chrome
 
 .idea
+deployment/charts/centre-api/values.prod.yaml
+deployment/charts/centre-web/values.prod.yaml

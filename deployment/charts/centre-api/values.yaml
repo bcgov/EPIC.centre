@@ -42,27 +42,27 @@ python:
   pythonBuffered: 1
   connectTimeout: 60
 cors:
-  origin: "https://dev.centre.eao.gov.bc.ca,"
+  origin: "https://system.eao.gov.bc.ca,"
 
 app:
   name: "EPIC Centre"
 
 urls:
-  intranetLaunch:
-  epicCentreWeb:
-  epicPublicUserManagement:
-  epicEngageUserManagement:
-  epicTrackUserManagement:
-  epicComplianceUserManagement:
-  epicEngageLaunch:
-  epicSubmitLaunch:
-  epicPublicLaunch:
-  epicTrackLaunch:
-  epicComplianceLaunch:
-  conditionRepositoryLaunch:
+  intranetLaunch: https://intranet.gov.bc.ca/eao
+  epicCentreWeb: https://system.eao.gov.bc.ca/centre
+  epicPublicUserManagement: https://eagle-prod.apps.silver.devops.gov.bc.ca/admin/
+  epicEngageUserManagement: https://engage.eao.gov.bc.ca/usermanagement
+  epicTrackUserManagement: https://system.eao.gov.bc.ca/admin/users
+  epicComplianceUserManagement: https://system.eao.gov.bc.ca/compliance/admin/staff
+  epicEngageLaunch: https://engage.eao.gov.bc.ca/
+  epicSubmitLaunch: https://dev.submit.eao.gov.bc.ca/
+  epicPublicLaunch: https://projects.eao.gov.bc.ca/
+  epicTrackLaunch: https://system.eao.gov.bc.ca
+  epicComplianceLaunch: https://system.eao.gov.bc.ca/compliance
+  conditionRepositoryLaunch: https://system.eao.gov.bc.ca/condition
 
 email:
-  dstEmail:
+  dstEmail: 
 
 apis:
   authApi:
