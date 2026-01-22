@@ -77,7 +77,7 @@ export const UserAccess = () => {
                 {user?.last_name ?? ""}, {user?.first_name ?? ""}
               </Typography>
               <Typography variant="body1" sx={{ mb: 0, mt: "-3px" }}>
-                <a href={`mailto:${user?.email ?? ""}`}>{user?.email ?? ""}</a>
+                <a style={{ color: "#1e5189" }}href={`mailto:${user?.email ?? ""}`}>{user?.email ?? ""}</a>
               </Typography>
               <Typography variant="body1" sx={{ mb: 0, mt: "-3px" }}>
                 {user?.attributes?.idir_username?.[0] && (
