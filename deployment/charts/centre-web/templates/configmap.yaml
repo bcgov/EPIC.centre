@@ -12,11 +12,9 @@ data:
         "VITE_ENV": "{{ .Values.app.env }}",
         "VITE_VERSION": "1.0.0",
         "VITE_APP_TITLE": "EPIC.centre",
-        "VITE_OBJECT_STORAGE_URL": "{{ .Values.urls.objectStorageUrl }}",
         "VITE_APP_URL": "{{ .Values.app.url }}",
         "VITE_OIDC_AUTHORITY": "{{ .Values.keycloak.url }}",
         "VITE_CLIENT_ID": "{{ .Values.keycloak.client }}",
-        "VITE_CONDITIONS_LIBRARY_URL": "{{ .Values.urls.conditionsLibrary }}",
         "VITE_DOCUMENT_SEARCH_URL": "{{ .Values.urls.documentSearch }}",
         "VITE_AI_SEARCH_URL": "{{ .Values.urls.aiSearch }}"
       }

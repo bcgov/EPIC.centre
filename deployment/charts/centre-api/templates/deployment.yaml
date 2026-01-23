@@ -43,7 +43,7 @@ spec:
             - name: DATABASE_HOST
               value: {{ .Values.database.service.name }}
             - name: DATABASE_PORT
-              value: {{ .Values.database.service.port }}
+              value: "{{ .Values.database.service.port }}"
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ tpl .Values.image.repository . }}:{{ .Values.image.tag }}"
@@ -70,7 +70,7 @@ spec:
             - name: DATABASE_HOST
               value: {{ .Values.database.service.name }}
             - name: DATABASE_PORT
-              value: {{ .Values.database.service.port }}
+              value: "{{ .Values.database.service.port }}"
             - name: JWT_OIDC_ALGORITHMS
               valueFrom:
                 configMapKeyRef:

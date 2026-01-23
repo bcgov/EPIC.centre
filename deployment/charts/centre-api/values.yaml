@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: image-registry.openshift-image-registry.svc:5000/c72cba-tools/centre-api
+  repository: image-registry.openshift-image-registry.svc:5000/c8b80a-tools/centre-api
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "dev"
@@ -42,27 +42,28 @@ python:
   pythonBuffered: 1
   connectTimeout: 60
 cors:
-  origin: "https://system.eao.gov.bc.ca,"
+  origin: "https://dev.centre.eao.gov.bc.ca,"
 
 app:
   name: "EPIC Centre"
 
 urls:
-  intranetLaunch: https://intranet.gov.bc.ca/eao
-  epicCentreWeb: https://system.eao.gov.bc.ca/centre
-  epicPublicUserManagement: https://eagle-prod.apps.silver.devops.gov.bc.ca/admin/
-  epicEngageUserManagement: https://engage.eao.gov.bc.ca/usermanagement
-  epicTrackUserManagement: https://system.eao.gov.bc.ca/admin/users
-  epicComplianceUserManagement: https://system.eao.gov.bc.ca/compliance/admin/staff
-  epicEngageLaunch: https://engage.eao.gov.bc.ca/
-  epicSubmitLaunch: https://dev.submit.eao.gov.bc.ca/
-  epicPublicLaunch: https://projects.eao.gov.bc.ca/
-  epicTrackLaunch: https://system.eao.gov.bc.ca
-  epicComplianceLaunch: https://system.eao.gov.bc.ca/compliance
-  conditionRepositoryLaunch: https://system.eao.gov.bc.ca/condition
+  intranetLaunch: https://dev.intranet.gov.bc.ca/eao
+  epicCentreWeb: https://centre-web-c8b80a-dev.apps.gold.devops.gov.bc.ca
+  epicPublicUserManagement: https://eagle-dev.apps.silver.devops.gov.bc.ca/admin/
+  epicEngageUserManagement: https://dev.engage.eao.gov.bc.ca/usermanagement
+  epicTrackUserManagement: https://eao-dev.apps.gold.devops.gov.bc.ca/admin/users
+  epicSubmitUserManagement: https://dev.submit.eao.gov.bc.ca/users
+  epicComplianceUserManagement: https://eao-dev.apps.gold.devops.gov.bc.ca/compliance/admin/staff
+  epicEngageLaunch: https://dev.engage.eao.gov.bc.ca/
+  epicSubmitLaunch: https://dev.submit.eao.gov.bc.ca/staff
+  epicPublicLaunch: https://eagle-dev.apps.silver.devops.gov.bc.ca/admin
+  epicTrackLaunch: https://eao-dev.apps.gold.devops.gov.bc.ca
+  epicComplianceLaunch: https://eao-dev.apps.gold.devops.gov.bc.ca/compliance
+  conditionRepositoryLaunch: https://dev.conditions.eao.gov.bc.ca/condition/projects
 
 email:
-  dstEmail: 
+  dstEmail: MarieAnik.2.Paradis@gov.bc.ca
 
 apis:
-  authApi:
+  authApi: https://auth-api-c72cba-dev.apps.gold.devops.gov.bc.ca

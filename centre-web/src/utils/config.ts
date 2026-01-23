@@ -36,7 +36,7 @@ const AI_SEARCH_URL =
   window._env_?.VITE_AI_SEARCH_URL || import.meta.env.VITE_AI_SEARCH_URL;
 
 export const AppConfig = {
-  apiUrl: `${API_URL}`,
+  apiUrl: `${API_URL}/api`,
   environment: APP_ENVIRONMENT,
   version: APP_VERSION,
   appTitle: APP_TITLE,
