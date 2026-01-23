@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Values.app.name }}
+  name: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.replicas.count }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+    spec:
+      containers:
+      - image: "{{ .Values.image.repository}}{{ tpl .Values.image.name . }}:{{ .Values.image.tag }}"
+        imagePullPolicy: Always
+        name: {{ .Chart.Name }}
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          limits:
+            cpu: {{ .Values.resources.cpu.limit }}
+            memory: {{ .Values.resources.memory.limit }}
+          requests:
+            cpu: {{ .Values.resources.cpu.request }}
+            memory: {{ .Values.resources.memory.request }}
+        volumeMounts:
+        - mountPath: {{ .Values.mountPath }}
+          name: {{ .Chart.Name }}
+          readOnly: true
+      restartPolicy: Always
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: {{ .Chart.Name }}
+        name: {{ .Chart.Name }}

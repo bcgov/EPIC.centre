@@ -8,11 +8,13 @@ data:
   config.js: |-
     // runtime-config.js vars
       window["_env_"] =  {
-        "ENV": "dev",
-        "NODE_ENV": "production",
-        "REACT_APP_API_URL": "{{ .Values.app.api }}",
-        "REACT_APP_KEYCLOAK_URL": "{{ .Values.keycloak.url }}",
-        "REACT_APP_KEYCLOAK_CLIENT": "{{ .Values.keycloak.client }}",
-        "REACT_APP_KEYCLOAK_REALM": "{{ .Values.keycloak.realm }}",
-        "REACT_APP_ENV": "{{ .Values.app.env }}",
+        "VITE_API_URL": "{{ .Values.app.api }}",
+        "VITE_ENV": "{{ .Values.app.env }}",
+        "VITE_VERSION": "1.0.0",
+        "VITE_APP_TITLE": "EPIC.centre",
+        "VITE_APP_URL": "{{ .Values.app.url }}",
+        "VITE_OIDC_AUTHORITY": "{{ .Values.keycloak.url }}",
+        "VITE_CLIENT_ID": "{{ .Values.keycloak.client }}",
+        "VITE_DOCUMENT_SEARCH_URL": "{{ .Values.urls.documentSearch }}",
+        "VITE_AI_SEARCH_URL": "{{ .Values.urls.aiSearch }}"
       }

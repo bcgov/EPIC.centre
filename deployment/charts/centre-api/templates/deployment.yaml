@@ -29,7 +29,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.database.secret }}
-                  key: app-db-name
+                  key: app-db-username
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -39,7 +39,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.database.secret }}
-                  key: app-db-username
+                  key: app-db-name
             - name: DATABASE_HOST
               value: {{ .Values.database.service.name }}
             - name: DATABASE_PORT
@@ -161,6 +161,11 @@ spec:
                 configMapKeyRef:
                   name: {{ .Chart.Name }}
                   key: EPIC_ENGAGE_USER_MANAGEMENT_URL
+            - name: EPIC_SUBMIT_USER_MANAGEMENT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_SUBMIT_USER_MANAGEMENT_URL
             - name: EPIC_TRACK_USER_MANAGEMENT_URL
               valueFrom:
                 configMapKeyRef:

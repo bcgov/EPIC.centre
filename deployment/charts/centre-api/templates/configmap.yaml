@@ -29,5 +29,6 @@ data:
   EPIC_TRACK_LAUNCH_URL: "{{ .Values.urls.epicTrackLaunch }}"
   EPIC_COMPLIANCE_LAUNCH_URL: "{{ .Values.urls.epicComplianceLaunch }}"
   CONDITION_REPOSITORY_LAUNCH_URL: "{{ .Values.urls.conditionRepositoryLaunch }}"
+  EPIC_SUBMIT_USER_MANAGEMENT_URL: "{{ .Values.urls.epicSubmitUserManagement }}"
   DST_EMAIL: "{{ .Values.email.dstEmail }}"
   AUTH_API: "{{ .Values.apis.authApi }}"
