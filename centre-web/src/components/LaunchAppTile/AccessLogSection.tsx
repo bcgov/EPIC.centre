@@ -36,12 +36,14 @@ export const AccessLogSection = ({ user }: AccessLogSectionProps) => {
       >
         <Typography variant="body2">{user.access_level ?? ""}</Typography>
       </LabeledItem>
-      <LabeledItem 
-        label="Last Accessed"
-        labelProps={{ sx: { minWidth: "100px" } }}
-      >
-        <Typography variant="body2">{formatLastAccessed(user.last_accessed)}</Typography>
-      </LabeledItem>
+      {user.last_accessed && (
+        <LabeledItem 
+          label="Last Accessed"
+          labelProps={{ sx: { minWidth: "100px" } }}
+        >
+          <Typography variant="body2">{formatLastAccessed(user.last_accessed)}</Typography>
+        </LabeledItem>
+      )}
     </Box>
   );
 };
