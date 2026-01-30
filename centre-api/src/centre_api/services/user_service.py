@@ -104,7 +104,7 @@ class UserService:
                 user = AuthApiService.get_user_by_username(username)
                 from centre_api.services.submit_api_service import SubmitApiService
                 full_group_name = f"{access_data.get('parent_group_name')}/{access_data.get('group_name')}"
-                SubmitApiService.create_staff_user(user.get('email'), full_group_name)
+                SubmitApiService.create_staff_user(user.get('email_address'), full_group_name)
             except Exception as e:
                 # Log error but don't fail as the main access is already granted
                  pass
