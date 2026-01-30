@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """submit api functions."""
-import os
+
 
 import requests
 from flask import current_app, g
@@ -42,5 +42,5 @@ class SubmitApiService:
             return response.json()
         except requests.RequestException as e:
             current_app.logger.error(f'Error creating staff user in submit: {e}')
-             # Propagate the error so the caller can decide how to handle it
+            # Propagate the error so the caller can decide how to handle it
             raise e
