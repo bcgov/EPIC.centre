@@ -67,3 +67,4 @@ email:
 
 apis:
   authApi: https://auth-api-c72cba-dev.apps.gold.devops.gov.bc.ca
+  submitApi: "https://submit-api-c72cba-dev.apps.gold.devops.gov.bc.ca"
