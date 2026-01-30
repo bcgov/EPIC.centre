@@ -32,3 +32,4 @@ data:
   EPIC_SUBMIT_USER_MANAGEMENT_URL: "{{ .Values.urls.epicSubmitUserManagement }}"
   DST_EMAIL: "{{ .Values.email.dstEmail }}"
   AUTH_API: "{{ .Values.apis.authApi }}"
+  SUBMIT_API_URL: "{{ .Values.apis.submitApi }}"
