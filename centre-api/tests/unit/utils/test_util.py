@@ -16,8 +16,6 @@ import os
 import re
 from unittest.mock import patch
 
-import pytest
-
 from centre_api.utils.util import allowedorigins
 
 

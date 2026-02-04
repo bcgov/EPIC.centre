@@ -44,4 +44,3 @@ def allowedorigins():
         return re.compile(regex + r'(:\d+)?$')
 
     return [to_pattern(o.strip()) for o in raw.split(',') if o.strip()]
-
