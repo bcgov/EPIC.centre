@@ -52,8 +52,14 @@ def create_app(run_mode=os.getenv('FLASK_ENV', 'development')):
     # All configuration are in config file
     app.config.from_object(get_named_config(run_mode))
 
-    # Setup CORS
-    CORS(app, origins=allowedorigins(), supports_credentials=True)
+    # Setup CORS - centralized configuration for all routes
+    CORS(
+        app,
+        origins=allowedorigins(),
+        supports_credentials=True,
+        allow_headers=['Authorization', 'Content-Type', 'registries-trace-id', 'invitation_token'],
+        methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+    )
 
     # Setup rate limiter
     limiter.init_app(app)
