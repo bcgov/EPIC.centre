@@ -22,7 +22,21 @@ import os
 import re
 import urllib
 
+from flask import request
 from humps.main import camelize, decamelize
+
+
+def _is_origin_allowed(origin: str) -> bool:
+    """Return True if origin is in the allowed CORS list (exact or regex match)."""
+    if not origin:
+        return False
+    for entry in allowedorigins():
+        if hasattr(entry, 'match'):
+            if entry.match(origin):
+                return True
+        elif entry == origin:
+            return True
+    return False
 
 
 def cors_preflight(methods):
@@ -30,12 +44,17 @@ def cors_preflight(methods):
 
     def wrapper(f):
         def options(self, *args, **kwargs):  # pylint: disable=unused-argument
-            return {'Allow': 'GET, DELETE, PUT, POST'}, 200, \
-                   {
-                       'Access-Control-Allow-Origin': '*',
-                       'Access-Control-Allow-Methods': methods,
-                       'Access-Control-Allow-Headers': 'Authorization, Content-Type, registries-trace-id, '
-                                                       'invitation_token'}
+            origin = request.environ.get('HTTP_ORIGIN', '')
+            allow_origin = origin if _is_origin_allowed(origin) else None
+            headers = {
+                'Access-Control-Allow-Methods': methods,
+                'Access-Control-Allow-Headers': 'Authorization, Content-Type, registries-trace-id, '
+                                                'invitation_token',
+                'Access-Control-Allow-Credentials': 'true',
+            }
+            if allow_origin:
+                headers['Access-Control-Allow-Origin'] = allow_origin
+            return {'Allow': 'GET, DELETE, PUT, POST'}, 200, headers
 
         setattr(f, 'options', options)
         return f
@@ -58,7 +77,33 @@ def allowedorigins():
     _allowedcors = os.getenv('CORS_ORIGIN')
     if not _allowedcors:
         return []
-    return [entry.strip() for entry in re.split(r',\s*', _allowedcors) if entry.strip()]
+    entries = [entry.strip() for entry in re.split(r',\s*', _allowedcors) if entry.strip()]
+    return [_wildcard_origin_to_regex(entry) if '*' in entry else entry for entry in entries]
+
+
+def _wildcard_origin_to_regex(entry: str):
+    """Convert wildcard origin entry to a regex Flask-CORS accepts."""
+    if entry == '*':
+        return re.compile(r'.*')
+
+    scheme_part = r'https?://'
+    host_port = entry
+    if entry.startswith(('http://', 'https://')):
+        scheme, host_port = entry.split('://', 1)
+        scheme_part = re.escape(f'{scheme}://')
+
+    if '/' in host_port:
+        host_port = host_port.split('/', 1)[0]
+
+    host = host_port
+    port_part = r'(?::\d+)?'
+    if ':' in host_port and ']' not in host_port:
+        host, port = host_port.rsplit(':', 1)
+        if port:
+            port_part = f':{re.escape(port)}'
+
+    host_regex = re.escape(host).replace(r'\*', r'[^/]*')
+    return re.compile(rf'^{scheme_part}{host_regex}{port_part}$')
 
 
 class Singleton(type):
