@@ -22,23 +22,26 @@ from functools import lru_cache
 @lru_cache(maxsize=1)
 def allowedorigins():
     """
-    Parse CORS_ORIGIN env var into Flask-CORS compatible origins.
+    Get the list of allowed CORS origins from the environment.
 
-    Supports wildcards: *.eao.gov.bc.ca matches any subdomain.
-    Cached since env vars don't change at runtime.
+    If you set CORS_ORIGIN to something like "*.eao.gov.bc.ca", this will
+    match any subdomain (e.g. centre.eao.gov.bc.ca, submit.eao.gov.bc.ca).
     """
     raw = os.getenv('CORS_ORIGIN', '')
     if not raw:
         return []
 
     def to_pattern(origin):
-        """Convert wildcard origin to regex, or return as-is."""
+        """Turn a wildcard origin like *.example.com into a regex pattern."""
+        # No wildcard? Just return the origin as-is
         if '*' not in origin:
             return origin
-        # *.domain.com -> regex matching any subdomain
+
+        # Build a regex: *.example.com -> matches sub.example.com, app.example.com, etc.
         regex = re.escape(origin).replace(r'\*', r'[^/:]+')
         if not origin.startswith(('http://', 'https://')):
             regex = r'https?://' + regex
         return re.compile(regex + r'(:\d+)?$')
 
     return [to_pattern(o.strip()) for o in raw.split(',') if o.strip()]
+
