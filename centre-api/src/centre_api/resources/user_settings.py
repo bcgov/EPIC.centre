@@ -27,7 +27,7 @@ from centre_api.schemas.user_settings import UserSettingsSchema
 API = Namespace('user-settings', description='Endpoints for user settings management')
 
 
-@API.route('', methods=['GET', 'OPTIONS'])
+@API.route('', methods=['GET'])
 class GetUserSettings(Resource):
     """Resource for fetching user settings."""
 
@@ -59,7 +59,7 @@ class GetUserSettings(Resource):
             return {'message': f'Error fetching user settings: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
-@API.route('/card-positions', methods=['PUT', 'OPTIONS'])
+@API.route('/card-positions', methods=['PUT'])
 class UpdateCardPositions(Resource):
     """Resource for updating card positions."""
 
@@ -85,7 +85,7 @@ class UpdateCardPositions(Resource):
             return {'message': f'Error updating card positions: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
-@API.route('/settings', methods=['PUT', 'OPTIONS'])
+@API.route('/settings', methods=['PUT'])
 class UpdateSettings(Resource):
     """Resource for updating general settings."""
 

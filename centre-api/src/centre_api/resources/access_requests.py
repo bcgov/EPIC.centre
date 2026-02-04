@@ -28,7 +28,7 @@ API = Namespace('access-requests', description='Endpoints for access requests ma
 """
 
 
-@API.route('', methods=['GET', 'OPTIONS'])
+@API.route('', methods=['GET'])
 class AccessRequests(Resource):
     """Resource for managing access requests."""
 
@@ -42,7 +42,7 @@ class AccessRequests(Resource):
         return access_requests, HTTPStatus.OK
 
 
-@API.route('/users/<user_auth_guid>', methods=['GET', 'OPTIONS'])
+@API.route('/users/<user_auth_guid>', methods=['GET'])
 class UserAccessRequests(Resource):
     """Resource for managing user access requests."""
 
@@ -56,7 +56,7 @@ class UserAccessRequests(Resource):
         return access_requests, HTTPStatus.OK
 
 
-@API.route('/<int:access_request_id>', methods=['PUT', 'OPTIONS'])
+@API.route('/<int:access_request_id>', methods=['PUT'])
 class UserAccessRequest(Resource):
     """Resource for managing an access request."""
 

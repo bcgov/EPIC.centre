@@ -57,7 +57,7 @@ def create_app(run_mode=os.getenv('FLASK_ENV', 'development')):
         app,
         origins=allowedorigins(),
         supports_credentials=True,
-        allow_headers=['Authorization', 'Content-Type', 'registries-trace-id', 'invitation_token'],
+        allow_headers=['*'],
         methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
     )
 

@@ -29,7 +29,7 @@ API = Namespace('user-applications', description='Endpoints for user application
 """
 
 
-@API.route('/bookmarks', methods=['PATCH', 'OPTIONS'])
+@API.route('/bookmarks', methods=['PATCH'])
 class UserApplicationBookmarks(Resource):
     """Resource for managing user application bookmarks."""
 
@@ -49,7 +49,7 @@ class UserApplicationBookmarks(Resource):
         return UserApplicationSchema().dump(user_app), HTTPStatus.OK
 
 
-@API.route('/sort-order', methods=['PATCH', 'OPTIONS'])
+@API.route('/sort-order', methods=['PATCH'])
 class UserApplicationSortOrder(Resource):
     """Resource for managing user application sort orders."""
 

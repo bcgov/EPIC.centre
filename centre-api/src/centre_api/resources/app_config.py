@@ -28,7 +28,7 @@ API = Namespace('app-configs', description='Endpoints for app configuration mana
 """
 
 
-@API.route('', methods=['GET', 'OPTIONS'])
+@API.route('', methods=['GET'])
 class AppConfigs(Resource):
     """Resource for managing app configurations."""
 

@@ -30,7 +30,7 @@ API = Namespace('applications', description='Endpoints for applications manageme
 """
 
 
-@API.route('', methods=['GET', 'OPTIONS'])
+@API.route('', methods=['GET'])
 class Applications(Resource):
     """Resource for managing applications."""
 
@@ -84,7 +84,7 @@ class ApplicationAccessLevels(Resource):
         return access_levels, HTTPStatus.OK
 
 
-@API.route('/by-name/<app_name>', methods=['GET', 'OPTIONS'])
+@API.route('/by-name/<app_name>', methods=['GET'])
 class ApplicationByName(Resource):
     """Resource for getting application by name."""
 

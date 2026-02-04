@@ -26,7 +26,7 @@ from centre_api.services.eao_analytics_service import EaoAnalyticsService
 API = Namespace('eao-analytics', description='Endpoints for EAO Analytics management')
 
 
-@API.route('', methods=['POST', 'OPTIONS'])
+@API.route('', methods=['POST'])
 class CreateEaoAnalytics(Resource):
     """Resource for creating/updating EAO Analytics."""
 
@@ -56,7 +56,7 @@ class CreateEaoAnalytics(Resource):
             return {'message': f'Error creating analytics record: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
-@API.route('', methods=['GET', 'OPTIONS'])
+@API.route('', methods=['GET'])
 class GetEaoAnalytics(Resource):
     """Resource for fetching EAO Analytics with optional filtering."""
 
