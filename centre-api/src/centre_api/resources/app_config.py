@@ -21,7 +21,6 @@ from centre_api.auth import auth
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.schemas.app_config import AppConfigSchema
 from centre_api.services.app_config_service import AppConfigService
-from centre_api.utils.util import cors_preflight
 
 
 API = Namespace('app-configs', description='Endpoints for app configuration management')
@@ -29,7 +28,6 @@ API = Namespace('app-configs', description='Endpoints for app configuration mana
 """
 
 
-@cors_preflight('GET, OPTIONS')
 @API.route('', methods=['GET', 'OPTIONS'])
 class AppConfigs(Resource):
     """Resource for managing app configurations."""

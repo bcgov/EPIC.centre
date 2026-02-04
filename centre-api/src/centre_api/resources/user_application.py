@@ -19,7 +19,6 @@ from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
 from centre_api.services.user_application_service import UserApplicationsService
-from centre_api.utils.util import cors_preflight
 
 from ..schemas.user_application import UserApplicationSchema
 from .apihelper import Api as ApiHelper
@@ -30,7 +29,6 @@ API = Namespace('user-applications', description='Endpoints for user application
 """
 
 
-@cors_preflight('PATCH, OPTIONS')
 @API.route('/bookmarks', methods=['PATCH', 'OPTIONS'])
 class UserApplicationBookmarks(Resource):
     """Resource for managing user application bookmarks."""
@@ -51,7 +49,6 @@ class UserApplicationBookmarks(Resource):
         return UserApplicationSchema().dump(user_app), HTTPStatus.OK
 
 
-@cors_preflight('PATCH, OPTIONS')
 @API.route('/sort-order', methods=['PATCH', 'OPTIONS'])
 class UserApplicationSortOrder(Resource):
     """Resource for managing user application sort orders."""

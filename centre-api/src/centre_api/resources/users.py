@@ -22,7 +22,6 @@ from centre_api.auth import auth
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.schemas.user import UserSchema
 from centre_api.services.user_service import UserService
-from centre_api.utils.util import cors_preflight
 
 
 API = Namespace('users', description='Endpoints for applications management')
@@ -30,7 +29,6 @@ API = Namespace('users', description='Endpoints for applications management')
 """
 
 
-@cors_preflight('GET, OPTIONS')
 @API.route('', methods=['GET', 'OPTIONS'])
 class Users(Resource):
     """Resource for fetching users."""
@@ -46,7 +44,6 @@ class Users(Resource):
         return UserSchema(many=True).dump(users), HTTPStatus.OK
 
 
-@cors_preflight('GET, OPTIONS, PATCH')
 @API.route('/username/<username>', methods=['GET', 'OPTIONS', 'PATCH'])
 class UserByUsername(Resource):
     """Resource for fetching users."""
@@ -71,7 +68,6 @@ class UserByUsername(Resource):
         return 'User updated', HTTPStatus.OK
 
 
-@cors_preflight('PUT, OPTIONS, DELETE')
 @API.route('/<username>/access', methods=['PUT', 'OPTIONS', 'DELETE'])
 class User(Resource):
     """Resource for managing user access."""

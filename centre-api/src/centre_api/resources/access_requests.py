@@ -21,7 +21,6 @@ from flask_restx import Namespace, Resource
 from centre_api.auth import auth
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.services.access_requests import AccessRequestsService
-from centre_api.utils.util import cors_preflight
 
 
 API = Namespace('access-requests', description='Endpoints for access requests management')
@@ -29,7 +28,6 @@ API = Namespace('access-requests', description='Endpoints for access requests ma
 """
 
 
-@cors_preflight('GET, OPTIONS')
 @API.route('', methods=['GET', 'OPTIONS'])
 class AccessRequests(Resource):
     """Resource for managing access requests."""
@@ -44,7 +42,6 @@ class AccessRequests(Resource):
         return access_requests, HTTPStatus.OK
 
 
-@cors_preflight('GET, OPTIONS')
 @API.route('/users/<user_auth_guid>', methods=['GET', 'OPTIONS'])
 class UserAccessRequests(Resource):
     """Resource for managing user access requests."""
@@ -59,7 +56,6 @@ class UserAccessRequests(Resource):
         return access_requests, HTTPStatus.OK
 
 
-@cors_preflight('PUT, OPTIONS')
 @API.route('/<int:access_request_id>', methods=['PUT', 'OPTIONS'])
 class UserAccessRequest(Resource):
     """Resource for managing an access request."""

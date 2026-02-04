@@ -21,13 +21,11 @@ from centre_api.auth import auth
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.schemas.eao_analytics import EaoAnalyticsCreateSchema, EaoAnalyticsSchema
 from centre_api.services.eao_analytics_service import EaoAnalyticsService
-from centre_api.utils.util import cors_preflight
 
 
 API = Namespace('eao-analytics', description='Endpoints for EAO Analytics management')
 
 
-@cors_preflight('POST, OPTIONS')
 @API.route('', methods=['POST', 'OPTIONS'])
 class CreateEaoAnalytics(Resource):
     """Resource for creating/updating EAO Analytics."""
@@ -58,7 +56,6 @@ class CreateEaoAnalytics(Resource):
             return {'message': f'Error creating analytics record: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
-@cors_preflight('GET, OPTIONS')
 @API.route('', methods=['GET', 'OPTIONS'])
 class GetEaoAnalytics(Resource):
     """Resource for fetching EAO Analytics with optional filtering."""

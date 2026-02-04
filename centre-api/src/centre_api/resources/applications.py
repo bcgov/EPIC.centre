@@ -19,7 +19,6 @@ from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
 from centre_api.services.applications_service import ApplicationsService
-from centre_api.utils.util import cors_preflight
 
 from ..schemas.access_request import AccessRequestCatalogSchema, AccessRequestSchema
 from ..schemas.application import ApplicationSchema
@@ -31,7 +30,6 @@ API = Namespace('applications', description='Endpoints for applications manageme
 """
 
 
-@cors_preflight('GET, OPTIONS')
 @API.route('', methods=['GET', 'OPTIONS'])
 class Applications(Resource):
     """Resource for managing applications."""
@@ -45,7 +43,6 @@ class Applications(Resource):
         return ApplicationSchema(many=True).dump(applications), HTTPStatus.OK
 
 
-@cors_preflight('GET, OPTIONS')
 @API.route('/request-catalog', methods=['GET'])
 class CatalogApplications(Resource):
     """Resource for applications that can be requested."""
@@ -60,7 +57,6 @@ class CatalogApplications(Resource):
         return AccessRequestCatalogSchema(many=True).dump(access_request_catalog), HTTPStatus.OK
 
 
-@cors_preflight('OPTIONS, POST')
 @API.route('/<int:app_id>/access_request', methods=['POST'])
 class CatalogApplication(Resource):
     """Resource for applications that can be requested."""
@@ -74,7 +70,6 @@ class CatalogApplication(Resource):
         return AccessRequestSchema().dump(access_request), HTTPStatus.OK
 
 
-@cors_preflight('GET, OPTIONS')
 @API.route('/<app_name>/access-levels', methods=['GET'])
 class ApplicationAccessLevels(Resource):
     """Resource for application access levels."""
@@ -89,7 +84,6 @@ class ApplicationAccessLevels(Resource):
         return access_levels, HTTPStatus.OK
 
 
-@cors_preflight('GET, OPTIONS')
 @API.route('/by-name/<app_name>', methods=['GET', 'OPTIONS'])
 class ApplicationByName(Resource):
     """Resource for getting application by name."""
