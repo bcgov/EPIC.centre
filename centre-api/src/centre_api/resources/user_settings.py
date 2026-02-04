@@ -22,14 +22,12 @@ from centre_api.auth import auth
 from centre_api.models.user_settings import UserSettings
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.schemas.user_settings import UserSettingsSchema
-from centre_api.utils.util import cors_preflight
 
 
 API = Namespace('user-settings', description='Endpoints for user settings management')
 
 
-@cors_preflight('GET, OPTIONS')
-@API.route('', methods=['GET', 'OPTIONS'])
+@API.route('', methods=['GET'])
 class GetUserSettings(Resource):
     """Resource for fetching user settings."""
 
@@ -61,8 +59,7 @@ class GetUserSettings(Resource):
             return {'message': f'Error fetching user settings: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
-@cors_preflight('PUT, OPTIONS')
-@API.route('/card-positions', methods=['PUT', 'OPTIONS'])
+@API.route('/card-positions', methods=['PUT'])
 class UpdateCardPositions(Resource):
     """Resource for updating card positions."""
 
@@ -88,8 +85,7 @@ class UpdateCardPositions(Resource):
             return {'message': f'Error updating card positions: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
-@cors_preflight('PUT, OPTIONS')
-@API.route('/settings', methods=['PUT', 'OPTIONS'])
+@API.route('/settings', methods=['PUT'])
 class UpdateSettings(Resource):
     """Resource for updating general settings."""
 

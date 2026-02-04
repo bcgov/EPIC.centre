@@ -12,74 +12,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""CORS pre-flight decorator.
+"""Utility functions for the Centre API."""
 
-A simple decorator to add the options method to a Request Class.
-"""
-
-import base64
 import os
 import re
-import urllib
-
-from humps.main import camelize, decamelize
+from functools import lru_cache
 
 
-def cors_preflight(methods):
-    """Render an option method on the class."""
-
-    def wrapper(f):
-        def options(self, *args, **kwargs):  # pylint: disable=unused-argument
-            return {'Allow': 'GET, DELETE, PUT, POST'}, 200, \
-                   {
-                       'Access-Control-Allow-Origin': '*',
-                       'Access-Control-Allow-Methods': methods,
-                       'Access-Control-Allow-Headers': 'Authorization, Content-Type, registries-trace-id, '
-                                                       'invitation_token'}
-
-        setattr(f, 'options', options)
-        return f
-
-    return wrapper
-
-
-def camelback2snake(camel_dict: dict):
-    """Convert the passed dictionary's keys from camelBack case to snake_case."""
-    return decamelize(camel_dict)
-
-
-def snake2camelback(snake_dict: dict):
-    """Convert the passed dictionary's keys from snake_case to camelBack case."""
-    return camelize(snake_dict)
-
-
+@lru_cache(maxsize=1)
 def allowedorigins():
-    """Return allowed origin."""
-    _allowedcors = os.getenv('CORS_ORIGIN')
-    if not _allowedcors:
+    """
+    Get the list of allowed CORS origins from the environment.
+
+    If you set CORS_ORIGIN to something like "*.eao.gov.bc.ca", this will
+    match any subdomain (e.g. centre.eao.gov.bc.ca, submit.eao.gov.bc.ca).
+    """
+    raw = os.getenv('CORS_ORIGIN', '')
+    if not raw:
         return []
-    return [entry.strip() for entry in re.split(r',\s*', _allowedcors) if entry.strip()]
 
+    def to_pattern(origin):
+        """Turn a wildcard origin like *.example.com into a regex pattern."""
+        # No wildcard? Just return the origin as-is
+        if '*' not in origin:
+            return origin
 
-class Singleton(type):
-    """Singleton meta."""
+        # Build a regex: *.example.com -> matches sub.example.com, app.example.com, etc.
+        regex = re.escape(origin).replace(r'\*', r'[^/:]+')
+        if not origin.startswith(('http://', 'https://')):
+            regex = r'https?://' + regex
+        return re.compile(regex + r'(:\d+)?$')
 
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        """Call for meta."""
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
-
-
-def digitify(payload: str) -> int:
-    """Return the digits from the string."""
-    return int(re.sub(r'\D', '', payload))
-
-
-def escape_wam_friendly_url(param):
-    """Return encoded/escaped url."""
-    base64_org_name = base64.b64encode(bytes(param, encoding='utf-8')).decode('utf-8')
-    encode_org_name = urllib.parse.quote(base64_org_name, safe='')
-    return encode_org_name
+    return [to_pattern(o.strip()) for o in raw.split(',') if o.strip()]
