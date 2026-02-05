@@ -216,6 +216,141 @@ spec:
                 configMapKeyRef:
                   name: {{ .Chart.Name }}
                   key: AUTH_API
+            - name: SUBMIT_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: SUBMIT_API_URL
+            - name: EPIC_GROUP_COMPLIANCE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_GROUP_COMPLIANCE
+            - name: EPIC_GROUP_CONDITION_REPO
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_GROUP_CONDITION_REPO
+            - name: EPIC_GROUP_SUBMIT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_GROUP_SUBMIT
+            - name: EPIC_GROUP_TRACK
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_GROUP_TRACK
+            - name: EPIC_GROUP_ENGAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_GROUP_ENGAGE
+            - name: EPIC_GROUP_CENTRE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_GROUP_CENTRE
+            - name: EPIC_GROUP_PUBLIC
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_GROUP_PUBLIC
+            - name: EPIC_ADMIN_SUBGROUP_ADMIN
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ADMIN_SUBGROUP_ADMIN
+            - name: EPIC_ADMIN_SUBGROUP_EAO_MANAGER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ADMIN_SUBGROUP_EAO_MANAGER
+            - name: EPIC_ADMIN_SUBGROUP_INSTANCE_ADMIN
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ADMIN_SUBGROUP_INSTANCE_ADMIN
+            - name: EPIC_ADMIN_SUBGROUP_SUPERUSER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ADMIN_SUBGROUP_SUPERUSER
+            - name: EPIC_ADMIN_SUBGROUP_SUPER_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ADMIN_SUBGROUP_SUPER_USER
+            - name: EPIC_ADMIN_GROUP_PATH_COMPLIANCE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ADMIN_GROUP_PATH_COMPLIANCE
+            - name: EPIC_ADMIN_GROUP_PATH_CONDITION_REPO
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ADMIN_GROUP_PATH_CONDITION_REPO
+            - name: EPIC_ADMIN_GROUP_PATH_SUBMIT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ADMIN_GROUP_PATH_SUBMIT
+            - name: EPIC_ADMIN_GROUP_PATH_TRACK
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ADMIN_GROUP_PATH_TRACK
+            - name: EPIC_ADMIN_GROUP_PATH_ENGAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ADMIN_GROUP_PATH_ENGAGE
+            - name: EPIC_ADMIN_GROUP_PATH_CENTRE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ADMIN_GROUP_PATH_CENTRE
+            - name: EPIC_ADMIN_GROUP_PATH_PUBLIC
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_ADMIN_GROUP_PATH_PUBLIC
+            - name: EPIC_APP_CLIENT_CONDITION_REPOSITORY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_APP_CLIENT_CONDITION_REPOSITORY
+            - name: EPIC_APP_CLIENT_EPIC_COMPLIANCE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_APP_CLIENT_EPIC_COMPLIANCE
+            - name: EPIC_APP_CLIENT_EPIC_TRACK
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_APP_CLIENT_EPIC_TRACK
+            - name: EPIC_APP_CLIENT_EPIC_PUBLIC
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_APP_CLIENT_EPIC_PUBLIC
+            - name: EPIC_APP_CLIENT_EPIC_SUBMIT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_APP_CLIENT_EPIC_SUBMIT
+            - name: EPIC_APP_CLIENT_EPIC_ENGAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_APP_CLIENT_EPIC_ENGAGE
+            - name: EPIC_APP_CLIENT_EPIC_CENTRE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}
+                  key: EPIC_APP_CLIENT_EPIC_CENTRE
           resources:
             limits:
               cpu: {{ .Values.resources.cpu.limit }}

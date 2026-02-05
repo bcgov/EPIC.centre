@@ -68,3 +68,41 @@ email:
 apis:
   authApi: https://auth-api-c72cba-dev.apps.gold.devops.gov.bc.ca
   submitApi: "https://submit-api-c72cba-dev.apps.gold.devops.gov.bc.ca"
+
+# Epic group names (Keycloak top-level group names)
+epicGroups:
+  compliance: COMPLIANCE
+  conditionRepo: CONDITION-REPO
+  submit: SUBMIT
+  track: TRACK
+  engage: ENGAGE
+  centre: CENTRE
+  public: PUBLIC
+
+# Epic admin subgroup names (Keycloak group names)
+epicAdminSubgroups:
+  admin: ADMIN
+  eaoManager: EAO_MANAGER
+  instanceAdmin: INSTANCE_ADMIN
+  superuser: SUPERUSER
+  superUser: SUPER_USER
+
+# Epic admin group paths (Group/Subgroup)
+epicAdminGroupPaths:
+  compliance: COMPLIANCE/SUPERUSER
+  conditionRepo: CONDITION-REPO/ADMIN
+  submit: SUBMIT/EAO_MANAGER
+  track: TRACK/INSTANCE_ADMIN
+  engage: ENGAGE/INSTANCE_ADMIN
+  centre: CENTRE/SUPER_USER
+  public: PUBLIC/ADMIN
+
+# Epic app client names (Keycloak client IDs)
+epicAppClients:
+  conditionRepository: epic-condition
+  epicCompliance: epic-compliance
+  epicTrack: epictrack-web
+  epicPublic: epic-public
+  epicSubmit: epic-submit
+  epicEngage: epic-engage
+  epicCentre: epic-centre
