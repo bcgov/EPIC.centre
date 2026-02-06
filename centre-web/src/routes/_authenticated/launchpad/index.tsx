@@ -3,7 +3,9 @@ import { AIDocumentSearch } from "@/components/AIDocumentSearch";
 import { List as EpicTileList } from "@/components/LaunchAppTile/List";
 import { LaunchAppListSkeleton } from "@/components/LaunchAppTile/ListSkeleton";
 import { ViewDescriptionSwitch } from "@/components/LaunchAppTile/ViewDescriptionSwitch";
+import { CentreLink } from "@/components/Shared/CentreLink";
 import { PageContainer } from "@/components/Shared/PageGrid";
+import { AppConfig } from "@/utils/config";
 import { useGetApplications } from "@/hooks/api/useApplications";
 import { EpicAppName } from "@/models/EpicApp";
 import { Box } from "@mui/material";
@@ -43,11 +45,27 @@ function Launchpad() {
       <Box
         sx={{
           display: "flex",
-          justifyContent: "flex-end",
+          alignItems: "center",
+          justifyContent: "space-between",
+          mt: 1,
           mb: 2,
           maxWidth: "1070px",
         }}
       >
+        <Box component="span">
+          Need guidance on EPIC.centre features?{" "}
+          {AppConfig.intranetHubUrl ? (
+            <CentreLink
+              href={AppConfig.intranetHubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Visit our intranet hub
+            </CentreLink>
+          ) : (
+            "Visit our intranet hub"
+          )}
+        </Box>
         <ViewDescriptionSwitch />
       </Box>
       <Box

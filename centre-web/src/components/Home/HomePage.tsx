@@ -98,11 +98,23 @@ export default function HomePage() {
                 fontStyle: "normal",
                 fontWeight: 400,
                 lineHeight: "1.913em",
-                marginBottom: "2.5em",
               }}
             >
               EPIC.centre gives you quick access to EAO applications, permission
               controls, and important resources in one place.
+            </Typography>
+            <Typography
+              sx={{
+                color: "#292929",
+                fontFamily: '"BC Sans", sans-serif',
+                fontSize: { xs: "1em", sm: "1.0625em", lg: "1.125em" },
+                fontStyle: "normal",
+                fontWeight: 600,
+                lineHeight: "1.913em",
+                marginBottom: "2.5em",
+              }}
+            >
+              Log in with your IDIR to view all your assigned applications.
             </Typography>
 
             <Typography
