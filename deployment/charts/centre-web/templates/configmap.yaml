@@ -16,5 +16,6 @@ data:
         "VITE_OIDC_AUTHORITY": "{{ .Values.keycloak.url }}",
         "VITE_CLIENT_ID": "{{ .Values.keycloak.client }}",
         "VITE_DOCUMENT_SEARCH_URL": "{{ .Values.urls.documentSearch }}",
-        "VITE_AI_SEARCH_URL": "{{ .Values.urls.aiSearch }}"
+        "VITE_AI_SEARCH_URL": "{{ .Values.urls.aiSearch }}",
+        "VITE_INTRANET_HUB_URL": "{{ .Values.urls.intranetHub }}"
       }
