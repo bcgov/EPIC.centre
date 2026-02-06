@@ -107,7 +107,7 @@ export default function HomePage() {
               sx={{
                 color: "#292929",
                 fontFamily: '"BC Sans", sans-serif',
-                fontSize: { xs: "1em", sm: "1.0625em", lg: "1.125em" },
+                fontSize: { xs: "0.9375em", lg: "1em" },
                 fontStyle: "normal",
                 fontWeight: 600,
                 lineHeight: "1.913em",
