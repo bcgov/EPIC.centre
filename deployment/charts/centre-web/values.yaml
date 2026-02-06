@@ -27,4 +27,5 @@ mountPath: /usr/share/nginx/html/config/
 urls:
   documentSearch: https://projects.eao.gov.bc.ca/search
   aiSearch: https://epic-search-poc-e6dtcgcmfqaehvcf.canadacentral-01.azurewebsites.net/search
+  intranetHub: https://intranet.gov.bc.ca/eao/digital-services/support-for-epic-system/support-for-epic-centre
 

@@ -11,6 +11,7 @@ declare global {
       VITE_DOCUMENT_SEARCH_URL: string;
       VITE_BASE_PATH: string;
       VITE_AI_SEARCH_URL: string;
+      VITE_INTRANET_HUB_URL: string;
     };
   }
 }
@@ -34,6 +35,10 @@ const BASE_PATH =
   window._env_?.VITE_BASE_PATH || import.meta.env.VITE_BASE_PATH;
 const AI_SEARCH_URL =
   window._env_?.VITE_AI_SEARCH_URL || import.meta.env.VITE_AI_SEARCH_URL;
+const INTRANET_HUB_URL =
+  window._env_?.VITE_INTRANET_HUB_URL ||
+  import.meta.env.VITE_INTRANET_HUB_URL ||
+  "";
 
 export const AppConfig = {
   apiUrl: `${API_URL}/api`,
@@ -44,6 +49,7 @@ export const AppConfig = {
   clientId: CLIENT_ID,
   basepath: BASE_PATH,
   aiSearchURL: AI_SEARCH_URL,
+  intranetHubUrl: INTRANET_HUB_URL,
 };
 
 export const OidcConfig = {
