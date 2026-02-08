@@ -19,6 +19,7 @@ import { Route as AccessDeniedImport } from './routes/access-denied'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as IndexImport } from './routes/index'
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedApplicationUrlsImport } from './routes/_authenticated/application-urls'
 import { Route as AuthenticatedRequestAccessIndexImport } from './routes/_authenticated/request-access/index'
 import { Route as AuthenticatedLaunchpadIndexImport } from './routes/_authenticated/launchpad/index'
 import { Route as AuthenticatedRequestAccessAuthIndexImport } from './routes/_authenticated/request-access/auth/index'
@@ -65,6 +66,12 @@ const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+
+const AuthenticatedApplicationUrlsRoute =
+  AuthenticatedApplicationUrlsImport.update({
+    path: '/application-urls',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 const AuthenticatedRequestAccessIndexRoute =
   AuthenticatedRequestAccessIndexImport.update({
@@ -143,6 +150,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UnauthenticatedImport
       parentRoute: typeof rootRoute
     }
+    '/_authenticated/application-urls': {
+      id: '/_authenticated/application-urls'
+      path: '/application-urls'
+      fullPath: '/application-urls'
+      preLoaderRoute: typeof AuthenticatedApplicationUrlsImport
+      parentRoute: typeof AuthenticatedImport
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
@@ -186,6 +200,7 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren({
   IndexRoute,
   AuthenticatedRoute: AuthenticatedRoute.addChildren({
+    AuthenticatedApplicationUrlsRoute,
     AuthenticatedIndexRoute,
     AuthenticatedLaunchpadIndexRoute,
     AuthenticatedRequestAccessIndexRoute,
@@ -222,6 +237,7 @@ export const routeTree = rootRoute.addChildren({
     "/_authenticated": {
       "filePath": "_authenticated.tsx",
       "children": [
+        "/_authenticated/application-urls",
         "/_authenticated/",
         "/_authenticated/launchpad/",
         "/_authenticated/request-access/",
@@ -243,6 +259,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/unauthenticated": {
       "filePath": "unauthenticated.tsx"
+    },
+    "/_authenticated/application-urls": {
+      "filePath": "_authenticated/application-urls.tsx",
+      "parent": "/_authenticated"
     },
     "/_authenticated/": {
       "filePath": "_authenticated/index.tsx",
