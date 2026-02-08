@@ -21,6 +21,12 @@ export default function Routes() {
           path: "/request-access",
         }}
       />
+      <MainListItem
+        route={{
+          name: "Application URLs",
+          path: "/application-urls",
+        }}
+      />
       {isAdmin && (
         <SubListItem
           key={`sub-list-auth-management`}
