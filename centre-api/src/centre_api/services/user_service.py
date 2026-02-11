@@ -20,7 +20,12 @@ import requests
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import (
-    APP_NAME_TO_CLIENT_NAME_MAP, APP_NAME_TO_GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppClientName, EpicAppName)
+    APP_NAME_TO_CLIENT_NAME_MAP,
+    APP_NAME_TO_GROUP_MAP,
+    EPIC_CENTRE_CLIENT_NAME,
+    EPIC_SUBMIT,
+    GROUP_TO_APP_NAME_MAP,
+)
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.models.db import session_scope
 from centre_api.models.email_queue import EmailQueue
@@ -47,18 +52,22 @@ class UserService:
     @staticmethod
     def _enrich_user_with_apps(user):
         """Enrich a single user dictionary with app names and highest level roles based on their groups."""
-        app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None, 'group_name': None, 'group_path': None})
+        app_roles = defaultdict(lambda: {'level': float('inf'), 'role': None, 'group_name': None, 'group_path': None})
 
         current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
-        current_user_is_dst_admin = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
+        current_user_is_dst_admin = AuthApiService.is_admin_of_app(
+            current_user, EPIC_CENTRE_CLIENT_NAME
+        )
         for group in user.get('groups', []):
             path = group.get('path', '')
-            level = group.get('level', float('-inf'))
+            level = group.get('level')
+            if level is None:
+                level = float('inf')
             display_name = group.get('display_name', '')
             top_path = path.split('/')[0]
             app_name = GROUP_TO_APP_NAME_MAP.get(top_path)
             if app_name:
-                if level > app_roles[app_name]['level']:
+                if level < app_roles[app_name]['level']:
                     app_roles[app_name] = {
                         'level': level,
                         'role': display_name,
@@ -101,7 +110,7 @@ class UserService:
 
         response = AuthApiService.update_user_group(username, access_data)
         access_request_id = access_data.get('access_request_id')
-        if access_data.get('app_name') == EpicAppName.EPIC_SUBMIT.value:
+        if access_data.get('app_name') == EPIC_SUBMIT:
             try:
                 # Get the user's email
                 user = AuthApiService.get_user_by_username(username)
@@ -154,7 +163,9 @@ class UserService:
     def has_admin_access_on_app(cls, app_name: str):
         """Check if the user had admin access on the given app."""
         current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
-        has_dst_admin_roles = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
+        has_dst_admin_roles = AuthApiService.is_admin_of_app(
+            current_user, EPIC_CENTRE_CLIENT_NAME
+        )
         if has_dst_admin_roles:
             return True
 

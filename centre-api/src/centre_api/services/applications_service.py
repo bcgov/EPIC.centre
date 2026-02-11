@@ -7,7 +7,15 @@ import requests
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
-from centre_api.enums.epic_app import APP_NAME_TO_GROUP_MAP, GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppName
+from centre_api.enums.epic_app import (
+    APP_NAME_TO_GROUP_MAP,
+    DOCUMENT_SEARCH,
+    EPIC_COMPLIANCE,
+    CONDITION_REPOSITORY,
+    GROUP_TO_APP_NAME_MAP,
+    INTRANET,
+    get_email_groups_for_app,
+)
 from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
@@ -54,16 +62,18 @@ class ApplicationsService:
             if not user or 'groups' not in user:
                 return {}
 
-            app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None})
+            app_roles = defaultdict(lambda: {'level': float('inf'), 'role': None})
 
             for group in user.get('groups', []):
                 path = group.get('path', '')
-                level = group.get('level', float('-inf'))
+                level = group.get('level')
+                if level is None:
+                    level = float('inf')
                 display_name = group.get('display_name', '')
                 top_path = path.split('/')[0]
                 app_name = GROUP_TO_APP_NAME_MAP.get(top_path)
 
-                if app_name and level > app_roles[app_name]['level']:
+                if app_name and level < app_roles[app_name]['level']:
                     app_roles[app_name] = {
                         'level': level,
                         'role': display_name
@@ -82,7 +92,7 @@ class ApplicationsService:
         """Get all apps."""
         access_levels = cls._get_current_user_access_levels()
         accessed_apps = set(access_levels.keys())
-        public_apps = [EpicAppName.DOCUMENT_SEARCH.value, EpicAppName.INTRANET.value]
+        public_apps = [DOCUMENT_SEARCH, INTRANET]
         accessed_apps.update(public_apps)
 
         if not accessed_apps:
@@ -124,8 +134,10 @@ class ApplicationsService:
     def get_request_catalog(cls):
         """Get request access catalog."""
         apps = ApplicationModel.get_all()
-        exception_apps = {EpicAppName.CONDITION_REPOSITORY.value, EpicAppName.EPIC_COMPLIANCE.value,
-                          EpicAppName.DOCUMENT_SEARCH.value, EpicAppName.INTRANET.value}
+        exception_apps = {
+            CONDITION_REPOSITORY, EPIC_COMPLIANCE,
+            DOCUMENT_SEARCH, INTRANET,
+        }
         filtered_apps = [(app, user_app) for app, user_app in apps if app.name not in exception_apps]
 
         access_levels = cls._get_current_user_access_levels()
@@ -180,11 +192,21 @@ class ApplicationsService:
 
     @classmethod
     def get_app_admins(cls, app_name: str):
-        """Get app admin details."""
+        """Get app admin details (members of email_groups who receive access request notifications)."""
         group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
-        sub_group_name = GROUP_MAP.get(group_name)
-        members = AuthApiService.get_group_members(group_name, sub_group_name)
-        return members
+        email_groups = get_email_groups_for_app(app_name)
+        if not group_name or not email_groups:
+            return []
+        seen = set()
+        merged = []
+        for sub_group_name in email_groups:
+            members = AuthApiService.get_group_members(group_name, sub_group_name)
+            for m in members:
+                key = m.get('username') or m.get('sub') or id(m)
+                if key not in seen:
+                    seen.add(key)
+                    merged.append(m)
+        return merged
 
     @classmethod
     def _queue_access_request_notification_app_admin(cls, session, app):

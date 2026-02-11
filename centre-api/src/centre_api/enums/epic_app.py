@@ -1,151 +1,149 @@
-"""Enums for the application.
+"""App configuration - single source of truth for EPIC apps.
 
-EpicGroups, EpicAppClientName, EpicAdminSubGroups, and EpicAdminGroupsPath values
-are loaded from environment variables (see config.py and sample.env).
+Values loaded from env (see config.py, sample.env).
 """
+import json
 import os
 from collections import defaultdict
-from enum import Enum
 
 
-def _env(key: str, default: str) -> str:
-    """Read string from environment with default."""
-    return os.getenv(key, default)
+def _env(key: str) -> str:
+    return os.getenv(key) or ''
 
 
-class EpicAppName(Enum):
-    """Enum representing Epic application names."""
-
-    CONDITION_REPOSITORY = 'condition_repository'
-    EPIC_COMPLIANCE = 'epic_compliance'
-    DOCUMENT_SEARCH = 'document_search'
-    EPIC_TRACK = 'epic_track'
-    EPIC_PUBLIC = 'epic_public'
-    EPIC_SUBMIT = 'epic_submit'
-    EPIC_ENGAGE = 'epic_engage'
-    EPIC_CENTRE = 'epic_centre'
-    INTRANET = 'intranet'
+def _env_list(key: str) -> list:
+    """Env value as JSON array. e.g. ["ADMIN","REVIEWER"] -> ['ADMIN','REVIEWER']."""
+    val = _env(key)
+    if not val:
+        return []
+    try:
+        parsed = json.loads(val)
+        return list(parsed) if isinstance(parsed, list) else [str(parsed)]
+    except json.JSONDecodeError:
+        return [s.strip() for s in val.split(',') if s.strip()]
 
 
-class EpicAppClientName(Enum):
-    """Enum representing Epic client names (from env)."""
+# -----------------------------------------------------------------------------
+# EPIC_APP_CONFIG: dict keyed by constant name. app_name = key.lower()
+# Per-app env: {APP}_SUBGROUP_ADMINS, {APP}_SUBGROUP_EMAILS, {APP}_ADMIN_ROLES (JSON array)
+# -----------------------------------------------------------------------------
 
-    CONDITION_REPOSITORY = _env('EPIC_APP_CLIENT_CONDITION_REPOSITORY', 'epic-condition')
-    EPIC_COMPLIANCE = _env('EPIC_APP_CLIENT_EPIC_COMPLIANCE', 'epic-compliance')
-    EPIC_TRACK = _env('EPIC_APP_CLIENT_EPIC_TRACK', 'epictrack-web')
-    EPIC_PUBLIC = _env('EPIC_APP_CLIENT_EPIC_PUBLIC', 'epic-public')
-    EPIC_SUBMIT = _env('EPIC_APP_CLIENT_EPIC_SUBMIT', 'epic-submit')
-    EPIC_ENGAGE = _env('EPIC_APP_CLIENT_EPIC_ENGAGE', 'epic-engage')
-    EPIC_CENTRE = _env('EPIC_APP_CLIENT_EPIC_CENTRE', 'epic-centre')
-
-
-CLIENT_NAME_TO_APP_NAME_MAP = defaultdict(lambda: None, {
-    EpicAppClientName.CONDITION_REPOSITORY.value: EpicAppName.CONDITION_REPOSITORY.value,
-    EpicAppClientName.EPIC_COMPLIANCE.value: EpicAppName.EPIC_COMPLIANCE.value,
-    EpicAppClientName.EPIC_TRACK.value: EpicAppName.EPIC_TRACK.value,
-    EpicAppClientName.EPIC_PUBLIC.value: EpicAppName.EPIC_PUBLIC.value,
-    EpicAppClientName.EPIC_SUBMIT.value: EpicAppName.EPIC_SUBMIT.value,
-    EpicAppClientName.EPIC_ENGAGE.value: EpicAppName.EPIC_ENGAGE.value,
-    EpicAppClientName.EPIC_CENTRE.value: EpicAppName.EPIC_CENTRE.value,
-})
-
-APP_NAME_TO_CLIENT_NAME_MAP = {
-    v: k for k, v in CLIENT_NAME_TO_APP_NAME_MAP.items()
+_CFG = {
+    'CONDITION_REPOSITORY': {
+        'client_name': _env('EPIC_APP_CLIENT_CONDITION_REPOSITORY'),
+        'group': _env('EPIC_GROUP_CONDITION_REPO'),
+        'admin_groups': _env_list('CONDITION_REPOSITORY_SUBGROUP_ADMINS'),
+        'email_groups': _env_list('CONDITION_REPOSITORY_SUBGROUP_EMAILS'),
+        'admin_roles': _env_list('CONDITION_REPOSITORY_ADMIN_ROLES'),
+        'launch_url': _env('CONDITION_REPOSITORY_LAUNCH_URL'),
+        'management_url': _env('CONDITION_REPOSITORY_USER_MANAGEMENT_URL'),
+    },
+    'EPIC_COMPLIANCE': {
+        'client_name': _env('EPIC_APP_CLIENT_EPIC_COMPLIANCE'),
+        'group': _env('EPIC_GROUP_COMPLIANCE'),
+        'admin_groups': _env_list('EPIC_COMPLIANCE_SUBGROUP_ADMINS'),
+        'email_groups': _env_list('EPIC_COMPLIANCE_SUBGROUP_EMAILS'),
+        'admin_roles': _env_list('EPIC_COMPLIANCE_ADMIN_ROLES'),
+        'launch_url': _env('EPIC_COMPLIANCE_LAUNCH_URL'),
+        'management_url': _env('EPIC_COMPLIANCE_USER_MANAGEMENT_URL'),
+    },
+    'EPIC_TRACK': {
+        'client_name': _env('EPIC_APP_CLIENT_EPIC_TRACK'),
+        'group': _env('EPIC_GROUP_TRACK'),
+        'admin_groups': _env_list('EPIC_TRACK_SUBGROUP_ADMINS'),
+        'email_groups': _env_list('EPIC_TRACK_SUBGROUP_EMAILS'),
+        'admin_roles': _env_list('EPIC_TRACK_ADMIN_ROLES'),
+        'launch_url': _env('EPIC_TRACK_LAUNCH_URL'),
+        'management_url': _env('EPIC_TRACK_USER_MANAGEMENT_URL'),
+    },
+    'EPIC_PUBLIC': {
+        'client_name': _env('EPIC_APP_CLIENT_EPIC_PUBLIC'),
+        'group': _env('EPIC_GROUP_PUBLIC'),
+        'admin_groups': _env_list('EPIC_PUBLIC_SUBGROUP_ADMINS'),
+        'email_groups': _env_list('EPIC_PUBLIC_SUBGROUP_EMAILS'),
+        'admin_roles': _env_list('EPIC_PUBLIC_ADMIN_ROLES'),  # uses realm role 'inspector' in token_info
+        'launch_url': _env('EPIC_PUBLIC_LAUNCH_URL'),
+        'management_url': _env('EPIC_PUBLIC_USER_MANAGEMENT_URL'),
+    },
+    'EPIC_SUBMIT': {
+        'client_name': _env('EPIC_APP_CLIENT_EPIC_SUBMIT'),
+        'group': _env('EPIC_GROUP_SUBMIT'),
+        'admin_groups': _env_list('EPIC_SUBMIT_SUBGROUP_ADMINS'),
+        'email_groups': _env_list('EPIC_SUBMIT_SUBGROUP_EMAILS'),
+        'admin_roles': _env_list('EPIC_SUBMIT_ADMIN_ROLES'),
+        'launch_url': _env('EPIC_SUBMIT_LAUNCH_URL'),
+        'management_url': _env('EPIC_SUBMIT_USER_MANAGEMENT_URL'),
+    },
+    'EPIC_ENGAGE': {
+        'client_name': _env('EPIC_APP_CLIENT_EPIC_ENGAGE'),
+        'group': _env('EPIC_GROUP_ENGAGE'),
+        'admin_groups': _env_list('EPIC_ENGAGE_SUBGROUP_ADMINS'),
+        'email_groups': _env_list('EPIC_ENGAGE_SUBGROUP_EMAILS'),
+        'admin_roles': _env_list('EPIC_ENGAGE_ADMIN_ROLES'),
+        'launch_url': _env('EPIC_ENGAGE_LAUNCH_URL'),
+        'management_url': _env('EPIC_ENGAGE_USER_MANAGEMENT_URL'),
+    },
+    'EPIC_CENTRE': {
+        'client_name': _env('EPIC_APP_CLIENT_EPIC_CENTRE'),
+        'group': _env('EPIC_GROUP_CENTRE'),
+        'admin_groups': _env_list('EPIC_CENTRE_SUBGROUP_ADMINS'),
+        'email_groups': _env_list('EPIC_CENTRE_SUBGROUP_EMAILS'),
+        'admin_roles': _env_list('EPIC_CENTRE_ADMIN_ROLES'),
+        'launch_url': _env('EPIC_CENTRE_LAUNCH_URL'),
+        'management_url': _env('EPIC_CENTRE_USER_MANAGEMENT_URL'),
+    },
+    'DOCUMENT_SEARCH': {
+        'client_name': None, 'group': None, 'admin_groups': [], 'email_groups': [], 'admin_roles': [],
+        'launch_url': _env('DOCUMENT_SEARCH_LAUNCH_URL'),
+        'management_url': _env('DOCUMENT_SEARCH_USER_MANAGEMENT_URL'),
+    },
+    'INTRANET': {
+        'client_name': None, 'group': None, 'admin_groups': [], 'email_groups': [], 'admin_roles': [],
+        'launch_url': _env('INTRANET_LAUNCH_URL'),
+        'management_url': _env('INTRANET_USER_MANAGEMENT_URL'),
+    },
 }
 
+# Flatten to list with app_name; filter to apps with group for maps
+EPIC_APP_CONFIG = [{**v, 'app_name': k.lower()} for k, v in _CFG.items()]
+_WITH_GROUP = [
+    c for c in EPIC_APP_CONFIG
+    if c.get('group') and c.get('client_name') and c.get('admin_groups')
+]
 
-class EpicGroups(Enum):
-    """Enum representing Epic group names (from env)."""
+# App name constants (from _CFG keys)
+for _k in _CFG:
+    globals()[_k] = _k.lower()
 
-    COMPLIANCE = _env('EPIC_GROUP_COMPLIANCE', 'COMPLIANCE')
-    CONDITION_REPO = _env('EPIC_GROUP_CONDITION_REPO', 'CONDITION-REPO')
-    SUBMIT = _env('EPIC_GROUP_SUBMIT', 'SUBMIT')
-    TRACK = _env('EPIC_GROUP_TRACK', 'TRACK')
-    ENGAGE = _env('EPIC_GROUP_ENGAGE', 'ENGAGE')
-    CENTRE = _env('EPIC_GROUP_CENTRE', 'CENTRE')
-    PUBLIC = _env('EPIC_GROUP_PUBLIC', 'PUBLIC')
+# O(1) lookup
+APP_NAME_TO_CONFIG = {c['app_name']: c for c in EPIC_APP_CONFIG}
 
-
-class EpicAdminSubGroups(Enum):
-    """Enum representing Epic admin subgroup names (from env)."""
-
-    ADMIN = _env('EPIC_ADMIN_SUBGROUP_ADMIN', 'ADMIN')
-    EAO_MANAGER = _env('EPIC_ADMIN_SUBGROUP_EAO_MANAGER', 'EAO_MANAGER')
-    INSTANCE_ADMIN = _env('EPIC_ADMIN_SUBGROUP_INSTANCE_ADMIN', 'INSTANCE_ADMIN')
-    SUPERUSER = _env('EPIC_ADMIN_SUBGROUP_SUPERUSER', 'SUPERUSER')
-    SUPER_USER = _env('EPIC_ADMIN_SUBGROUP_SUPER_USER', 'SUPER_USER')
+# URL maps (from _CFG)
+APP_LAUNCH_URLS = {c['app_name']: c['launch_url'] for c in EPIC_APP_CONFIG}
+APP_USER_MANAGEMENT_URLS = {c['app_name']: c['management_url'] for c in EPIC_APP_CONFIG}
 
 
-class EpicAdminGroupsPath(Enum):
-    """Enum representing Epic admin group paths (from env)."""
-
-    COMPLIANCE = _env('EPIC_ADMIN_GROUP_PATH_COMPLIANCE', 'COMPLIANCE/SUPERUSER')
-    CONDITION_REPO = _env('EPIC_ADMIN_GROUP_PATH_CONDITION_REPO', 'CONDITION-REPO/ADMIN')
-    SUBMIT = _env('EPIC_ADMIN_GROUP_PATH_SUBMIT', 'SUBMIT/EAO_MANAGER')
-    TRACK = _env('EPIC_ADMIN_GROUP_PATH_TRACK', 'TRACK/INSTANCE_ADMIN')
-    ENGAGE = _env('EPIC_ADMIN_GROUP_PATH_ENGAGE', 'ENGAGE/INSTANCE_ADMIN')
-    CENTRE = _env('EPIC_ADMIN_GROUP_PATH_CENTRE', 'CENTRE/SUPER_USER')
-    PUBLIC = _env('EPIC_ADMIN_GROUP_PATH_PUBLIC', 'PUBLIC/ADMIN')
+def get_email_groups_for_app(app_name: str) -> list:
+    """Groups whose members receive access request notifications."""
+    cfg = APP_NAME_TO_CONFIG.get(app_name)
+    return list(cfg['email_groups']) if cfg else []
 
 
+# Derived maps
+CLIENT_NAME_TO_APP_NAME_MAP = defaultdict(lambda: None, {c['client_name']: c['app_name'] for c in _WITH_GROUP})
+APP_NAME_TO_CLIENT_NAME_MAP = {c['app_name']: c['client_name'] for c in _WITH_GROUP}
 EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS = {
-    EpicAppClientName.EPIC_COMPLIANCE.value: EpicAdminGroupsPath.COMPLIANCE.value,
-    EpicAppClientName.CONDITION_REPOSITORY.value: EpicAdminGroupsPath.CONDITION_REPO.value,
-    EpicAppClientName.EPIC_SUBMIT.value: EpicAdminGroupsPath.SUBMIT.value,
-    EpicAppClientName.EPIC_TRACK.value: EpicAdminGroupsPath.TRACK.value,
-    EpicAppClientName.EPIC_ENGAGE.value: EpicAdminGroupsPath.ENGAGE.value,
-    EpicAppClientName.EPIC_CENTRE.value: EpicAdminGroupsPath.CENTRE.value,
-    EpicAppClientName.EPIC_PUBLIC.value: EpicAdminGroupsPath.PUBLIC.value,
+    c['client_name']: [f"{c['group']}/{sg}" for sg in c['admin_groups']]
+    for c in _WITH_GROUP
 }
-
-EPIC_ADMIN_GROUPS_PATHS_TO_CLIENT = defaultdict(lambda: None, {
-    v: k for k, v in EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS.items()
-})
-
-
-GROUP_MAP = {
-    EpicGroups.COMPLIANCE.value: EpicAdminSubGroups.SUPERUSER.value,
-    EpicGroups.CONDITION_REPO.value: EpicAdminSubGroups.ADMIN.value,
-    EpicGroups.SUBMIT.value: EpicAdminSubGroups.EAO_MANAGER.value,
-    EpicGroups.TRACK.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
-    EpicGroups.ENGAGE.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
-    EpicGroups.CENTRE.value: EpicAdminSubGroups.SUPER_USER.value,
-    EpicGroups.PUBLIC.value: EpicAdminSubGroups.ADMIN.value,
+ALL_ADMIN_GROUP_PATHS = {
+    path for paths in EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS.values() for path in paths
 }
+GROUP_MAP = {c['group']: c['admin_groups'] for c in _WITH_GROUP}
+APP_NAME_TO_GROUP_MAP = {c['app_name']: c['group'] for c in _WITH_GROUP}
+GROUP_TO_APP_NAME_MAP = {c['group']: c['app_name'] for c in _WITH_GROUP}
+CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP = {c['client_name']: c['admin_roles'] for c in _WITH_GROUP}
 
-APP_NAME_TO_GROUP_MAP = {
-    EpicAppName.EPIC_COMPLIANCE.value: EpicGroups.COMPLIANCE.value,
-    EpicAppName.CONDITION_REPOSITORY.value: EpicGroups.CONDITION_REPO.value,
-    EpicAppName.EPIC_SUBMIT.value: EpicGroups.SUBMIT.value,
-    EpicAppName.EPIC_TRACK.value: EpicGroups.TRACK.value,
-    EpicAppName.EPIC_ENGAGE.value: EpicGroups.ENGAGE.value,
-    EpicAppName.EPIC_CENTRE.value: EpicGroups.CENTRE.value,
-    EpicAppName.EPIC_PUBLIC.value: EpicGroups.PUBLIC.value,
-}
-
-CONDITION_REPOSITORY = 'condition_repository'
-EPIC_COMPLIANCE = 'epic_compliance'
-DOCUMENT_SEARCH = 'document_search'
-EPIC_TRACK = 'epic_track'
-EPIC_PUBLIC = 'epic_public'
-EPIC_SUBMIT = 'epic_submit'
-EPIC_ENGAGE = 'epic_engage'
-
-GROUP_TO_APP_NAME_MAP = {
-    EpicGroups.TRACK.value: 'epic_track',
-    EpicGroups.SUBMIT.value: 'epic_submit',
-    EpicGroups.COMPLIANCE.value: 'epic_compliance',
-    EpicGroups.CONDITION_REPO.value: 'condition_repository',
-    EpicGroups.ENGAGE.value: 'epic_engage',
-    EpicGroups.CENTRE.value: 'epic_centre',
-    EpicGroups.PUBLIC.value: 'epic_public',
-}
-
-CLIENT_APP_NAME_TO_ADMIN_ROLES_MAP = {
-    EpicAppClientName.EPIC_CENTRE.value: ['manage_auth', 'manage_users'],
-    EpicAppClientName.EPIC_TRACK.value: ['manage_users'],
-    EpicAppClientName.EPIC_ENGAGE.value: ['create_admin_user'],
-    EpicAppClientName.EPIC_COMPLIANCE.value: ['super_user'],
-    EpicAppClientName.CONDITION_REPOSITORY.value: [''],
-    EpicAppClientName.EPIC_SUBMIT.value: ['manage-users'],
-}
+ALL_APP_NAMES = [c['app_name'] for c in EPIC_APP_CONFIG]
+EPIC_CENTRE_CLIENT_NAME = APP_NAME_TO_CLIENT_NAME_MAP.get(EPIC_CENTRE)
+EPIC_PUBLIC_CLIENT_NAME = APP_NAME_TO_CLIENT_NAME_MAP.get(EPIC_PUBLIC)

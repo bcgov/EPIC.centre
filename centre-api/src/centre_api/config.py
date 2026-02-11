@@ -24,9 +24,10 @@ import sys
 
 from dotenv import find_dotenv, load_dotenv
 
-
 # this will load all the envars from a .env file located in the project root (api)
 load_dotenv(find_dotenv())
+
+from centre_api.enums.epic_app import APP_LAUNCH_URLS, APP_USER_MANAGEMENT_URLS
 
 
 def get_named_config(config_name: str = 'development'):
@@ -91,28 +92,9 @@ class _Config():  # pylint: disable=too-few-public-methods
     AUTH_API = os.getenv('AUTH_API', 'http://localhost:8080')
     SUBMIT_API_URL = os.getenv('SUBMIT_API_URL', 'http://localhost:8080')
 
-    # Application Launch URLs Configuration
-    APP_LAUNCH_URLS = {
-        'condition_repository': os.getenv('CONDITION_REPOSITORY_LAUNCH_URL', ''),
-        'epic_compliance': os.getenv('EPIC_COMPLIANCE_LAUNCH_URL', ''),
-        'document_search': os.getenv('DOCUMENT_SEARCH_LAUNCH_URL', ''),
-        'epic_track': os.getenv('EPIC_TRACK_LAUNCH_URL', ''),
-        'epic_public': os.getenv('EPIC_PUBLIC_LAUNCH_URL', ''),
-        'epic_submit': os.getenv('EPIC_SUBMIT_LAUNCH_URL', ''),
-        'epic_engage': os.getenv('EPIC_ENGAGE_LAUNCH_URL', ''),
-        'intranet': os.getenv('INTRANET_LAUNCH_URL', ''),
-    }
-
-    # Application User Management URLs Configuration
-    APP_USER_MANAGEMENT_URLS = {
-        'document_search': os.getenv('DOCUMENT_SEARCH_USER_MANAGEMENT_URL', ''),
-        'condition_repository': os.getenv('CONDITION_REPOSITORY_USER_MANAGEMENT_URL', ''),
-        'epic_compliance': os.getenv('EPIC_COMPLIANCE_USER_MANAGEMENT_URL', ''),
-        'epic_track': os.getenv('EPIC_TRACK_USER_MANAGEMENT_URL', ''),
-        'epic_engage': os.getenv('EPIC_ENGAGE_USER_MANAGEMENT_URL', ''),
-        'epic_public': os.getenv('EPIC_PUBLIC_USER_MANAGEMENT_URL', ''),
-        'epic_submit': os.getenv('EPIC_SUBMIT_USER_MANAGEMENT_URL', ''),
-    }
+    # Application Launch & User Management URLs (from epic_app._CFG)
+    APP_LAUNCH_URLS = APP_LAUNCH_URLS
+    APP_USER_MANAGEMENT_URLS = APP_USER_MANAGEMENT_URLS
 
     # Epic group names (Keycloak top-level group names)
     EPIC_GROUP_COMPLIANCE = os.getenv('EPIC_GROUP_COMPLIANCE', 'COMPLIANCE')

@@ -18,7 +18,11 @@ from urllib.parse import urlencode
 import requests
 from flask import current_app, g
 
-from centre_api.enums.epic_app import CLIENT_NAME_TO_APP_NAME_MAP, EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS
+from centre_api.enums.epic_app import (
+    ALL_ADMIN_GROUP_PATHS,
+    CLIENT_NAME_TO_APP_NAME_MAP,
+    EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS,
+)
 
 
 class AuthApiService:
@@ -240,23 +244,23 @@ class AuthApiService:
     def is_admin(user):
         """Check if the user has admin privileges."""
         groups = user.get('groups', [])
-        return any(group.get('path') in EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS.values() for group in groups)
+        return any(group.get('path') in ALL_ADMIN_GROUP_PATHS for group in groups)
 
     @staticmethod
     def is_admin_of_app(user, client_name):
         """Check if the user has admin privileges for a specific application."""
-        admin_group_path = EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS.get(client_name)
-        if not admin_group_path:
+        admin_group_paths = EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS.get(client_name) or []
+        if not admin_group_paths:
             return False
         groups = user.get('groups', [])
-        return any(group.get('path') == admin_group_path for group in groups)
+        return any(group.get('path') in admin_group_paths for group in groups)
 
     @staticmethod
     def get_administered_apps(user):
         """Get a list of applications the user has admin privileges for."""
         administered_apps = []
         groups = user.get('groups', [])
-        for client_name, admin_group_path in EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS.items():
-            if any(group.get('path') == admin_group_path for group in groups):
+        for client_name, admin_group_paths in EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS.items():
+            if any(group.get('path') in admin_group_paths for group in groups):
                 administered_apps.append(CLIENT_NAME_TO_APP_NAME_MAP.get(client_name))
         return administered_apps

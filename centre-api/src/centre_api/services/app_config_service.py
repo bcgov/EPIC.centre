@@ -1,6 +1,6 @@
 """Service for app configuration management."""
 
-from centre_api.enums.epic_app import EpicAppName
+from centre_api.enums.epic_app import ALL_APP_NAMES
 from centre_api.utils.app_config import get_app_launch_url, get_app_user_management_url
 
 
@@ -9,15 +9,15 @@ class AppConfigService:
 
     @classmethod
     def get_all_app_configs(cls):
-        """Get all app configurations for apps defined in EpicAppName enum."""
+        """Get all app configurations for defined apps."""
         app_configs = []
 
-        for app_name in EpicAppName:
+        for app_name in ALL_APP_NAMES:
             app_config = {
-                'name': app_name.value,
-                'launch_url': get_app_launch_url(app_name.value),
-                'app_user_management_url': get_app_user_management_url(app_name.value),
-                'is_active': True,  # All apps in EpicAppName are considered active
+                'name': app_name,
+                'launch_url': get_app_launch_url(app_name),
+                'app_user_management_url': get_app_user_management_url(app_name),
+                'is_active': True,
             }
             app_configs.append(app_config)
 
