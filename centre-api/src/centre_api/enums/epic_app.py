@@ -74,6 +74,7 @@ class EpicAdminSubGroups(Enum):
     INSTANCE_ADMIN = _env('EPIC_ADMIN_SUBGROUP_INSTANCE_ADMIN', 'INSTANCE_ADMIN')
     SUPERUSER = _env('EPIC_ADMIN_SUBGROUP_SUPERUSER', 'SUPERUSER')
     SUPER_USER = _env('EPIC_ADMIN_SUBGROUP_SUPER_USER', 'SUPER_USER')
+    TRACK_ADMIN = 'INSTANCE_ADMIN'
 
 
 class EpicAdminGroupsPath(Enum):
@@ -107,7 +108,7 @@ GROUP_MAP = {
     EpicGroups.COMPLIANCE.value: EpicAdminSubGroups.SUPERUSER.value,
     EpicGroups.CONDITION_REPO.value: EpicAdminSubGroups.ADMIN.value,
     EpicGroups.SUBMIT.value: EpicAdminSubGroups.EAO_MANAGER.value,
-    EpicGroups.TRACK.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
+    EpicGroups.TRACK.value: EpicAdminSubGroups.TRACK_ADMIN.value,
     EpicGroups.ENGAGE.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
     EpicGroups.CENTRE.value: EpicAdminSubGroups.SUPER_USER.value,
     EpicGroups.PUBLIC.value: EpicAdminSubGroups.ADMIN.value,
