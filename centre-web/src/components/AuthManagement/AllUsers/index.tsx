@@ -21,6 +21,8 @@ export const AllUsers = () => {
     include_groups: false,
   });
 
+  const filteredUsers = users.filter((user) => user.username.includes("@idir"));
+
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(event.target.value);
   };
@@ -88,7 +90,7 @@ export const AllUsers = () => {
       </Grid>
       <Grid item xs={12}>
         <UsersTable
-          users={users}
+          users={filteredUsers}
           isLoading={isLoading}
           isError={isError}
           searchText={queryParams.search || ""}
