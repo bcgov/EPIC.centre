@@ -1,5 +1,7 @@
+import { useGetUser } from "@/hooks/api/useUsers";
+import { useAppConfigs } from "@/hooks/api/useAppConfigs";
 import { CentreUser } from "@/models/CentreUser";
-import { EpicAppClientName, EpicAppName } from "@/models/EpicApp";
+import { EpicAppName } from "@/models/EpicApp";
 import {
   createContext,
   useContext,
@@ -8,13 +10,11 @@ import {
   useCallback,
 } from "react";
 import { useAuth } from "react-oidc-context";
-import { useGetUser } from "@/hooks/api/useUsers";
 import {
+  buildAdminConfigFromAppConfigs,
   isAdminOfAnyApp,
   isAdminOfApp as checkIsAdminOfApp,
   getAdminStatusPerApp as computeAdminStatusPerApp,
-  EPIC_CLIENT_TO_ADMIN_GROUP_PATHS,
-  hasAdminGroup,
 } from "@/utils/adminGroupPaths";
 import { getUserRolesFromToken } from "@/utils/axiosUtils";
 
@@ -43,6 +43,9 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   // Get username from JWT token
   const username = auth.user?.profile.preferred_username as string | undefined;
 
+  const { data: appConfigs = [] } = useAppConfigs({
+    enabled: auth.isAuthenticated ?? false,
+  });
   const {
     data: user,
     isLoading,
@@ -53,29 +56,32 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     enabled: !!username && auth.isAuthenticated,
   });
 
-  // Compute admin status from user groups
-  const isAdmin = useMemo(() => {
-    return isAdminOfAnyApp(user?.groups);
-  }, [user?.groups]);
-
-  const isDstAdmin = useMemo(() => {
-    const dstAdminPath =
-      EPIC_CLIENT_TO_ADMIN_GROUP_PATHS[EpicAppClientName.EPIC_CENTRE];
-    return hasAdminGroup(user?.groups, dstAdminPath);
-  }, [user?.groups]);
-
-  // Memoized function to check admin status for a specific app
-  const isAdminOfApp = useCallback(
-    (appName: EpicAppName) => {
-      return checkIsAdminOfApp(user?.groups, appName);
-    },
-    [user?.groups],
+  const adminConfig = useMemo(
+    () => buildAdminConfigFromAppConfigs(appConfigs),
+    [appConfigs]
   );
 
-  // Compute admin status for all apps
-  const adminStatusPerApp = useMemo(() => {
-    return computeAdminStatusPerApp(user?.groups);
-  }, [user?.groups]);
+  // Compute admin status from user groups (using backend config)
+  const isAdmin = useMemo(
+    () => isAdminOfAnyApp(user?.groups, adminConfig),
+    [user?.groups, adminConfig]
+  );
+
+  const isDstAdmin = useMemo(
+    () => checkIsAdminOfApp(user?.groups, EpicAppName.EPIC_CENTRE, adminConfig),
+    [user?.groups, adminConfig]
+  );
+
+  const isAdminOfApp = useCallback(
+    (appName: EpicAppName) =>
+      checkIsAdminOfApp(user?.groups, appName, adminConfig),
+    [user?.groups, adminConfig]
+  );
+
+  const adminStatusPerApp = useMemo(
+    () => computeAdminStatusPerApp(user?.groups, adminConfig),
+    [user?.groups, adminConfig]
+  );
 
   /**
    * Check if user has the ai search user role

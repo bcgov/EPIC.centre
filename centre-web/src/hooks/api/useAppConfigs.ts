@@ -6,8 +6,10 @@ import { QueryRequestParams } from "./types";
 export type AppConfig = {
   name: string;
   title: string;
+  client_name?: string;
   launch_url: string;
   app_user_management_url?: string;
+  admin_group_paths?: string[];
   is_active: boolean;
 };
 

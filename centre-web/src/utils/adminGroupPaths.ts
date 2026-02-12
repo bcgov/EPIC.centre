@@ -1,39 +1,24 @@
-import { EpicAppClientName, EpicAppName } from "@/models/EpicApp";
+import { EpicAppName } from "@/models/EpicApp";
 import { KCGroup } from "@/models/KCGroup";
 
-/**
- * Admin group paths for each Epic application.
- * Note: Paths are normalized WITHOUT leading slash to match backend pattern.
- * Backend: "CENTRE/SUPER_USER"
- * Frontend KCGroup.path has leading slash: "/CENTRE/SUPER_USER"
- */
-export const EPIC_CLIENT_TO_ADMIN_GROUP_PATHS: Record<
-  EpicAppClientName,
-  string
-> = {
-  [EpicAppClientName.EPIC_CENTRE]: "CENTRE/SUPER_USER",
-  [EpicAppClientName.EPIC_TRACK]: "TRACK/INSTANCE_ADMIN",
-  [EpicAppClientName.EPIC_COMPLIANCE]: "COMPLIANCE/SUPERUSER",
-  [EpicAppClientName.EPIC_ENGAGE]: "ENGAGE/INSTANCE_ADMIN",
-  [EpicAppClientName.EPIC_SUBMIT]: "SUBMIT/EAO_MANAGER",
-  [EpicAppClientName.CONDITION_REPOSITORY]: "CONDITION-REPO/ADMIN",
-  [EpicAppClientName.EPIC_PUBLIC]: "PUBLIC/SUPER_ADMIN",
-  [EpicAppClientName.DOCUMENT_SEARCH]: "", // No admin group
-};
+/** Map app_name -> admin group paths. From backend app-configs API. */
+export type AdminGroupPathsConfig = Record<string, string[]>;
+
+/** App config item with at least name and admin_group_paths */
+type AppConfigItem = { name: string; admin_group_paths?: string[] };
 
 /**
- * Map app names to client names for admin group lookups
+ * Build admin group paths config from app configs API response.
+ * Single source of truth from backend.
  */
-const EPIC_APP_NAME_TO_CLIENT_NAME: Record<EpicAppName, EpicAppClientName> = {
-  [EpicAppName.EPIC_CENTRE]: EpicAppClientName.EPIC_CENTRE,
-  [EpicAppName.EPIC_TRACK]: EpicAppClientName.EPIC_TRACK,
-  [EpicAppName.EPIC_COMPLIANCE]: EpicAppClientName.EPIC_COMPLIANCE,
-  [EpicAppName.EPIC_ENGAGE]: EpicAppClientName.EPIC_ENGAGE,
-  [EpicAppName.EPIC_SUBMIT]: EpicAppClientName.EPIC_SUBMIT,
-  [EpicAppName.CONDITION_REPOSITORY]: EpicAppClientName.CONDITION_REPOSITORY,
-  [EpicAppName.EPIC_PUBLIC]: EpicAppClientName.EPIC_PUBLIC,
-  [EpicAppName.DOCUMENT_SEARCH]: EpicAppClientName.DOCUMENT_SEARCH,
-  [EpicAppName.INTRANET]: EpicAppClientName.EPIC_PUBLIC, // Map to public for now
+export const buildAdminConfigFromAppConfigs = (
+  appConfigs: AppConfigItem[]
+): AdminGroupPathsConfig => {
+  const config: AdminGroupPathsConfig = {};
+  for (const app of appConfigs) {
+    config[app.name] = app.admin_group_paths ?? [];
+  }
+  return config;
 };
 
 /**
@@ -46,36 +31,37 @@ export const normalizeGroupPath = (path: string): string => {
 };
 
 /**
- * Check if user has a specific admin group
+ * Check if user has any of the given admin groups
  * @param groups - User's KCGroup array
- * @param adminGroupPath - The admin group path to check (without leading slash)
+ * @param adminGroupPaths - Admin group paths to check (without leading slash)
  * @returns boolean indicating membership
  */
-export const hasAdminGroup = (
+export const hasAnyAdminGroup = (
   groups: KCGroup[] | undefined,
-  adminGroupPath: string
+  adminGroupPaths: string[]
 ): boolean => {
-  if (!groups || !adminGroupPath) return false;
+  if (!groups || !adminGroupPaths.length) return false;
 
-  return groups.some(
-    (group) => normalizeGroupPath(group.path) === adminGroupPath
+  return groups.some((group) =>
+    adminGroupPaths.includes(normalizeGroupPath(group.path))
   );
 };
 
 /**
  * Check if user is admin of any Epic application
  * @param groups - User's KCGroup array
+ * @param adminConfig - Map of app_name -> admin_group_paths (from app-configs API)
  * @returns boolean indicating if user has any admin privileges
  */
-export const isAdminOfAnyApp = (groups: KCGroup[] | undefined): boolean => {
+export const isAdminOfAnyApp = (
+  groups: KCGroup[] | undefined,
+  adminConfig: AdminGroupPathsConfig
+): boolean => {
   if (!groups) return false;
 
-  const adminPaths = Object.values(EPIC_CLIENT_TO_ADMIN_GROUP_PATHS).filter(
-    (path) => path !== ""
-  );
-
+  const allPaths = new Set(Object.values(adminConfig).flat());
   return groups.some((group) =>
-    adminPaths.includes(normalizeGroupPath(group.path))
+    allPaths.has(normalizeGroupPath(group.path))
   );
 };
 
@@ -83,27 +69,29 @@ export const isAdminOfAnyApp = (groups: KCGroup[] | undefined): boolean => {
  * Check if user is admin of a specific app
  * @param groups - User's KCGroup array
  * @param appName - The EpicAppName to check
+ * @param adminConfig - Map of app_name -> admin_group_paths (from app-configs API)
  * @returns boolean indicating if user is admin of the app
  */
 export const isAdminOfApp = (
   groups: KCGroup[] | undefined,
-  appName: EpicAppName
+  appName: EpicAppName,
+  adminConfig: AdminGroupPathsConfig
 ): boolean => {
   if (!groups) return false;
 
-  const clientName = EPIC_APP_NAME_TO_CLIENT_NAME[appName];
-  const adminGroupPath = EPIC_CLIENT_TO_ADMIN_GROUP_PATHS[clientName];
-
-  return hasAdminGroup(groups, adminGroupPath);
+  const adminGroupPaths = adminConfig[appName] ?? [];
+  return hasAnyAdminGroup(groups, adminGroupPaths);
 };
 
 /**
  * Get admin status for all Epic applications
  * @param groups - User's KCGroup array
+ * @param adminConfig - Map of app_name -> admin_group_paths (from app-configs API)
  * @returns Record mapping each app to admin status
  */
 export const getAdminStatusPerApp = (
-  groups: KCGroup[] | undefined
+  groups: KCGroup[] | undefined,
+  adminConfig: AdminGroupPathsConfig
 ): Record<EpicAppName, boolean> => {
   const result: Record<EpicAppName, boolean> = {
     [EpicAppName.EPIC_CENTRE]: false,
@@ -120,7 +108,7 @@ export const getAdminStatusPerApp = (
   if (!groups) return result;
 
   (Object.keys(result) as EpicAppName[]).forEach((appName) => {
-    result[appName] = isAdminOfApp(groups, appName);
+    result[appName] = isAdminOfApp(groups, appName, adminConfig);
   });
 
   return result;
