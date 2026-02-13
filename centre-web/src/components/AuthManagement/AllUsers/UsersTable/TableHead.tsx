@@ -1,8 +1,26 @@
 import { CentreTableHeadCell } from "@/components/Shared/CentreTable";
-import { TableHead, TableRow } from "@mui/material";
+import { Box, TableHead, TableRow, TableSortLabel } from "@mui/material";
+import { visuallyHidden } from "@mui/utils";
 import { BCDesignTokens } from "epic.theme";
 
-export default function UsersTableHead() {
+export type SortField = "name" | "username";
+export type SortOrder = "asc" | "desc";
+
+type UsersTableHeadProps = Readonly<{
+  orderBy: SortField;
+  order: SortOrder;
+  onRequestSort: (event: React.MouseEvent<unknown>, field: SortField) => void;
+}>;
+
+export default function UsersTableHead({
+  orderBy,
+  order,
+  onRequestSort,
+}: UsersTableHeadProps) {
+  const createSortHandler = (field: SortField) => (event: React.MouseEvent<unknown>) => {
+    onRequestSort(event, field);
+  };
+
   return (
     <TableHead
       sx={{
@@ -13,10 +31,20 @@ export default function UsersTableHead() {
       }}
     >
       <TableRow>
-        <CentreTableHeadCell sx={{ width: "85%" }}>User Name</CentreTableHeadCell>
-        {/* <CentreTableHeadCell sx={{ width: "65%" }}>
-          Application
-        </CentreTableHeadCell> */}
+        <CentreTableHeadCell sx={{ width: "85%" }}>
+          <TableSortLabel
+            active={orderBy === "name"}
+            direction={orderBy === "name" ? order : "asc"}
+            onClick={createSortHandler("name")}
+          >
+            User Name
+            {orderBy === "name" ? (
+              <Box component="span" sx={visuallyHidden}>
+                {order === "desc" ? "sorted descending" : "sorted ascending"}
+              </Box>
+            ) : null}
+          </TableSortLabel>
+        </CentreTableHeadCell>
         <CentreTableHeadCell sx={{ width: "15%" }}>Action</CentreTableHeadCell>
       </TableRow>
     </TableHead>
