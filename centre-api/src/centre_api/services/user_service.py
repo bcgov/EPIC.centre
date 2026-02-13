@@ -42,14 +42,16 @@ class UserService:
     def get_users(cls, search_text: str = None, include_groups: bool = True):
         """Retrieve users and enrich them with application access information."""
         users = AuthApiService.get_users(search_text, include_groups)
-        return [cls._enrich_user_with_apps(user) for user in users]
+        current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
+        return [cls._enrich_user_with_apps(user, current_user) for user in users]
 
     @staticmethod
-    def _enrich_user_with_apps(user):
+    def _enrich_user_with_apps(user, current_user=None):
         """Enrich a single user dictionary with app names and highest level roles based on their groups."""
         app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None, 'group_name': None, 'group_path': None})
 
-        current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
+        if current_user is None:
+            current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
         current_user_is_dst_admin = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
         for group in user.get('groups', []):
             path = group.get('path', '')
