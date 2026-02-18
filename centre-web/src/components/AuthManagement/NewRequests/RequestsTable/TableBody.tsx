@@ -7,6 +7,17 @@ import { CentreLink } from "@/components/Shared/CentreLink";
 import { getAppChipTitle } from "../../utils";
 import { AppChip } from "@/components/Shared/AppChip";
 import { useNavigate } from "@tanstack/react-router";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+
+const formatRequestedDate = (isoDateString: string | null | undefined): string => {
+  if (!isoDateString) return "";
+  const date = dayjs.utc(isoDateString);
+  if (!date.isValid()) return "";
+  return date.local().format("YYYY-MM-DD");
+};
 
 type GroupedRequest = Partial<CentreUser> & {
   requests: AccessRequest[];
@@ -36,11 +47,22 @@ export const RequestsTableBody: React.FC<TableBodyProps> = ({
     });
   };
 
+  const getEarliestRequestedDate = (requests: AccessRequest[]) => {
+    const dates = requests
+      .map((r) => r.created_date)
+      .filter((d): d is string => d != null);
+    if (dates.length === 0) return "";
+    const earliest = [...dates].sort((a, b) =>
+      new Date(a).getTime() - new Date(b).getTime(),
+    )[0];
+    return formatRequestedDate(earliest);
+  };
+
   if (isLoading) {
     return (
       <TableBody>
         <TableRow>
-          <CentreTableCell colSpan={3}>
+          <CentreTableCell colSpan={4}>
             <Stack direction="column" alignItems="center">
               Loading...
               <LinearProgress sx={{ width: "100%" }} />
@@ -55,7 +77,7 @@ export const RequestsTableBody: React.FC<TableBodyProps> = ({
     return (
       <TableBody>
         <TableRow>
-          <CentreTableCell colSpan={3} align="center">
+          <CentreTableCell colSpan={4} align="center">
             Error loading requests
           </CentreTableCell>
         </TableRow>
@@ -67,7 +89,7 @@ export const RequestsTableBody: React.FC<TableBodyProps> = ({
     return (
       <TableBody>
         <TableRow>
-          <CentreTableCell colSpan={3} align="center">
+          <CentreTableCell colSpan={4} align="center">
             {searchText
               ? `No requests found matching "${searchText}"`
               : "No requests found"}
@@ -82,6 +104,9 @@ export const RequestsTableBody: React.FC<TableBodyProps> = ({
       {userRequests.map((user) => (
         <TableRow key={user.user_auth_guid}>
           <CentreTableCell>{`${user.last_name ?? ""}, ${user.first_name ?? ""}`}</CentreTableCell>
+          <CentreTableCell>
+            {getEarliestRequestedDate(user.requests)}
+          </CentreTableCell>
           <CentreTableCell sx={{ height: "35px" }}>
             <Stack direction="row" spacing={1} flexWrap="wrap">
               {user.requests.map((request: any) => (
@@ -105,7 +130,7 @@ export const RequestsTableBody: React.FC<TableBodyProps> = ({
           (_, idx) => (
             <TableRow key={`empty-row-${userRequests.length}-${idx}`}>
               <CentreTableCell
-                colSpan={3}
+                colSpan={4}
                 style={{
                   height: "35px",
                   border: "1px solid transparent",

@@ -7,6 +7,17 @@ import { CentreLink } from "@/components/Shared/CentreLink";
 import { AccessRequest } from "@/models/AccessRequest";
 import { CentreUser } from "@/models/CentreUser";
 import { Table, TableBody, TableContainer, TableRow } from "@mui/material";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+
+const formatRequestedDate = (isoDateString: string | null | undefined): string => {
+  if (!isoDateString) return "";
+  const date = dayjs.utc(isoDateString);
+  if (!date.isValid()) return "";
+  return date.local().format("YYYY-MM-DD");
+};
 import { getAppChipTitle } from "../../utils";
 import { useModal } from "@/components/Shared/Modals/modalStore";
 import { EditAccessModal } from "../../EditAccess";
@@ -89,6 +100,18 @@ export const NewRequestsTable = ({
             <CentreTableHeadCell
               sx={{
                 width: {
+                  xs: "18%",
+                  sm: "18%",
+                  md: "15%",
+                  lg: "15%",
+                },
+              }}
+            >
+              Requested Date
+            </CentreTableHeadCell>
+            <CentreTableHeadCell
+              sx={{
+                width: {
                   xs: "28%",
                   sm: "30%",
                   md: "20%",
@@ -129,6 +152,9 @@ export const NewRequestsTable = ({
                 <CentreTableCell>
                   {getAppChipTitle(request.app.name)}
                 </CentreTableCell>
+                <CentreTableCell>
+                  {formatRequestedDate(request.created_date)}
+                </CentreTableCell>
                 <CentreTableCell>--</CentreTableCell>
                 <CentreTableCell>
                   <CentreLink onClick={() => handleEditAccess(request)}>
@@ -149,7 +175,7 @@ export const NewRequestsTable = ({
             ))
           ) : (
             <TableRow>
-              <CentreTableCell align="center" colSpan={4}>
+              <CentreTableCell align="center" colSpan={5}>
                 No pending access requests.
               </CentreTableCell>
             </TableRow>
