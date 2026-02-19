@@ -1,27 +1,75 @@
-import { Button, Grid, IconButton, Stack, TextField } from "@mui/material";
+import {
+  Button,
+  FormControl,
+  Grid,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  TextField,
+} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { UsersTable } from "./UsersTable";
+import { useCurrentUser } from "@/contexts/UserContext";
 import { useGetUsers } from "@/hooks/api/useUsers";
-import { useState } from "react";
+import {
+  ALL_USERS_FILTER_APP_NAMES,
+  APP_ACCESS_LEVELS,
+} from "@/models/EpicApp";
+import { useState, useMemo } from "react";
+import { getAppChipTitle } from "../utils";
+
+const ALL_VALUE = "";
+
+/** Normalize group path for comparison (Keycloak may return paths with leading/trailing slashes or different casing). */
+function normalizeGroupPath(path: string | null | undefined): string {
+  if (path == null || path === "") return "";
+  return path.replaceAll(/(^(?:\/)+)|((?:\/)+$)/g, "").toUpperCase();
+}
 
 export const AllUsers = () => {
+  const { isDstAdmin } = useCurrentUser();
   const [searchText, setSearchText] = useState("");
+  const [selectedAppName, setSelectedAppName] = useState<string>(ALL_VALUE);
+  const [selectedAccessLevelGroupPath, setSelectedAccessLevelGroupPath] =
+    useState<string>(ALL_VALUE);
 
-  const [queryParams, setQueryParams] = useState<{
-    search?: string;
-    include_groups?: boolean;
-  }>({});
+  const [queryParams, setQueryParams] = useState<{ search?: string }>({});
   const {
     data: users = [],
     isLoading,
     isError,
-  } = useGetUsers({
-    ...queryParams,
-    include_groups: false,
-  });
+  } = useGetUsers(queryParams);
 
-  const filteredUsers = users.filter((user) => user.username.includes("@idir"));
+  const accessLevels = selectedAppName
+    ? APP_ACCESS_LEVELS[selectedAppName] ?? []
+    : [];
+
+  const filteredUsers = useMemo(() => {
+    let result = users.filter((user) => user.username.includes("@idir"));
+
+    if (selectedAppName) {
+      const normalizedSelectedPath = selectedAccessLevelGroupPath
+        ? normalizeGroupPath(selectedAccessLevelGroupPath)
+        : null;
+      result = result.filter((user) =>
+        user.apps?.some((app) => {
+          if (app.name !== selectedAppName) return false;
+          const path = normalizeGroupPath(app.group_path);
+          // User must have an actual access level (non-empty path) for this app
+          if (!path) return false;
+          if (normalizedSelectedPath) {
+            return path === normalizedSelectedPath;
+          }
+          return true; // Access level "All": show users with any access to this app
+        }),
+      );
+    }
+
+    return result;
+  }, [users, selectedAppName, selectedAccessLevelGroupPath]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(event.target.value);
@@ -29,11 +77,15 @@ export const AllUsers = () => {
 
   const handleSearchTrigger = () => {
     setQueryParams({ search: searchText });
+    setSelectedAppName(ALL_VALUE);
+    setSelectedAccessLevelGroupPath(ALL_VALUE);
   };
 
   const handleClearSearch = () => {
     setSearchText("");
     setQueryParams({ search: "" });
+    setSelectedAppName(ALL_VALUE);
+    setSelectedAccessLevelGroupPath(ALL_VALUE);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -42,10 +94,15 @@ export const AllUsers = () => {
     }
   };
 
+  const handleAppChange = (value: string) => {
+    setSelectedAppName(value);
+    setSelectedAccessLevelGroupPath(ALL_VALUE);
+  };
+
   return (
     <Grid container spacing={2} mt={"1em"}>
       <Grid item xs={12}>
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
           <TextField
             variant="outlined"
             placeholder="Enter the first three letters of the user’s First or Last name"
@@ -86,6 +143,64 @@ export const AllUsers = () => {
           >
             <SearchIcon sx={{ height: "30px", width: "30px" }} />
           </Button>
+          {isDstAdmin && (
+            <>
+              <FormControl size="small" sx={{ minWidth: 180 }}>
+                <InputLabel id="all-users-app-filter-label">
+                  Application
+                </InputLabel>
+                <Select
+                  labelId="all-users-app-filter-label"
+                  value={selectedAppName}
+                  label="Application"
+                  onChange={(e) => handleAppChange(e.target.value)}
+                >
+                  <MenuItem value={ALL_VALUE}>All</MenuItem>
+                  {ALL_USERS_FILTER_APP_NAMES.map((name) => (
+                    <MenuItem key={name} value={name}>
+                      {getAppChipTitle(name)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl
+                size="small"
+                sx={{
+                  minWidth: 180,
+                  "& .MuiInputBase-root.Mui-disabled": {
+                    backgroundColor: "#f5f5f5",
+                  },
+                  "& .MuiInputBase-input.Mui-disabled": {
+                    WebkitTextFillColor: "#9e9e9e",
+                    color: "#9e9e9e",
+                  },
+                  "& .MuiInputLabel-root.Mui-disabled": {
+                    color: "#9e9e9e",
+                  },
+                }}
+                disabled={!selectedAppName}
+              >
+                <InputLabel id="all-users-access-level-filter-label">
+                  Access level
+                </InputLabel>
+                <Select
+                  labelId="all-users-access-level-filter-label"
+                  value={selectedAccessLevelGroupPath}
+                  label="Access level"
+                  onChange={(e) =>
+                    setSelectedAccessLevelGroupPath(e.target.value)
+                  }
+                >
+                  <MenuItem value={ALL_VALUE}>All</MenuItem>
+                  {accessLevels.map((level) => (
+                    <MenuItem key={level.group_path} value={level.group_path}>
+                      {level.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </>
+          )}
         </Stack>
       </Grid>
       <Grid item xs={12}>
