@@ -42,6 +42,8 @@ const INTRANET_HUB_URL =
 
 export const AppConfig = {
   apiUrl: `${API_URL}/api`,
+  /** Base URL of the centre API (no /api suffix). Used by @epic/centre-analytics. */
+  apiBaseUrl: API_URL,
   environment: APP_ENVIRONMENT,
   version: APP_VERSION,
   appTitle: APP_TITLE,
