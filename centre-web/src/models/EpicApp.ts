@@ -75,8 +75,8 @@ export const APP_ACCESS_LEVELS: Readonly<Record<string, AppAccessLevelOption[]>>
     { group_path: "ENGAGE/VIEWER", name: "Viewer" },
   ],
   [EpicAppName.EPIC_PUBLIC]: [
-    { group_path: "PUBLIC/ADMIN", name: "Admin" },
-    { group_path: "PUBLIC/VIEWER", name: "Viewer" },
+    { group_path: "PUBLIC/INSTANCE_ADMIN", name: "Instance Admin" },
+    { group_path: "PUBLIC/STAFF", name: "Staff" },
   ],
   [EpicAppName.EPIC_SUBMIT]: [
     { group_path: "SUBMIT/EAO_MANAGER", name: "Manager" },

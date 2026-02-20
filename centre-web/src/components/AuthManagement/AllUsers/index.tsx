@@ -19,7 +19,40 @@ import {
   APP_ACCESS_LEVELS,
 } from "@/models/EpicApp";
 import { useState, useMemo } from "react";
+import { BCDesignTokens } from "epic.theme";
 import { getAppChipTitle } from "../utils";
+
+const DROPDOWN_MIN_WIDTH = 250;
+const borderColor = BCDesignTokens.surfaceColorBorderDefault;
+/** Border styles for Application and Access level dropdowns (match search field). */
+const dropdownInputSx = {
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderWidth: "1px !important",
+    borderColor: `${borderColor} !important`,
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: `${borderColor} !important`,
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderWidth: "1px !important",
+    borderColor: `${borderColor} !important`,
+  },
+};
+/** Disabled state for Access level dropdown (light gray background only). Applied on FormControl so it targets the input inside. */
+const disabledAccessLevelFormControlSx = {
+  "& .MuiInputBase-root.Mui-disabled": {
+    backgroundColor: "#f5f5f5 !important",
+  },
+  "& .Mui-disabled.MuiInputBase-root": {
+    backgroundColor: "#f5f5f5 !important",
+  },
+  "& .MuiOutlinedInput-root.Mui-disabled": {
+    backgroundColor: "#f5f5f5 !important",
+  },
+  "& .MuiInputBase-root.Mui-disabled .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#e0e0e0",
+  },
+};
 
 const ALL_VALUE = "";
 
@@ -145,7 +178,7 @@ export const AllUsers = () => {
           </Button>
           {isDstAdmin && (
             <>
-              <FormControl size="small" sx={{ minWidth: 180 }}>
+              <FormControl size="small" sx={{ minWidth: DROPDOWN_MIN_WIDTH }}>
                 <InputLabel id="all-users-app-filter-label">
                   Application
                 </InputLabel>
@@ -154,6 +187,7 @@ export const AllUsers = () => {
                   value={selectedAppName}
                   label="Application"
                   onChange={(e) => handleAppChange(e.target.value)}
+                  sx={dropdownInputSx}
                 >
                   <MenuItem value={ALL_VALUE}>All</MenuItem>
                   {ALL_USERS_FILTER_APP_NAMES.map((name) => (
@@ -166,17 +200,8 @@ export const AllUsers = () => {
               <FormControl
                 size="small"
                 sx={{
-                  minWidth: 180,
-                  "& .MuiInputBase-root.Mui-disabled": {
-                    backgroundColor: "#f5f5f5",
-                  },
-                  "& .MuiInputBase-input.Mui-disabled": {
-                    WebkitTextFillColor: "#9e9e9e",
-                    color: "#9e9e9e",
-                  },
-                  "& .MuiInputLabel-root.Mui-disabled": {
-                    color: "#9e9e9e",
-                  },
+                  minWidth: DROPDOWN_MIN_WIDTH,
+                  ...disabledAccessLevelFormControlSx,
                 }}
                 disabled={!selectedAppName}
               >
@@ -190,6 +215,12 @@ export const AllUsers = () => {
                   onChange={(e) =>
                     setSelectedAccessLevelGroupPath(e.target.value)
                   }
+                  sx={{
+                    ...dropdownInputSx,
+                    "&.Mui-disabled": {
+                      backgroundColor: "#f5f5f5 !important",
+                    },
+                  }}
                 >
                   <MenuItem value={ALL_VALUE}>All</MenuItem>
                   {accessLevels.map((level) => (
