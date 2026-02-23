@@ -21,7 +21,7 @@ const getUsers = (params: GetUsersParams) => {
 
 export const useGetUsers = (params: GetUsersParams = {}) => {
   return useQuery({
-    queryKey: [QUERY_KEY.USERS, params.search],
+    queryKey: [QUERY_KEY.USERS, params.search, params.include_groups],
     queryFn: () => getUsers(params),
   });
 };
