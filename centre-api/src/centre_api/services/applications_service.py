@@ -89,7 +89,7 @@ class ApplicationsService:
             return []
 
         apps = ApplicationModel.get_all()
-        apps = [(app, user_app) for app, user_app in apps if app.name in accessed_apps]
+        apps = [(app, user_app) for app, user_app in apps if app.name in accessed_apps and app.is_active]
 
         user_access_levels = cls._get_current_user_access_levels()
         user_auth_username = TokenInfo.get_username()
@@ -126,7 +126,7 @@ class ApplicationsService:
         apps = ApplicationModel.get_all()
         exception_apps = {EpicAppName.CONDITION_REPOSITORY.value, EpicAppName.EPIC_COMPLIANCE.value,
                           EpicAppName.DOCUMENT_SEARCH.value, EpicAppName.INTRANET.value}
-        filtered_apps = [(app, user_app) for app, user_app in apps if app.name not in exception_apps]
+        filtered_apps = [(app, user_app) for app, user_app in apps if app.name not in exception_apps and app.is_active]
 
         access_levels = cls._get_current_user_access_levels()
         accessed_apps = set(access_levels.keys())
