@@ -17,7 +17,7 @@ export const EPIC_CLIENT_TO_ADMIN_GROUP_PATHS: Record<
   [EpicAppClientName.EPIC_ENGAGE]: "ENGAGE/EAO_IT_ADMIN",
   [EpicAppClientName.EPIC_SUBMIT]: "SUBMIT/EAO_MANAGER",
   [EpicAppClientName.CONDITION_REPOSITORY]: "CONDITION-REPO/ADMIN",
-  [EpicAppClientName.EPIC_PUBLIC]: "PUBLIC/SUPER_ADMIN",
+  [EpicAppClientName.EPIC_PUBLIC]: "PUBLIC/INSTANCE_ADMIN",
   [EpicAppClientName.DOCUMENT_SEARCH]: "", // No admin group
 };
 
