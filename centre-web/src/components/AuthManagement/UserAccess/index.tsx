@@ -1,6 +1,6 @@
 import { GreenBadge, GreyBadge } from "@/components/Shared/Badges";
 import BarTitle from "@/components/Shared/BarTitle.tsx";
-import { Box, Grid, Stack, Typography, Tooltip } from "@mui/material";
+import { Alert, Box, Grid, Stack, Typography, Tooltip } from "@mui/material";
 import { BCDesignTokens } from "epic.theme";
 import { NewAccessRequests } from "./NewAccessRequests";
 import { CurrentAccessLevel } from "./CurrentAccessLevel";
@@ -110,26 +110,54 @@ export const UserAccess = () => {
           item
           xs={12}
           container
-          alignItems={"flex-end"}
-          justifyContent={"flex-end"}
+          alignItems={"flex-start"}
+          justifyContent={"space-between"}
+          gap={2}
+          sx={{ mt: "10px", mb: "10px" }}
         >
-          {canManageUserStatus ? (
-            <LoadingButton
-              variant="outlined"
-              onClick={() => handleEnableUser(!user?.enabled)}
-              loading={isUpdating}
+          <Grid item xs sx={{ minWidth: 0, flex: 1}}>
+            {user && !user.enabled && (
+            <Alert
+              severity="warning"
+              icon={false}
+              sx={{
+                backgroundColor: "#FCF8E3",
+                border: "1px solid #F7DF79",
+                "& .MuiAlert-message": { width: "100%" },
+              }}
             >
-              {user?.enabled ? "Disable User" : "Enable User"}
-            </LoadingButton>
-          ) : (
-            <Tooltip title={disableButtonTooltip}>
-              <span>
-                <LoadingButton variant="outlined" disabled loading={isUpdating}>
-                  {user?.enabled ? "Disable User" : "Enable User"}
-                </LoadingButton>
-              </span>
-            </Tooltip>
-          )}
+                <Typography variant="body2" component="span">
+                  This user is disabled. This means they won&apos;t be able to
+                  access any EPIC applications. To re-enable this user, click the &quot;Enable&quot; button to
+                  the right.
+                </Typography>
+
+              </Alert>
+            )}
+          </Grid>
+          <Grid item sx={{ flexShrink: 0 }}>
+            {canManageUserStatus ? (
+              <LoadingButton
+                variant="outlined"
+                onClick={() => handleEnableUser(!user?.enabled)}
+                loading={isUpdating}
+              >
+                {user?.enabled ? "Disable User" : "Enable User"}
+              </LoadingButton>
+            ) : (
+              <Tooltip title={disableButtonTooltip}>
+                <span>
+                  <LoadingButton
+                    variant="outlined"
+                    disabled
+                    loading={isUpdating}
+                  >
+                    {user?.enabled ? "Disable User" : "Enable User"}
+                  </LoadingButton>
+                </span>
+              </Tooltip>
+            )}
+          </Grid>
         </Grid>
         <Grid item xs={12}>
           <NewAccessRequests user={user} />
