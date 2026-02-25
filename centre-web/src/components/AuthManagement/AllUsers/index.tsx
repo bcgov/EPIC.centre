@@ -69,6 +69,16 @@ export const AllUsers = () => {
     }
   }, [selectedAppName, accessLevels]);
 
+  // When the selected app has only one access level, default to it (e.g. Cond. Repo. → Admin)
+  useEffect(() => {
+    if (!selectedAppName) {
+      return;
+    }
+    if (accessLevels.length === 1) {
+      setSelectedAccessLevelGroupPath(accessLevels[0].group_path);
+    }
+  }, [selectedAppName, accessLevels]);
+
   const filteredUsers = useMemo(() => {
     let result = users.filter((user) => user.username.includes("@idir"));
 
