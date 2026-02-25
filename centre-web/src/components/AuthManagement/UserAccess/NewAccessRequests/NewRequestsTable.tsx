@@ -7,6 +7,17 @@ import { CentreLink } from "@/components/Shared/CentreLink";
 import { AccessRequest } from "@/models/AccessRequest";
 import { CentreUser } from "@/models/CentreUser";
 import { Table, TableBody, TableContainer, TableRow } from "@mui/material";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+
+const formatRequestedDate = (isoDateString: string | null | undefined): string => {
+  if (!isoDateString) return "";
+  const date = dayjs.utc(isoDateString);
+  if (!date.isValid()) return "";
+  return date.local().format("YYYY-MM-DD");
+};
 import { getAppChipTitle } from "../../utils";
 import { useModal } from "@/components/Shared/Modals/modalStore";
 import { EditAccessModal } from "../../EditAccess";
@@ -69,8 +80,19 @@ export const NewRequestsTable = ({
 
     setModalOpen(modalWithFocusReturn);
   };
+
+  const isDisabled = user && !user.enabled;
+
   return (
-    <TableContainer>
+    <TableContainer
+      sx={
+        isDisabled
+          ? {
+              pointerEvents: "none",
+            }
+          : undefined
+      }
+    >
       <Table>
         <CentreTableHead>
           <TableRow>
@@ -85,6 +107,18 @@ export const NewRequestsTable = ({
               }}
             >
               Application
+            </CentreTableHeadCell>
+            <CentreTableHeadCell
+              sx={{
+                width: {
+                  xs: "18%",
+                  sm: "18%",
+                  md: "15%",
+                  lg: "15%",
+                },
+              }}
+            >
+              Requested Date
             </CentreTableHeadCell>
             <CentreTableHeadCell
               sx={{
@@ -129,13 +163,36 @@ export const NewRequestsTable = ({
                 <CentreTableCell>
                   {getAppChipTitle(request.app.name)}
                 </CentreTableCell>
-                <CentreTableCell>--</CentreTableCell>
-                <CentreTableCell>
-                  <CentreLink onClick={() => handleEditAccess(request)}>
+                <CentreTableCell
+                  sx={
+                    isDisabled
+                      ? { color: "#898785" }
+                      : undefined
+                  }
+                >
+                  --
+                </CentreTableCell>
+                <CentreTableCell
+                  sx={
+                    isDisabled
+                      ? { color: "#898785" }
+                      : undefined
+                  }
+                >
+                  <CentreLink
+                    disabled={isDisabled}
+                    onClick={() => handleEditAccess(request)}
+                  >
                     Edit Access
                   </CentreLink>
                 </CentreTableCell>
-                <CentreTableCell sx={{ minHeight: "40px" }}>
+                <CentreTableCell
+                  sx={
+                    isDisabled
+                      ? { color: "#898785", minHeight: "40px" }
+                      : { minHeight: "40px" }
+                  }
+                >
                   <AppUserManagementButton
                     appUserManagementUrl={appUrlMap.get(request.app.name)}
                     supportsGranularRoleManagement={
@@ -143,13 +200,22 @@ export const NewRequestsTable = ({
                         request.app.name,
                       ) ?? false
                     }
+                    disabled={isDisabled}
                   />
                 </CentreTableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <CentreTableCell align="center" colSpan={4}>
+              <CentreTableCell
+                align="center"
+                colSpan={4}
+                sx={
+                  isDisabled
+                    ? { color: "#898785" }
+                    : undefined
+                }
+              >
                 No pending access requests.
               </CentreTableCell>
             </TableRow>

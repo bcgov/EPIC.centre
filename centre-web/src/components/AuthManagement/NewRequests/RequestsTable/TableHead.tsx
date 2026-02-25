@@ -16,7 +16,10 @@ export default function RequestsTableHead() {
         <CentreTableHeadCell sx={{ width: "20%" }}>
           User Name
         </CentreTableHeadCell>
-        <CentreTableHeadCell sx={{ width: "65%" }}>
+        <CentreTableHeadCell sx={{ width: "15%" }}>
+          Requested Date
+        </CentreTableHeadCell>
+        <CentreTableHeadCell sx={{ width: "50%" }}>
           Application
         </CentreTableHeadCell>
         <CentreTableHeadCell sx={{ width: "15%" }}>Action</CentreTableHeadCell>

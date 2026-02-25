@@ -19,9 +19,12 @@ import {
   dropdownInputSx,
 } from "@/components/Shared/filterDropdownStyles";
 import { useGetUsers } from "@/hooks/api/useUsers";
-import { useGeteApplicationAccessLevels } from "@/hooks/api/useApplications";
 import { ALL_USERS_FILTER_APP_NAMES } from "@/models/EpicApp";
+import { useState, useMemo } from "react";
 import { getAppChipTitle } from "../utils";
+import { useGeteApplicationAccessLevels } from "@/hooks/api/useApplications";
+
+
 
 const DROPDOWN_MIN_WIDTH = 250;
 
