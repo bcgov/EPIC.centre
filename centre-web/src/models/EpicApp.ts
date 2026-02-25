@@ -49,46 +49,6 @@ export const ALL_USERS_FILTER_APP_NAMES: string[] = [
   EpicAppName.EPIC_TRACK,
 ];
 
-/** Access level option for filter dropdown (group_path must match user.apps[].group_path from API). */
-export type AppAccessLevelOption = { group_path: string; name: string };
-
-/**
- * Static map of app name → access levels for the All Users filter dropdown.
- * Eliminates API delay; group_path values must match Keycloak/API (paths are normalized when comparing).
- * Add or update entries here if new roles are added in Keycloak.
- */
-export const APP_ACCESS_LEVELS: Readonly<Record<string, AppAccessLevelOption[]>> = {
-  [EpicAppName.CONDITION_REPOSITORY]: [
-    { group_path: "CONDITION-REPO/ADMIN", name: "Admin" },
-  ],
-  [EpicAppName.EPIC_CENTRE]: [
-    { group_path: "CENTRE/SUPER_USER", name: "Super User" },
-    { group_path: "CENTRE/ADMIN", name: "Admin" },
-  ],
-  [EpicAppName.EPIC_COMPLIANCE]: [
-    { group_path: "COMPLIANCE/SUPERUSER", name: "Super User" },
-    { group_path: "COMPLIANCE/VIEWER", name: "Viewer" },
-  ],
-  [EpicAppName.EPIC_ENGAGE]: [
-    { group_path: "ENGAGE/INSTANCE_ADMIN", name: "Super User" },
-    { group_path: "ENGAGE/EAO_IT_ADMIN", name: "Admin" },
-    { group_path: "ENGAGE/VIEWER", name: "Viewer" },
-  ],
-  [EpicAppName.EPIC_PUBLIC]: [
-    { group_path: "PUBLIC/INSTANCE_ADMIN", name: "Instance Admin" },
-    { group_path: "PUBLIC/STAFF", name: "Staff" },
-  ],
-  [EpicAppName.EPIC_SUBMIT]: [
-    { group_path: "SUBMIT/EAO_MANAGER", name: "Manager" },
-    { group_path: "SUBMIT/VIEWER", name: "Viewer" },
-  ],
-  [EpicAppName.EPIC_TRACK]: [
-    { group_path: "TRACK/SUPER_USER", name: "Super User" },
-    { group_path: "TRACK/INSTANCE_ADMIN", name: "Admin" },
-    { group_path: "TRACK/VIEWER", name: "Viewer" },
-  ],
-};
-
 export enum EpicAppClientName {
   CONDITION_REPOSITORY = "epic-condition",
   EPIC_COMPLIANCE = "epic-compliance",
