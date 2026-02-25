@@ -163,6 +163,9 @@ export const NewRequestsTable = ({
                 <CentreTableCell>
                   {getAppChipTitle(request.app.name)}
                 </CentreTableCell>
+                <CentreTableCell>
+                  {formatRequestedDate(request.created_date)}
+                </CentreTableCell>
                 <CentreTableCell
                   sx={
                     isDisabled
@@ -209,7 +212,7 @@ export const NewRequestsTable = ({
             <TableRow>
               <CentreTableCell
                 align="center"
-                colSpan={4}
+                colSpan={5}
                 sx={
                   isDisabled
                     ? { color: "#898785" }
