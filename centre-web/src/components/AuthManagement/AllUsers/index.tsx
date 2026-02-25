@@ -11,16 +11,16 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { UsersTable } from "./UsersTable";
 import { useCurrentUser } from "@/contexts/UserContext";
 import {
   disabledAccessLevelFormControlSx,
   dropdownInputSx,
+  dropdownLabelSx,
 } from "@/components/Shared/filterDropdownStyles";
 import { useGetUsers } from "@/hooks/api/useUsers";
 import { ALL_USERS_FILTER_APP_NAMES } from "@/models/EpicApp";
-import { useState, useMemo } from "react";
 import { getAppChipTitle } from "../utils";
 import { useGeteApplicationAccessLevels } from "@/hooks/api/useApplications";
 
@@ -55,6 +55,16 @@ export const AllUsers = () => {
     enabled: !!selectedAppName,
   });
   const accessLevels = selectedAppName ? rawAccessLevels : [];
+
+  // When the selected app has only one access level, default to it (e.g. Cond. Repo. → Admin)
+  useEffect(() => {
+    if (!selectedAppName) {
+      return;
+    }
+    if (accessLevels.length === 1) {
+      setSelectedAccessLevelGroupPath(accessLevels[0].group_path);
+    }
+  }, [selectedAppName, accessLevels]);
 
   const filteredUsers = useMemo(() => {
     let result = users.filter((user) => user.username.includes("@idir"));
@@ -154,7 +164,10 @@ export const AllUsers = () => {
           </Button>
           {isDstAdmin && (
             <>
-              <FormControl size="small" sx={{ minWidth: DROPDOWN_MIN_WIDTH }}>
+              <FormControl
+                size="small"
+                sx={{ minWidth: DROPDOWN_MIN_WIDTH, ...dropdownLabelSx }}
+              >
                 <InputLabel id="all-users-app-filter-label">
                   Application
                 </InputLabel>
@@ -177,6 +190,7 @@ export const AllUsers = () => {
                 size="small"
                 sx={{
                   minWidth: DROPDOWN_MIN_WIDTH,
+                  ...dropdownLabelSx,
                   ...disabledAccessLevelFormControlSx,
                 }}
                 disabled={!selectedAppName}
