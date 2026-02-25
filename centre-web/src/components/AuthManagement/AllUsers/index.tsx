@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import CancelIcon from "@mui/icons-material/Cancel";
+import { useState, useMemo } from "react";
 import { UsersTable } from "./UsersTable";
 import { useCurrentUser } from "@/contexts/UserContext";
 import {
@@ -18,11 +19,8 @@ import {
   dropdownInputSx,
 } from "@/components/Shared/filterDropdownStyles";
 import { useGetUsers } from "@/hooks/api/useUsers";
-import {
-  ALL_USERS_FILTER_APP_NAMES,
-  APP_ACCESS_LEVELS,
-} from "@/models/EpicApp";
-import { useState, useMemo } from "react";
+import { useGeteApplicationAccessLevels } from "@/hooks/api/useApplications";
+import { ALL_USERS_FILTER_APP_NAMES } from "@/models/EpicApp";
 import { getAppChipTitle } from "../utils";
 
 const DROPDOWN_MIN_WIDTH = 250;
@@ -49,9 +47,11 @@ export const AllUsers = () => {
     isError,
   } = useGetUsers(queryParams);
 
-  const accessLevels = selectedAppName
-    ? APP_ACCESS_LEVELS[selectedAppName] ?? []
-    : [];
+  const { data: rawAccessLevels = [] } = useGeteApplicationAccessLevels({
+    appName: selectedAppName,
+    enabled: !!selectedAppName,
+  });
+  const accessLevels = selectedAppName ? rawAccessLevels : [];
 
   const filteredUsers = useMemo(() => {
     let result = users.filter((user) => user.username.includes("@idir"));
