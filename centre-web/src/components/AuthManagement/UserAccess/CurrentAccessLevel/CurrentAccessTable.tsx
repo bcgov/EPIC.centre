@@ -75,8 +75,19 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
     }));
   }, [user, appSupportsGranularRoleManagementMap]);
 
+  const isDisabled = user && !user.enabled;
+
   return (
-    <TableContainer>
+    <TableContainer
+      sx={
+        isDisabled
+          ? {
+              color: "#898785",
+              pointerEvents: "none",
+            }
+          : undefined
+      }
+    >
       <Table>
         <CentreTableHead>
           <TableRow>
@@ -133,25 +144,61 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
             apps.map((app) => (
               <TableRow key={app.name}>
                 <CentreTableCell>{getAppChipTitle(app.name)}</CentreTableCell>
-                <CentreTableCell>{app.role ?? "--"}</CentreTableCell>
-                <CentreTableCell>
-                  <CentreLink onClick={() => handleAddEditAccess(app)}>
+                <CentreTableCell
+                  sx={
+                    isDisabled
+                      ? {
+                          color: "#898785",
+                        }
+                      : undefined
+                  }
+                >
+                  {app.role ?? "--"}
+                </CentreTableCell>
+                <CentreTableCell
+                  sx={
+                    isDisabled
+                      ? { color: "#898785" }
+                      : undefined
+                  }
+                >
+                  <CentreLink
+                    disabled={isDisabled}
+                    onClick={() => handleAddEditAccess(app)}
+                  >
                     Edit Access
                   </CentreLink>
                 </CentreTableCell>
-                <CentreTableCell sx={{ minHeight: "40px" }}>
+                <CentreTableCell
+                  sx={
+                    isDisabled
+                      ? { color: "#898785", minHeight: "40px" }
+                      : { minHeight: "40px" }
+                  }
+                >
                   <AppUserManagementButton
                     appUserManagementUrl={appUrlMap.get(app.name)}
                     supportsGranularRoleManagement={
                       app.supportsGranularRoleManagement ?? false
                     }
+                    disabled={isDisabled}
                   />
                 </CentreTableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <CentreTableCell align="center" colSpan={4}>
+              <CentreTableCell
+                align="center"
+                colSpan={4}
+                sx={
+                  isDisabled
+                    ? {
+                        color: "#898785",
+                      }
+                    : undefined
+                }
+              >
                 No Existing access.
               </CentreTableCell>
             </TableRow>

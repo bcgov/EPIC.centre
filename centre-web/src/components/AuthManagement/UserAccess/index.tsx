@@ -1,6 +1,6 @@
 import { GreenBadge, GreyBadge } from "@/components/Shared/Badges";
 import BarTitle from "@/components/Shared/BarTitle.tsx";
-import { Alert, Box, Grid, Stack, Typography, Tooltip } from "@mui/material";
+import { Box, Grid, Stack, Typography, Tooltip } from "@mui/material";
 import { BCDesignTokens } from "epic.theme";
 import { NewAccessRequests } from "./NewAccessRequests";
 import { CurrentAccessLevel } from "./CurrentAccessLevel";
@@ -117,22 +117,28 @@ export const UserAccess = () => {
         >
           <Grid item xs sx={{ minWidth: 0, flex: 1}}>
             {user && !user.enabled && (
-            <Alert
-              severity="warning"
-              icon={false}
-              sx={{
-                backgroundColor: "#FCF8E3",
-                border: "1px solid #F7DF79",
-                "& .MuiAlert-message": { width: "100%" },
-              }}
-            >
-                <Typography variant="body2" component="span">
+              <Box
+                sx={{
+                  backgroundColor: "#FEF1D8",
+                  border: "1px solid #F8BB47",
+                  borderRadius: "4px",
+                  padding: "8px",
+                }}
+              >
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontSize: "16px",
+                    fontStyle: "normal",
+                    fontWeight: 400,
+                    lineHeight: "27.008px",
+                  }}
+                >
                   This user is disabled. This means they won&apos;t be able to
-                  access any EPIC applications. To re-enable this user, click the &quot;Enable&quot; button to
-                  the right.
+                  access any EPIC applications. To re-enable this user, click the
+                  &quot;Enable&quot; button to the right.
                 </Typography>
-
-              </Alert>
+              </Box>
             )}
           </Grid>
           <Grid item sx={{ flexShrink: 0 }}>

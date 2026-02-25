@@ -69,8 +69,19 @@ export const NewRequestsTable = ({
 
     setModalOpen(modalWithFocusReturn);
   };
+
+  const isDisabled = user && !user.enabled;
+
   return (
-    <TableContainer>
+    <TableContainer
+      sx={
+        isDisabled
+          ? {
+              pointerEvents: "none",
+            }
+          : undefined
+      }
+    >
       <Table>
         <CentreTableHead>
           <TableRow>
@@ -129,13 +140,36 @@ export const NewRequestsTable = ({
                 <CentreTableCell>
                   {getAppChipTitle(request.app.name)}
                 </CentreTableCell>
-                <CentreTableCell>--</CentreTableCell>
-                <CentreTableCell>
-                  <CentreLink onClick={() => handleEditAccess(request)}>
+                <CentreTableCell
+                  sx={
+                    isDisabled
+                      ? { color: "#898785" }
+                      : undefined
+                  }
+                >
+                  --
+                </CentreTableCell>
+                <CentreTableCell
+                  sx={
+                    isDisabled
+                      ? { color: "#898785" }
+                      : undefined
+                  }
+                >
+                  <CentreLink
+                    disabled={isDisabled}
+                    onClick={() => handleEditAccess(request)}
+                  >
                     Edit Access
                   </CentreLink>
                 </CentreTableCell>
-                <CentreTableCell sx={{ minHeight: "40px" }}>
+                <CentreTableCell
+                  sx={
+                    isDisabled
+                      ? { color: "#898785", minHeight: "40px" }
+                      : { minHeight: "40px" }
+                  }
+                >
                   <AppUserManagementButton
                     appUserManagementUrl={appUrlMap.get(request.app.name)}
                     supportsGranularRoleManagement={
@@ -143,13 +177,22 @@ export const NewRequestsTable = ({
                         request.app.name,
                       ) ?? false
                     }
+                    disabled={isDisabled}
                   />
                 </CentreTableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <CentreTableCell align="center" colSpan={4}>
+              <CentreTableCell
+                align="center"
+                colSpan={4}
+                sx={
+                  isDisabled
+                    ? { color: "#898785" }
+                    : undefined
+                }
+              >
                 No pending access requests.
               </CentreTableCell>
             </TableRow>
