@@ -161,6 +161,10 @@ export const AllUsers = () => {
             }}
             sx={{
               width: "520px",
+              "& .MuiInputBase-input::placeholder": {
+                color: "#9F9D9C",
+                opacity: 1,
+              },
             }}
             onChange={handleSearchChange}
             onKeyDown={handleKeyDown}
