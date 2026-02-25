@@ -7,6 +7,17 @@ import { CentreLink } from "@/components/Shared/CentreLink";
 import { AccessRequest } from "@/models/AccessRequest";
 import { CentreUser } from "@/models/CentreUser";
 import { Table, TableBody, TableContainer, TableRow } from "@mui/material";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+
+const formatRequestedDate = (isoDateString: string | null | undefined): string => {
+  if (!isoDateString) return "";
+  const date = dayjs.utc(isoDateString);
+  if (!date.isValid()) return "";
+  return date.local().format("YYYY-MM-DD");
+};
 import { getAppChipTitle } from "../../utils";
 import { useModal } from "@/components/Shared/Modals/modalStore";
 import { EditAccessModal } from "../../EditAccess";
@@ -96,6 +107,18 @@ export const NewRequestsTable = ({
               }}
             >
               Application
+            </CentreTableHeadCell>
+            <CentreTableHeadCell
+              sx={{
+                width: {
+                  xs: "18%",
+                  sm: "18%",
+                  md: "15%",
+                  lg: "15%",
+                },
+              }}
+            >
+              Requested Date
             </CentreTableHeadCell>
             <CentreTableHeadCell
               sx={{
