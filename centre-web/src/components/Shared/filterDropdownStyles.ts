@@ -2,13 +2,13 @@ import { BCDesignTokens } from "epic.theme";
 
 const borderColor = BCDesignTokens.surfaceColorBorderDefault;
 
-/** Label color for Application and Access level dropdowns (match search field grey). */
+/** Label/placeholder color for Application and Access level dropdowns (match search field: #d8d8d8). */
 export const dropdownLabelSx = {
   "& .MuiInputLabel-root": {
-    color: "#7B90A7",
+    color: "#d8d8d8",
   },
   "& .MuiInputLabel-root.Mui-focused": {
-    color: "#7B90A7",
+    color: "#d8d8d8",
   },
 };
 
