@@ -54,7 +54,10 @@ export const AllUsers = () => {
     appName: selectedAppName,
     enabled: !!selectedAppName,
   });
-  const accessLevels = selectedAppName ? rawAccessLevels : [];
+  const accessLevels = useMemo(
+    () => (selectedAppName ? rawAccessLevels : []),
+    [selectedAppName, rawAccessLevels],
+  );
 
   // When the selected app has only one access level, default to it (e.g. Cond. Repo. → Admin)
   useEffect(() => {
