@@ -86,18 +86,18 @@ export const AllUsers = () => {
       const normalizedSelectedPath = selectedAccessLevelGroupPath
         ? normalizeGroupPath(selectedAccessLevelGroupPath)
         : null;
-      result = result.filter((user) =>
-        user.apps?.some((app) => {
-          if (app.name !== selectedAppName) return false;
-          const path = normalizeGroupPath(app.group_path);
-          // User must have an actual access level (non-empty path) for this app
-          if (!path) return false;
-          if (normalizedSelectedPath) {
-            return path === normalizedSelectedPath;
-          }
-          return true; // Access level "All": show users with any access to this app
-        }),
-      );
+      result = result.filter((user) => {
+        const hasAppAccess = user.apps?.some(
+          (app) => app.name === selectedAppName && normalizeGroupPath(app.group_path),
+        );
+        if (!hasAppAccess) return false;
+        if (normalizedSelectedPath) {
+          return user.groups?.some(
+            (g) => normalizeGroupPath(g.path) === normalizedSelectedPath,
+          ) ?? false;
+        }
+        return true;
+      });
     }
 
     return result;
