@@ -29,6 +29,8 @@ interface UserContextValue {
   isAdminOfApp: (appName: EpicAppName) => boolean;
   adminStatusPerApp: Record<EpicAppName, boolean>;
   isAISearchUser: boolean;
+  canViewApplicationUrls: boolean;
+  canManageApplicationUrls: boolean;
 }
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
@@ -83,6 +85,9 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const token = auth.user?.access_token;
   const parsedRoles = token ? getUserRolesFromToken(token) : [];
   const isAISearchUser = parsedRoles.includes("ai_search_user");
+  const canManageApplicationUrls = parsedRoles.includes("edit_app_url");
+  const canViewApplicationUrls =
+    canManageApplicationUrls || parsedRoles.includes("view_ssl_info");
 
   return (
     <UserContext.Provider
@@ -96,6 +101,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         isAdminOfApp,
         adminStatusPerApp,
         isAISearchUser,
+        canViewApplicationUrls,
+        canManageApplicationUrls,
       }}
     >
       {children}

@@ -1,29 +1,37 @@
 import { Chip } from "@mui/material";
 
 export function EnvironmentChip({ environment }: { environment: string }) {
-    let color: "primary" | "warning" | "default" | "info" = "default";
-    let sx: any = { fontWeight: 700, fontSize: '0.7rem', height: 20 };
+    let bgcolor = "#e0e0e0";
+    let color = "#000000";
 
     switch (environment) {
         case "PROD":
-            // Use precise colors for better readability (Dark Blue + White)
-            sx = { ...sx, bgcolor: '#1565c0', color: '#ffffff' };
+            bgcolor = "#1565c0"; // Primary Blue 800
+            color = "#ffffff";
             break;
         case "TEST":
-            color = "warning";
-            sx = { ...sx, color: '#000000' }; // Ensure readability on yellow/orange
+            bgcolor = "#ed6c02"; // Warning Orange
+            color = "#ffffff";
             break;
         case "DEV":
-            color = "info";
+            bgcolor = "#0288d1"; // Info Light Blue
+            color = "#ffffff";
             break;
     }
 
     return (
         <Chip
             label={environment}
-            color={color}
             size="small"
-            sx={{ fontWeight: 700, fontSize: '0.7rem', height: 20 }}
+            sx={{
+                bgcolor: bgcolor,
+                color: color,
+                fontWeight: 700,
+                fontSize: '0.7rem',
+                height: 20,
+                borderRadius: '4px', // Slightly more square for a "tag" look
+                border: 'none'
+            }}
         />
     );
 }

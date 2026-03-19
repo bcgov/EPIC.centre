@@ -1,5 +1,6 @@
 import { PageLoader } from "@/components/PageLoader";
 import { PageContainer } from "@/components/Shared/PageGrid";
+import { useCurrentUser } from "@/contexts/UserContext";
 import { useGetApplicationUrls } from "@/hooks/api/useApplicationUrls";
 import { ApplicationUrl } from "@/models/ApplicationUrl";
 import { Edit, Sort as SortIcon, ArrowUpward, ArrowDownward } from "@mui/icons-material";
@@ -22,11 +23,11 @@ import {
     Divider,
     TextField,
     InputAdornment,
-    Checkbox,
-    FormGroup,
-    FormControlLabel,
+    Chip,
+    Tooltip,
+    Stack,
 } from "@mui/material";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { EnvironmentChip } from "@/components/ApplicationUrls/EnvironmentChip";
 import { ExpiryDisplay } from "@/components/ApplicationUrls/ExpiryDisplay";
@@ -34,7 +35,20 @@ import { CopyToClipboardButton } from "@/components/ApplicationUrls/CopyToClipbo
 import { SSLStatusChip } from "@/components/ApplicationUrls/SSLStatusChip";
 import { AddUrlModal } from "@/components/ApplicationUrls/AddUrlModal";
 import { EditUrlModal } from "@/components/ApplicationUrls/EditUrlModal";
-import { Add, Search, Close } from "@mui/icons-material";
+import {
+    Add,
+    Search,
+    Close,
+    ConfirmationNumber,
+    ShoppingCart,
+    Event,
+    Help,
+    Apps,
+    WarningAmber,
+    ErrorOutline,
+    TravelExplore,
+    InfoOutlined,
+} from "@mui/icons-material";
 
 export const Route = createFileRoute("/_authenticated/application-urls")({
     component: ApplicationUrls,
@@ -66,7 +80,8 @@ const sortByExpiry = (urlsA: ApplicationUrl[], urlsB: ApplicationUrl[], order: S
 };
 
 function ApplicationUrls() {
-    const { data: urls = [], isPending } = useGetApplicationUrls();
+    const { canViewApplicationUrls, canManageApplicationUrls } = useCurrentUser();
+    const { data: urls = [], isPending } = useGetApplicationUrls(canViewApplicationUrls);
     const [editingUrl, setEditingUrl] = useState<ApplicationUrl | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [addModalAppName, setAddModalAppName] = useState("");
@@ -83,6 +98,19 @@ function ApplicationUrls() {
     const [sortBy, setSortBy] = useState<SortOption>('expiry');
     const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
     const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
+
+    const allEnvironments = useMemo(() => {
+        return [...new Set(urls.map((url) => url.environment))].sort((a, b) => {
+            const orderA = ENV_ORDER[a] || 99;
+            const orderB = ENV_ORDER[b] || 99;
+
+            if (orderA !== orderB) {
+                return orderA - orderB;
+            }
+
+            return a.localeCompare(b);
+        });
+    }, [urls]);
 
     const handleEdit = (url: ApplicationUrl) => {
         setEditingUrl(url);
@@ -122,6 +150,15 @@ function ApplicationUrls() {
             [env]: !prev[env]
         }));
     };
+
+    const stats = useMemo(() => {
+        const appCount = new Set(urls.map((url) => url.app_name)).size;
+        const expiringCount = urls.filter((url) => url.ssl_status === "Expiring Soon").length;
+        const errorCount = urls.filter((url) => url.ssl_status === "Error" || url.ssl_status === "Expired").length;
+        const managedCount = urls.filter((url) => url.ssl_status === "Managed").length;
+
+        return { appCount, expiringCount, errorCount, managedCount };
+    }, [urls]);
 
     // Grouping and Filtering Logic
     const groupedApps = useMemo(() => {
@@ -177,47 +214,119 @@ function ApplicationUrls() {
         };
     }, [sortBy, sortOrder]);
 
+    if (!canViewApplicationUrls) {
+        return <Navigate to="/access-denied" />;
+    }
+
     if (isPending) {
         return <PageLoader />;
     }
 
     return (
         <PageContainer>
-            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
-                    <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700 }}>
-                        Application Health
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary">
-                        Real-time SSL certificate status across all environments.
-                    </Typography>
+            <Paper
+                variant="outlined"
+                sx={{
+                    mb: 3,
+                    p: 3,
+                    borderRadius: 3,
+                    background: "linear-gradient(180deg, rgba(21,101,192,0.04) 0%, rgba(21,101,192,0.01) 100%)",
+                }}
+            >
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: { xs: 'flex-start', md: 'center' },
+                        gap: 2,
+                        flexWrap: 'wrap',
+                    }}
+                >
+                    <Box>
+                        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 800 }}>
+                            Application URLs & SSL
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 760 }}>
+                            Find application URLs quickly, see renewal urgency at a glance, and maintain environments as new apps or extra deployments are added.
+                        </Typography>
+                    </Box>
+                    {canManageApplicationUrls && (
+                        <Button
+                            variant="contained"
+                            startIcon={<Apps />}
+                            onClick={() => {
+                                setAddModalAppName("");
+                                setIsAddModalOpen(true);
+                            }}
+                            sx={{
+                                px: 2.5,
+                                py: 1.1,
+                                borderRadius: 2,
+                                fontWeight: 700,
+                                boxShadow: 'none',
+                            }}
+                        >
+                            Add Application
+                        </Button>
+                    )}
                 </Box>
-                <Box display="flex" gap={2}>
-                    <Button
-                        variant="outlined"
-                        color="inherit"
-                        startIcon={<Add />}
-                        onClick={() => {
-                            setAddModalAppName("");
-                            setIsAddModalOpen(true);
-                        }}
-                        sx={{
-                            color: 'text.secondary',
-                            borderColor: 'divider',
-                            '&:hover': {
-                                borderColor: 'text.primary',
-                                color: 'text.primary',
-                                bgcolor: 'action.hover'
-                            }
-                        }}
-                    >
-                        Add URL
-                    </Button>
-                </Box>
-            </Box>
 
-            {/* Filters Bar */}
-            <Paper variant="outlined" sx={{ p: 2, mb: 3, display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ mt: 2.5 }}>
+                    <Paper variant="outlined" sx={{ px: 2, py: 1.5, borderRadius: 2, minWidth: 170 }}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                            <Apps color="primary" fontSize="small" />
+                            <Typography variant="body2" color="text.secondary">Applications</Typography>
+                            <Tooltip title="Total unique applications listed below. Each application section groups its environments together.">
+                                <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                            </Tooltip>
+                        </Box>
+                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>{stats.appCount}</Typography>
+                    </Paper>
+                    <Paper variant="outlined" sx={{ px: 2, py: 1.5, borderRadius: 2, minWidth: 170 }}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                            <WarningAmber color="warning" fontSize="small" />
+                            <Typography variant="body2" color="text.secondary">Expiring Soon</Typography>
+                            <Tooltip title="URLs with SSL certificates expiring within 30 days. Use Sort By: Urgency to bring these near the top.">
+                                <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                            </Tooltip>
+                        </Box>
+                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>{stats.expiringCount}</Typography>
+                    </Paper>
+                    <Paper variant="outlined" sx={{ px: 2, py: 1.5, borderRadius: 2, minWidth: 170 }}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                            <ErrorOutline color="error" fontSize="small" />
+                            <Typography variant="body2" color="text.secondary">Needs Attention</Typography>
+                            <Tooltip title="URLs that are already expired or returned an SSL error. Sort by Urgency and look for red expiry/status indicators.">
+                                <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                            </Tooltip>
+                        </Box>
+                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>{stats.errorCount}</Typography>
+                    </Paper>
+                    <Paper variant="outlined" sx={{ px: 2, py: 1.5, borderRadius: 2, minWidth: 170 }}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                            <TravelExplore color="action" fontSize="small" />
+                            <Typography variant="body2" color="text.secondary">Managed</Typography>
+                            <Tooltip title="Platform-managed URLs, typically on devops.gov.bc.ca. These are tracked for visibility but not usually renewed by staff here.">
+                                <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                            </Tooltip>
+                        </Box>
+                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>{stats.managedCount}</Typography>
+                    </Paper>
+                </Stack>
+            </Paper>
+
+            <Paper
+                variant="outlined"
+                sx={{
+                    p: 2,
+                    mb: 3,
+                    display: 'flex',
+                    gap: 2,
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    borderRadius: 3,
+                }}
+            >
                 <TextField
                     size="small"
                     placeholder="Search applications or URLs..."
@@ -236,71 +345,72 @@ function ApplicationUrls() {
                     sx={{ minWidth: 300, flexGrow: 1 }}
                 />
 
-                <Divider orientation="vertical" flexItem />
-
-                <Box display="flex" alignItems="center" gap={2}>
-                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+                    <Typography variant="body2" color="text.secondary" fontWeight={600}>
                         Environments:
                     </Typography>
-                    <FormGroup row>
-                        {['PROD', 'TEST', 'DEV'].map(env => (
-                            <FormControlLabel
+                    {allEnvironments.map((env) => {
+                        const selected = selectedEnvs[env] !== false;
+                        return (
+                            <Button
                                 key={env}
-                                control={
-                                    <Checkbox
-                                        checked={selectedEnvs[env]}
-                                        onChange={() => handleEnvToggle(env)}
-                                        size="small"
-                                    />
-                                }
-                                label={<EnvironmentChip environment={env} />}
-                                sx={{ mr: 2 }}
-                            />
-                        ))}
-                    </FormGroup>
+                                size="small"
+                                variant={selected ? "contained" : "outlined"}
+                                color={selected ? "primary" : "inherit"}
+                                onClick={() => handleEnvToggle(env)}
+                                sx={{
+                                    minWidth: 0,
+                                    px: 1.25,
+                                    borderRadius: 5,
+                                    boxShadow: 'none',
+                                }}
+                            >
+                                {env}
+                            </Button>
+                        );
+                    })}
                 </Box>
 
-                <Divider orientation="vertical" flexItem />
-
                 <Button
-                    variant="text"
+                    variant="outlined"
                     color="inherit"
                     startIcon={<SortIcon />}
                     onClick={handleSortClick}
-                    sx={{ color: 'text.secondary' }}
+                    sx={{ color: 'text.secondary', borderRadius: 5 }}
                 >
                     Sort By: {sortBy === 'expiry' ? 'Urgency' : 'Name'}
                 </Button>
             </Paper>
 
-            <Paper variant="outlined" sx={{ width: '100%', overflow: 'hidden' }}>
+            <Paper variant="outlined" sx={{ width: '100%', overflow: 'hidden', borderRadius: 3 }}>
                 <TableContainer>
                     <Table sx={{ minWidth: 650 }} aria-label="application urls table">
                         <TableHead>
                             <TableRow sx={{ bgcolor: 'action.hover' }}>
                                 <TableCell sx={{ fontWeight: 600 }}>URL</TableCell>
-                                <TableCell sx={{ fontWeight: 600 }}>SSL Expiry</TableCell>
-                                <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                                <TableCell align="right" sx={{ fontWeight: 600 }}>Actions</TableCell>
+                                <TableCell sx={{ fontWeight: 600 }}>SSL Status & Expiry</TableCell>
+                                {canManageApplicationUrls && (
+                                    <TableCell align="right" sx={{ fontWeight: 600 }}>Actions</TableCell>
+                                )}
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {Object.keys(groupedApps).length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} align="center" sx={{ py: 8 }}>
+                                    <TableCell colSpan={canManageApplicationUrls ? 4 : 2} align="center" sx={{ py: 8 }}>
                                         <Typography variant="h6" color="text.secondary" gutterBottom>
                                             {searchTerm || Object.values(selectedEnvs).some(v => !v)
                                                 ? "No application URLs match your filters"
                                                 : "No application URLs configured"}
                                         </Typography>
-                                        {!searchTerm && Object.values(selectedEnvs).every(v => v) && (
+                                        {canManageApplicationUrls && !searchTerm && Object.values(selectedEnvs).every(v => v) && (
                                             <Button
                                                 variant="outlined"
                                                 startIcon={<Add />}
                                                 onClick={() => setIsAddModalOpen(true)}
                                                 sx={{ mt: 2 }}
                                             >
-                                                Add Your First URL
+                                                Add Your First Application
                                             </Button>
                                         )}
                                     </TableCell>
@@ -310,31 +420,40 @@ function ApplicationUrls() {
                                     <Box component={TableRow} key={`group-${appName}`} sx={{ display: 'contents' }}>
                                         {/* Section Header Row */}
                                         <TableRow key={`header-${appName}`} sx={{ bgcolor: 'action.selected' }}>
-                                            <TableCell colSpan={4} sx={{ fontWeight: 700, py: 1.5, fontSize: '0.95rem' }}>
+                                            <TableCell colSpan={canManageApplicationUrls ? 4 : 2} sx={{ fontWeight: 700, py: 1.5, fontSize: '0.95rem' }}>
                                                 <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                    {appName}
-                                                    <Button
-                                                        startIcon={<Add />}
-                                                        size="small"
-                                                        variant="text"
-                                                        color="inherit"
-                                                        sx={{
-                                                            fontSize: '0.75rem',
-                                                            textTransform: 'none',
-                                                            color: 'text.secondary',
-                                                            opacity: 0.7,
-                                                            '&:hover': {
-                                                                opacity: 1,
-                                                                bgcolor: 'action.hover'
-                                                            }
-                                                        }}
-                                                        onClick={() => {
-                                                            setAddModalAppName(appName);
-                                                            setIsAddModalOpen(true);
-                                                        }}
-                                                    >
-                                                        Add Env
-                                                    </Button>
+                                                    <Box display="flex" alignItems="center" gap={1.25}>
+                                                        <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                                                            {appName}
+                                                        </Typography>
+                                                        <Chip
+                                                            label={`${appUrls.length} env${appUrls.length > 1 ? "s" : ""}`}
+                                                            size="small"
+                                                            variant="outlined"
+                                                            sx={{ height: 22 }}
+                                                        />
+                                                    </Box>
+                                                    {canManageApplicationUrls && (
+                                                        <Button
+                                                            startIcon={<Add />}
+                                                            size="small"
+                                                            variant="outlined"
+                                                            color="primary"
+                                                            sx={{
+                                                                fontSize: '0.8rem',
+                                                                textTransform: 'none',
+                                                                borderRadius: 5,
+                                                                fontWeight: 700,
+                                                                boxShadow: 'none',
+                                                            }}
+                                                            onClick={() => {
+                                                                setAddModalAppName(appName);
+                                                                setIsAddModalOpen(true);
+                                                            }}
+                                                        >
+                                                            Add Env
+                                                        </Button>
+                                                    )}
                                                 </Box>
                                             </TableCell>
                                         </TableRow>
@@ -373,16 +492,85 @@ function ApplicationUrls() {
                                                     </Box>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <ExpiryDisplay expiryDate={url.ssl_expiry} url={url.url} />
+                                                    <Box display="flex" flexDirection="column" gap={0.5}>
+                                                        <ExpiryDisplay expiryDate={url.ssl_expiry} url={url.url} />
+                                                        <Box display="flex" gap={1} alignItems="center">
+                                                            <SSLStatusChip status={url.ssl_status} />
+                                                            {(() => {
+                                                                const hasStatus = url.renewal_status && url.renewal_status !== 'NONE';
+                                                                const hasTicket = !!url.ticket_reference;
+                                                                const hasComments = !!url.renewal_comments;
+
+                                                                if (!hasStatus && !hasTicket && !hasComments) return null;
+
+                                                                let icon = <ConfirmationNumber fontSize="small" />;
+                                                                let color: "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" = "info";
+                                                                let label = "Ticket";
+
+                                                                if (hasStatus) {
+                                                                    switch (url.renewal_status) {
+                                                                        case 'ORDERED':
+                                                                            icon = <ShoppingCart fontSize="small" />;
+                                                                            color = "warning";
+                                                                            label = "Ordered";
+                                                                            break;
+                                                                        case 'PLANNED':
+                                                                            icon = <Event fontSize="small" />;
+                                                                            color = "success";
+                                                                            label = "Planned";
+                                                                            break;
+                                                                        case 'TICKET_CREATED':
+                                                                        default:
+                                                                            icon = <ConfirmationNumber fontSize="small" />;
+                                                                            color = "info";
+                                                                            label = "Ticket";
+                                                                            break;
+                                                                    }
+                                                                } else if (hasComments) {
+                                                                    // No status, but comments exist
+                                                                    icon = <Help fontSize="small" />;
+                                                                    color = "default";
+                                                                    label = "Note";
+                                                                }
+
+                                                                // Append ticket reference to label if exists
+                                                                if (hasTicket) {
+                                                                    label = `${label}: ${url.ticket_reference}`;
+                                                                }
+
+                                                                return (
+                                                                    <Tooltip title={url.renewal_comments || "No comments"}>
+                                                                        <Chip
+                                                                            icon={icon}
+                                                                            label={label}
+                                                                            size="small"
+                                                                            variant="outlined"
+                                                                            color={color}
+                                                                            sx={{ height: 24, fontSize: '0.75rem' }}
+                                                                        />
+                                                                    </Tooltip>
+                                                                );
+                                                            })()}
+                                                        </Box>
+                                                    </Box>
                                                 </TableCell>
-                                                <TableCell>
-                                                    <SSLStatusChip status={url.ssl_status} />
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    <IconButton size="small" onClick={() => handleEdit(url)}>
-                                                        <Edit fontSize="small" />
-                                                    </IconButton>
-                                                </TableCell>
+                                                {canManageApplicationUrls && (
+                                                    <TableCell align="right">
+                                                        <Tooltip title="Edit environment details">
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={() => handleEdit(url)}
+                                                                sx={{
+                                                                    border: '1px solid',
+                                                                    borderColor: 'divider',
+                                                                    borderRadius: 2,
+                                                                }}
+                                                            >
+                                                                <Edit fontSize="small" />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    </TableCell>
+                                                )}
                                             </TableRow>
                                         ))}
                                     </Box>
@@ -393,15 +581,17 @@ function ApplicationUrls() {
                 </TableContainer>
             </Paper>
 
-            {editingUrl && (
+            {canManageApplicationUrls && editingUrl && (
                 <EditUrlModal open={!!editingUrl} onClose={handleClose} url={editingUrl} />
             )}
 
-            <AddUrlModal
-                open={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
-                initialAppName={addModalAppName}
-            />
+            {canManageApplicationUrls && (
+                <AddUrlModal
+                    open={isAddModalOpen}
+                    onClose={() => setIsAddModalOpen(false)}
+                    initialAppName={addModalAppName}
+                />
+            )}
 
             <Menu
                 anchorEl={sortAnchorEl}
