@@ -9,7 +9,8 @@ import {
     Stack,
     TextField,
     Typography,
-    Box
+    Box,
+    MenuItem
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { useState } from "react";
@@ -28,7 +29,12 @@ export function EditUrlModal({
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
     const { control, handleSubmit } = useForm<ApplicationUrl>({
-        defaultValues: url,
+        defaultValues: {
+            ...url,
+            renewal_status: url.renewal_status || 'NONE',
+            renewal_comments: url.renewal_comments || '',
+            ticket_reference: url.ticket_reference || ''
+        },
     });
 
     const onSubmit = (data: ApplicationUrl) => {
@@ -72,6 +78,51 @@ export function EditUrlModal({
                                     fullWidth
                                     error={!!error}
                                     helperText={error?.message}
+                                />
+                            )}
+                        />
+                        <Controller
+                            name="ticket_reference"
+                            control={control}
+                            render={({ field }) => (
+                                <TextField
+                                    {...field}
+                                    label="SSL Renewal Ticket # (Optional)"
+                                    placeholder="e.g. INFRA-1234"
+                                    fullWidth
+                                    helperText="Reference for tracking external renewal work"
+                                />
+                            )}
+                        />
+                        <Controller
+                            name="renewal_status"
+                            control={control}
+                            render={({ field }) => (
+                                <TextField
+                                    {...field}
+                                    select
+                                    label="Renewal Status"
+                                    fullWidth
+                                    helperText="Current stage of the renewal process"
+                                >
+                                    <MenuItem value="NONE">No Action Taken</MenuItem>
+                                    <MenuItem value="TICKET_CREATED">Ticket Created</MenuItem>
+                                    <MenuItem value="ORDERED">Certificate Ordered</MenuItem>
+                                    <MenuItem value="PLANNED">Installation Planned</MenuItem>
+                                </TextField>
+                            )}
+                        />
+                        <Controller
+                            name="renewal_comments"
+                            control={control}
+                            render={({ field }) => (
+                                <TextField
+                                    {...field}
+                                    label="Comments"
+                                    multiline
+                                    rows={3}
+                                    fullWidth
+                                    placeholder="Add details about delay, ETA, or blockers..."
                                 />
                             )}
                         />
