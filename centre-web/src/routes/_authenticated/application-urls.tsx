@@ -95,6 +95,11 @@ const getCertificateGroupKey = (url: ApplicationUrl): string => {
     return parsed?.origin.toLowerCase() || url.url.toLowerCase();
 };
 
+const isPlatformManagedUrl = (url: ApplicationUrl): boolean => {
+    const parsed = parseUrlInfo(url.url);
+    return (parsed?.host || url.url).includes("devops.gov.bc.ca");
+};
+
 const isInheritedSslRoute = (url: ApplicationUrl): boolean => {
     const parsed = parseUrlInfo(url.url);
     if (!parsed) {
@@ -468,8 +473,10 @@ function ApplicationUrls() {
                 sx={{
                     mb: 3,
                     p: 3,
-                    borderRadius: 3,
-                    background: "linear-gradient(180deg, rgba(15,23,42,0.02) 0%, rgba(15,23,42,0.008) 100%)",
+                    borderRadius: 4,
+                    background: "linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)",
+                    borderColor: "rgba(15,23,42,0.06)",
+                    boxShadow: "0 1px 3px rgba(15,23,42,0.02)",
                 }}
             >
                 <Box
@@ -511,50 +518,82 @@ function ApplicationUrls() {
                 </Box>
 
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ mt: 2.5 }}>
-                    <Paper variant="outlined" sx={{ px: 2, py: 1.5, borderRadius: 2, minWidth: 170 }}>
+                    <Paper 
+                        variant="outlined" 
+                        sx={{ 
+                            px: 2, py: 1.5, borderRadius: 3, minWidth: 170, 
+                            bgcolor: '#eff6ff', borderColor: '#bfdbfe',
+                            transition: 'all 0.2s ease',
+                            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(29, 78, 216, 0.08)' }
+                        }}
+                    >
                         <Box display="flex" alignItems="center" gap={1}>
-                            <Apps color="primary" fontSize="small" />
-                            <Typography variant="body2" color="text.secondary">Applications</Typography>
+                            <Apps sx={{ fontSize: 20, color: '#1d4ed8' }} />
+                            <Typography variant="body2" sx={{ color: '#1e3a8a', fontWeight: 600 }}>Applications</Typography>
                             <Tooltip title="Total unique applications listed below. Each application section groups its environments together, even when SSL is shared with other apps on the same host.">
-                                <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                <InfoOutlined sx={{ fontSize: 16, color: '#3b82f6' }} />
                             </Tooltip>
                         </Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>{stats.appCount}</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5, color: '#1e3a8a' }}>{stats.appCount}</Typography>
                     </Paper>
-                    <Paper variant="outlined" sx={{ px: 2, py: 1.5, borderRadius: 2, minWidth: 170 }}>
+                    <Paper 
+                        variant="outlined" 
+                        sx={{ 
+                            px: 2, py: 1.5, borderRadius: 3, minWidth: 170,
+                            bgcolor: '#fff7ed', borderColor: '#fed7aa',
+                            transition: 'all 0.2s ease',
+                            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(194, 65, 12, 0.08)' }
+                        }}
+                    >
                         <Box display="flex" alignItems="center" gap={1}>
-                            <WarningAmber color="warning" fontSize="small" />
-                            <Typography variant="body2" color="text.secondary">Expiring Soon</Typography>
+                            <WarningAmber sx={{ fontSize: 20, color: '#c2410c' }} />
+                            <Typography variant="body2" sx={{ color: '#7c2d12', fontWeight: 600 }}>Expiring Soon</Typography>
                             <Tooltip title="Certificate groups expiring within 30 days. Shared host certificates are counted once, even if several application routes use them.">
-                                <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                <InfoOutlined sx={{ fontSize: 16, color: '#f97316' }} />
                             </Tooltip>
                         </Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>{stats.expiringCount}</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5, color: '#7c2d12' }}>{stats.expiringCount}</Typography>
                     </Paper>
-                    <Paper variant="outlined" sx={{ px: 2, py: 1.5, borderRadius: 2, minWidth: 170 }}>
+                    <Paper 
+                        variant="outlined" 
+                        sx={{ 
+                            px: 2, py: 1.5, borderRadius: 3, minWidth: 170,
+                            bgcolor: '#fef2f2', borderColor: '#fecaca',
+                            transition: 'all 0.2s ease',
+                            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(185, 28, 28, 0.08)' }
+                        }}
+                    >
                         <Box display="flex" alignItems="center" gap={1}>
-                            <ErrorOutline color="error" fontSize="small" />
-                            <Typography variant="body2" color="text.secondary">Needs Attention</Typography>
+                            <ErrorOutline sx={{ fontSize: 20, color: '#b91c1c' }} />
+                            <Typography variant="body2" sx={{ color: '#7f1d1d', fontWeight: 600 }}>Needs Attention</Typography>
                             <Tooltip title="Certificate groups that are expired or returned an SSL error. Shared host certificates are counted once to avoid duplicate renewal noise.">
-                                <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                <InfoOutlined sx={{ fontSize: 16, color: '#ef4444' }} />
                             </Tooltip>
                         </Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>{stats.errorCount}</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5, color: '#7f1d1d' }}>{stats.errorCount}</Typography>
                     </Paper>
-                    <Paper variant="outlined" sx={{ px: 2, py: 1.5, borderRadius: 2, minWidth: 170 }}>
+                    <Paper 
+                        variant="outlined" 
+                        sx={{ 
+                            px: 2, py: 1.5, borderRadius: 3, minWidth: 170,
+                            bgcolor: '#f8fafc', borderColor: '#e2e8f0',
+                            transition: 'all 0.2s ease',
+                            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(71, 85, 105, 0.08)' }
+                        }}
+                    >
                         <Box display="flex" alignItems="center" gap={1}>
-                            <TravelExplore color="action" fontSize="small" />
-                            <Typography variant="body2" color="text.secondary">Platform Managed</Typography>
+                            <TravelExplore sx={{ fontSize: 20, color: '#475569' }} />
+                            <Typography variant="body2" sx={{ color: '#0f172a', fontWeight: 600 }}>Platform Managed</Typography>
                             <Tooltip title="Platform-managed certificate groups, typically on devops.gov.bc.ca. These are tracked for visibility but not usually renewed by staff here.">
-                                <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                <InfoOutlined sx={{ fontSize: 16, color: '#64748b' }} />
                             </Tooltip>
                         </Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5 }}>{stats.managedCount}</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5, color: '#0f172a' }}>{stats.managedCount}</Typography>
                     </Paper>
                 </Stack>
             </Paper>
 
-            <Paper variant="outlined" sx={{ mb: 3, borderRadius: 3, overflow: "hidden" }}>
+            <Paper variant="outlined" sx={{ mb: 3, borderRadius: 4, overflow: "hidden", borderColor: "rgba(15,23,42,0.06)", boxShadow: "0 4px 20px -5px rgba(15,23,42,0.02)" }}>
                 <Tabs
                     value={viewMode}
                     onChange={(_, value: ViewMode) => setViewMode(value)}
@@ -625,16 +664,23 @@ function ApplicationUrls() {
                                         key={`root-overview-${group.key}`}
                                         variant="outlined"
                                         sx={{
-                                            p: 1.75,
-                                            borderRadius: 2.5,
-                                            bgcolor: "rgba(255,255,255,0.88)",
-                                            borderColor: "rgba(15,23,42,0.08)",
+                                            p: 2,
+                                            borderRadius: 3,
+                                            bgcolor: "#ffffff",
+                                            borderColor: "rgba(15,23,42,0.06)",
+                                            boxShadow: "0 1px 4px -1px rgba(15,23,42,0.04)",
+                                            transition: 'all 0.2s ease',
+                                            '&:hover': {
+                                                transform: 'translateY(-1px)',
+                                                boxShadow: "0 4px 12px -2px rgba(15,23,42,0.06)",
+                                                borderColor: "rgba(15,23,42,0.12)",
+                                            }
                                         }}
                                     >
                                         <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, alignItems: { xs: "flex-start", md: "center" }, flexWrap: "wrap" }}>
                                             <Box sx={{ minWidth: 0 }}>
                                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                                                    <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>
                                                         {getCertificateGroupDisplay(group)}
                                                     </Typography>
                                                     {group.rows.length > 1 && (
@@ -664,7 +710,7 @@ function ApplicationUrls() {
                                                     size="small"
                                                     variant="outlined"
                                                     onClick={() => handleJumpToApplicationView(rootRow.id)}
-                                                    sx={{ textTransform: "none", borderRadius: 5 }}
+                                                    sx={{ textTransform: "none", borderRadius: 5, fontWeight: 700, borderColor: 'rgba(15,23,42,0.12)', color: '#475569', '&:hover': { bgcolor: 'rgba(15,23,42,0.04)', borderColor: 'rgba(15,23,42,0.2)' } }}
                                                 >
                                                     View Routes
                                                 </Button>
@@ -715,27 +761,30 @@ function ApplicationUrls() {
                             />
 
                             <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
-                                <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                                <Typography variant="body2" color="text.secondary" fontWeight={600} sx={{ mr: 0.5 }}>
                                     Environments:
                                 </Typography>
                                 {allEnvironments.map((env) => {
                                     const selected = selectedEnvs[env] !== false;
                                     return (
-                                        <Button
+                                        <Chip
                                             key={env}
-                                            size="small"
-                                            variant={selected ? "contained" : "outlined"}
-                                            color={selected ? "primary" : "inherit"}
+                                            label={env}
                                             onClick={() => handleEnvToggle(env)}
+                                            color={selected ? "primary" : "default"}
+                                            variant={selected ? "filled" : "outlined"}
                                             sx={{
-                                                minWidth: 0,
-                                                px: 1.25,
-                                                borderRadius: 5,
-                                                boxShadow: 'none',
+                                                fontWeight: 700,
+                                                borderRadius: '8px',
+                                                border: selected ? 'none' : '1px solid',
+                                                borderColor: selected ? 'transparent' : 'rgba(15,23,42,0.12)',
+                                                bgcolor: selected ? 'primary.main' : 'transparent',
+                                                color: selected ? 'primary.contrastText' : 'text.secondary',
+                                                '&:hover': {
+                                                    bgcolor: selected ? 'primary.dark' : 'rgba(15,23,42,0.04)',
+                                                }
                                             }}
-                                        >
-                                            {env}
-                                        </Button>
+                                        />
                                     );
                                 })}
                             </Box>
@@ -781,8 +830,13 @@ function ApplicationUrls() {
                                         sx={{
                                             borderRadius: 3,
                                             overflow: "hidden",
-                                            background: "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(248,250,252,0.82) 100%)",
-                                            borderColor: "rgba(15,23,42,0.08)",
+                                            background: "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(248,250,252,0.6) 100%)",
+                                            borderColor: "rgba(15,23,42,0.06)",
+                                            boxShadow: "0 2px 8px -2px rgba(15,23,42,0.02)",
+                                            transition: 'all 0.2s ease',
+                                            '&:hover': {
+                                                boxShadow: "0 4px 16px -4px rgba(15,23,42,0.06)",
+                                            }
                                         }}
                                     >
                                         <Box
@@ -790,8 +844,8 @@ function ApplicationUrls() {
                                                 px: 2,
                                                 py: 1.5,
                                                 borderBottom: "1px solid",
-                                                borderColor: "divider",
-                                                bgcolor: "rgba(15,23,42,0.028)",
+                                                borderColor: "rgba(15,23,42,0.04)",
+                                                background: "linear-gradient(90deg, rgba(241,245,249,0.5) 0%, rgba(255,255,255,0) 100%)",
                                                 display: "flex",
                                                 alignItems: "center",
                                                 justifyContent: "space-between",
@@ -810,16 +864,17 @@ function ApplicationUrls() {
                                                 >
                                                     <Box
                                                         sx={{
-                                                            width: 34,
-                                                            height: 34,
-                                                            borderRadius: 2,
+                                                            width: 36,
+                                                            height: 36,
+                                                            borderRadius: '10px',
                                                             display: "grid",
                                                             placeItems: "center",
-                                                            background: "linear-gradient(135deg, rgba(15,23,42,0.06) 0%, rgba(15,23,42,0.02) 100%)",
+                                                            background: "linear-gradient(135deg, rgba(29,78,216,0.1) 0%, rgba(29,78,216,0.02) 100%)",
                                                             border: "1px solid",
-                                                            borderColor: "rgba(15,23,42,0.08)",
-                                                            color: "text.primary",
+                                                            borderColor: "rgba(29,78,216,0.15)",
+                                                            color: "#1d4ed8",
                                                             flexShrink: 0,
+                                                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5)",
                                                         }}
                                                     >
                                                         <AppIcon sx={{ fontSize: 18 }} />
@@ -887,23 +942,30 @@ function ApplicationUrls() {
                                                         sx={{
                                                             p: 1.5,
                                                             borderRadius: 2.5,
-                                                            borderColor: "rgba(15,23,42,0.08)",
-                                                            bgcolor: "rgba(255,255,255,0.84)",
-                                                            boxShadow: "0 1px 2px rgba(15,23,42,0.03)",
+                                                            borderColor: "rgba(15,23,42,0.06)",
+                                                            bgcolor: "#ffffff",
+                                                            boxShadow: "0 1px 4px -1px rgba(15,23,42,0.04)",
+                                                            transition: 'all 0.2s ease',
+                                                            '&:hover': {
+                                                                transform: 'translateY(-1px)',
+                                                                boxShadow: "0 4px 12px -2px rgba(15,23,42,0.06)",
+                                                                borderColor: "rgba(15,23,42,0.12)",
+                                                            }
                                                         }}
                                                     >
                                                         <Box
                                                             sx={{
                                                                 display: "grid",
-                                                                gridTemplateColumns: { xs: "1fr", lg: canManageApplicationUrls ? "minmax(0, 1.2fr) minmax(280px, 0.9fr) auto" : "minmax(0, 1.2fr) minmax(280px, 0.9fr)" },
-                                                                gap: 2,
+                                                                gridTemplateColumns: { xs: "1fr", lg: canManageApplicationUrls ? "minmax(0, 1.4fr) minmax(280px, 0.9fr) auto" : "minmax(0, 1.4fr) minmax(280px, 0.9fr)" },
+                                                                gap: 2.5,
                                                                 alignItems: "start",
                                                             }}
                                                         >
                                                             <Box>
                                                                 {(() => {
                                                                     const certificateGroup = certificateGroups.get(getCertificateGroupKey(url));
-                                                                    const inherited = isInheritedSslRoute(url);
+                                                                    const isPlatformManaged = isPlatformManagedUrl(url);
+                                                                    const inherited = !isPlatformManaged && isInheritedSslRoute(url);
                                                                     const sharedRouteCount = certificateGroup?.rows.length || 1;
                                                                     const sharedAppCount = certificateGroup?.appCount || 1;
                                                                     const fallbackGroup = {
@@ -927,11 +989,12 @@ function ApplicationUrls() {
                                                                                     target="_blank"
                                                                                     rel="noopener noreferrer"
                                                                                     sx={{
-                                                                                        color: 'primary.main',
+                                                                                        color: '#0369a1',
                                                                                         textDecoration: 'none',
-                                                                                        fontWeight: 600,
+                                                                                        fontWeight: 700,
                                                                                         wordBreak: 'break-all',
-                                                                                        '&:hover': { textDecoration: 'underline' }
+                                                                                        transition: 'color 0.2s',
+                                                                                        '&:hover': { color: '#0284c7', textDecoration: 'underline' }
                                                                                     }}
                                                                                     title={url.url}
                                                                                 >
@@ -940,7 +1003,7 @@ function ApplicationUrls() {
                                                                                 <CopyToClipboardButton text={url.url} />
                                                                             </Box>
                                                                             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                                                                                {sharedRouteCount > 1 && !inherited && (
+                                                                                {sharedRouteCount > 1 && !inherited && !isPlatformManaged && (
                                                                                     <>
                                                                                         <Chip
                                                                                             size="small"
@@ -965,7 +1028,7 @@ function ApplicationUrls() {
                                                                                         </Tooltip>
                                                                                     </>
                                                                                 )}
-                                                                                {sharedAppCount > 1 && (
+                                                                                {sharedAppCount > 1 && !isPlatformManaged && (
                                                                                     <Tooltip title={tooltipTitle} slotProps={sharedTooltipSlotProps}>
                                                                                         <Chip
                                                                                             size="small"
@@ -984,7 +1047,8 @@ function ApplicationUrls() {
                                                             <Box>
                                                                 {(() => {
                                                                     const certificateGroup = certificateGroups.get(getCertificateGroupKey(url));
-                                                                    const inherited = isInheritedSslRoute(url);
+                                                                    const isPlatformManaged = isPlatformManagedUrl(url);
+                                                                    const inherited = !isPlatformManaged && isInheritedSslRoute(url);
                                                                     const rootRow = certificateGroup ? getCertificateGroupRootRow(certificateGroup) : url;
                                                                     const rootLabel = certificateGroup ? getCertificateGroupDisplay(certificateGroup) : url.url;
 
@@ -1018,24 +1082,22 @@ function ApplicationUrls() {
                                                                                         {getExpirySummaryLabel(rootRow.ssl_expiry)}. Refer to root host for renewal tracking.
                                                                                     </Typography>
                                                                                 </Box>
+                                                                            ) : isPlatformManaged ? (
+                                                                                <Chip
+                                                                                    size="small"
+                                                                                    label="Platform managed"
+                                                                                    variant="outlined"
+                                                                                    color="default"
+                                                                                    sx={{ alignSelf: "flex-start" }}
+                                                                                />
                                                                             ) : (
-                                                                                url.url.includes("devops.gov.bc.ca") ? (
-                                                                                    <Chip
-                                                                                        size="small"
-                                                                                        label="Platform managed"
-                                                                                        variant="outlined"
-                                                                                        color="default"
-                                                                                        sx={{ alignSelf: "flex-start" }}
-                                                                                    />
-                                                                                ) : (
-                                                                                    <ExpiryDisplay expiryDate={url.ssl_expiry} url={url.url} />
-                                                                                )
+                                                                                <ExpiryDisplay expiryDate={url.ssl_expiry} url={url.url} />
                                                                             )}
                                                                             <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
-                                                                                {url.url.includes("devops.gov.bc.ca") ? null : (
+                                                                                {isPlatformManaged ? null : (
                                                                                     <SSLStatusChip status={inherited ? `${url.ssl_status || "Unknown"} (Inherited)` : url.ssl_status} />
                                                                                 )}
-                                                                                {!inherited && certificateGroup && certificateGroup.rows.length > 1 && !url.url.includes("devops.gov.bc.ca") && (
+                                                                                {!inherited && certificateGroup && certificateGroup.rows.length > 1 && !isPlatformManaged && (
                                                                                     <Chip
                                                                                         size="small"
                                                                                         variant="outlined"
