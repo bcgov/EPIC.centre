@@ -9,12 +9,6 @@ import {
     Button,
     IconButton,
     Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
     Typography,
     Menu,
     MenuItem,
@@ -26,9 +20,12 @@ import {
     Chip,
     Tooltip,
     Stack,
+    Tabs,
+    Tab,
 } from "@mui/material";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
+import dayjs from "dayjs";
 import { EnvironmentChip } from "@/components/ApplicationUrls/EnvironmentChip";
 import { ExpiryDisplay } from "@/components/ApplicationUrls/ExpiryDisplay";
 import { CopyToClipboardButton } from "@/components/ApplicationUrls/CopyToClipboardButton";
@@ -48,6 +45,17 @@ import {
     ErrorOutline,
     TravelExplore,
     InfoOutlined,
+    AccountTree,
+    South,
+    Info,
+    VerifiedUser,
+    Window,
+    AccountBalance,
+    AssignmentTurnedIn,
+    RuleFolder,
+    Gavel,
+    FactCheck,
+    Security,
 } from "@mui/icons-material";
 
 export const Route = createFileRoute("/_authenticated/application-urls")({
@@ -56,10 +64,180 @@ export const Route = createFileRoute("/_authenticated/application-urls")({
 
 type SortOption = 'expiry' | 'name';
 type SortOrder = 'asc' | 'desc';
+type ViewMode = 'certificates' | 'applications';
+type CertificateGroup = {
+    key: string;
+    origin: string;
+    host: string;
+    rows: ApplicationUrl[];
+    appCount: number;
+};
 
 // Constants
 const FAR_FUTURE_TIMESTAMP = Number.MAX_SAFE_INTEGER;
 const ENV_ORDER: Record<string, number> = { PROD: 1, TEST: 2, DEV: 3 };
+
+const parseUrlInfo = (value: string) => {
+    try {
+        const parsed = new URL(value);
+        return {
+            origin: parsed.origin,
+            host: parsed.host,
+            pathname: parsed.pathname || "/",
+        };
+    } catch {
+        return null;
+    }
+};
+
+const getCertificateGroupKey = (url: ApplicationUrl): string => {
+    const parsed = parseUrlInfo(url.url);
+    return parsed?.origin.toLowerCase() || url.url.toLowerCase();
+};
+
+const isInheritedSslRoute = (url: ApplicationUrl): boolean => {
+    const parsed = parseUrlInfo(url.url);
+    if (!parsed) {
+        return false;
+    }
+
+    return parsed.pathname !== "/" && parsed.pathname !== "";
+};
+
+const getCertificateGroupDisplay = (group: CertificateGroup): string => group.host || group.origin;
+
+const getCertificateGroupRootRow = (group: CertificateGroup): ApplicationUrl => {
+    return [...group.rows].sort((a, b) => {
+        const aInherited = isInheritedSslRoute(a) ? 1 : 0;
+        const bInherited = isInheritedSslRoute(b) ? 1 : 0;
+
+        if (aInherited !== bInherited) {
+            return aInherited - bInherited;
+        }
+
+        const aEnv = ENV_ORDER[a.environment] || 99;
+        const bEnv = ENV_ORDER[b.environment] || 99;
+        if (aEnv !== bEnv) {
+            return aEnv - bEnv;
+        }
+
+        return a.app_name.localeCompare(b.app_name);
+    })[0];
+};
+
+const getExpirySummaryLabel = (expiryDate: string | null): string => {
+    if (!expiryDate) {
+        return "Expiry on root host";
+    }
+
+    const expiry = dayjs(expiryDate);
+    if (!expiry.isValid()) {
+        return "Expiry on root host";
+    }
+
+    const now = dayjs();
+    const daysUntilExpiry = expiry.diff(now, "day");
+
+    if (daysUntilExpiry < 0) {
+        return "Expired on root host";
+    }
+
+    if (daysUntilExpiry === 0) {
+        return "Expires today on root host";
+    }
+
+    if (daysUntilExpiry <= 30) {
+        return `In ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} on root host`;
+    }
+
+    const monthsUntilExpiry = Math.round(daysUntilExpiry / 30);
+    return `In ~${monthsUntilExpiry} month${monthsUntilExpiry === 1 ? "" : "s"} on root host`;
+};
+
+const getStatusPriority = (status: string | null): number => {
+    switch (status) {
+        case "Expired":
+        case "Error":
+            return 0;
+        case "Expiring Soon":
+            return 1;
+        case "Valid":
+            return 2;
+        case "Managed":
+            return 3;
+        default:
+            return 4;
+    }
+};
+
+const getCertificateGroupStatus = (group: CertificateGroup): string | null => {
+    return [...group.rows]
+        .sort((a, b) => getStatusPriority(a.ssl_status) - getStatusPriority(b.ssl_status))[0]?.ssl_status || null;
+};
+
+const buildCertificateGroupTooltip = (group: CertificateGroup, inherited: boolean) => (
+    <Box sx={{ maxWidth: 320 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+            {getCertificateGroupDisplay(group)}
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 0.5 }}>
+            {inherited
+                ? "This route inherits SSL from the shared host certificate below."
+                : "This host certificate is shared across the linked application routes below."}
+        </Typography>
+        <Box sx={{ mt: 1 }}>
+            {group.rows.slice(0, 6).map((linkedUrl) => (
+                <Typography key={linkedUrl.id} variant="caption" sx={{ display: 'block' }}>
+                    {linkedUrl.app_name} · {linkedUrl.environment} · {linkedUrl.url}
+                </Typography>
+            ))}
+            {group.rows.length > 6 && (
+                <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                    +{group.rows.length - 6} more linked route(s)
+                </Typography>
+            )}
+        </Box>
+    </Box>
+);
+
+const getAppIcon = (appName: string) => {
+    const normalized = appName.toLowerCase();
+
+    if (normalized.includes("condition")) {
+        return RuleFolder;
+    }
+    if (normalized.includes("submit")) {
+        return AssignmentTurnedIn;
+    }
+    if (normalized.includes("eagle")) {
+        return AccountBalance;
+    }
+    if (normalized.includes("compliance")) {
+        return FactCheck;
+    }
+    if (normalized.includes("auth")) {
+        return Security;
+    }
+    if (normalized.includes("centre")) {
+        return Gavel;
+    }
+
+    return Window;
+};
+
+const sharedTooltipSlotProps = {
+    tooltip: {
+        sx: {
+            bgcolor: "common.white",
+            color: "text.primary",
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: 3,
+            maxWidth: 360,
+            p: 1.5,
+        },
+    },
+};
 
 // Helper functions
 const getMinExpiry = (urls: ApplicationUrl[]): number => {
@@ -85,6 +263,7 @@ function ApplicationUrls() {
     const [editingUrl, setEditingUrl] = useState<ApplicationUrl | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [addModalAppName, setAddModalAppName] = useState("");
+    const [viewMode, setViewMode] = useState<ViewMode>('applications');
 
     // Filtering State
     const [searchTerm, setSearchTerm] = useState("");
@@ -110,6 +289,32 @@ function ApplicationUrls() {
 
             return a.localeCompare(b);
         });
+    }, [urls]);
+
+    const certificateGroups = useMemo(() => {
+        const groups = new Map<string, CertificateGroup>();
+
+        urls.forEach((url) => {
+            const parsed = parseUrlInfo(url.url);
+            const key = getCertificateGroupKey(url);
+            const existing = groups.get(key);
+
+            if (existing) {
+                existing.rows.push(url);
+                existing.appCount = new Set(existing.rows.map((row) => row.app_name)).size;
+                return;
+            }
+
+            groups.set(key, {
+                key,
+                origin: parsed?.origin || url.url,
+                host: parsed?.host || url.url,
+                rows: [url],
+                appCount: 1,
+            });
+        });
+
+        return groups;
     }, [urls]);
 
     const handleEdit = (url: ApplicationUrl) => {
@@ -151,14 +356,48 @@ function ApplicationUrls() {
         }));
     };
 
+    const handleJumpToApplicationView = (rootRowId: number) => {
+        setViewMode('applications');
+        window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+                const target = document.getElementById(`ssl-root-row-${rootRowId}`);
+                target?.scrollIntoView({ behavior: "smooth", block: "center" });
+            });
+        });
+    };
+
     const stats = useMemo(() => {
         const appCount = new Set(urls.map((url) => url.app_name)).size;
-        const expiringCount = urls.filter((url) => url.ssl_status === "Expiring Soon").length;
-        const errorCount = urls.filter((url) => url.ssl_status === "Error" || url.ssl_status === "Expired").length;
-        const managedCount = urls.filter((url) => url.ssl_status === "Managed").length;
+        const groups = [...certificateGroups.values()];
+        const expiringCount = groups.filter((group) => getCertificateGroupStatus(group) === "Expiring Soon").length;
+        const errorCount = groups.filter((group) => {
+            const status = getCertificateGroupStatus(group);
+            return status === "Error" || status === "Expired";
+        }).length;
+        const managedCount = groups.filter((group) => getCertificateGroupStatus(group) === "Managed").length;
 
         return { appCount, expiringCount, errorCount, managedCount };
-    }, [urls]);
+    }, [certificateGroups, urls]);
+
+    const rootCertificateRows = useMemo(() => {
+        return [...certificateGroups.values()]
+            .map((group) => ({
+                group,
+                rootRow: getCertificateGroupRootRow(group),
+                status: getCertificateGroupStatus(group),
+            }))
+            .filter(({ rootRow, status }) => !isInheritedSslRoute(rootRow) && status !== "Managed")
+            .sort((a, b) => {
+                const statusCompare = getStatusPriority(a.status) - getStatusPriority(b.status);
+                if (statusCompare !== 0) {
+                    return statusCompare;
+                }
+
+                const expiryA = a.rootRow.ssl_expiry ? new Date(a.rootRow.ssl_expiry).getTime() : FAR_FUTURE_TIMESTAMP;
+                const expiryB = b.rootRow.ssl_expiry ? new Date(b.rootRow.ssl_expiry).getTime() : FAR_FUTURE_TIMESTAMP;
+                return expiryA - expiryB;
+            });
+    }, [certificateGroups]);
 
     // Grouping and Filtering Logic
     const groupedApps = useMemo(() => {
@@ -230,7 +469,7 @@ function ApplicationUrls() {
                     mb: 3,
                     p: 3,
                     borderRadius: 3,
-                    background: "linear-gradient(180deg, rgba(21,101,192,0.04) 0%, rgba(21,101,192,0.01) 100%)",
+                    background: "linear-gradient(180deg, rgba(15,23,42,0.02) 0%, rgba(15,23,42,0.008) 100%)",
                 }}
             >
                 <Box
@@ -276,7 +515,7 @@ function ApplicationUrls() {
                         <Box display="flex" alignItems="center" gap={1}>
                             <Apps color="primary" fontSize="small" />
                             <Typography variant="body2" color="text.secondary">Applications</Typography>
-                            <Tooltip title="Total unique applications listed below. Each application section groups its environments together.">
+                            <Tooltip title="Total unique applications listed below. Each application section groups its environments together, even when SSL is shared with other apps on the same host.">
                                 <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
                             </Tooltip>
                         </Box>
@@ -286,7 +525,7 @@ function ApplicationUrls() {
                         <Box display="flex" alignItems="center" gap={1}>
                             <WarningAmber color="warning" fontSize="small" />
                             <Typography variant="body2" color="text.secondary">Expiring Soon</Typography>
-                            <Tooltip title="URLs with SSL certificates expiring within 30 days. Use Sort By: Urgency to bring these near the top.">
+                            <Tooltip title="Certificate groups expiring within 30 days. Shared host certificates are counted once, even if several application routes use them.">
                                 <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
                             </Tooltip>
                         </Box>
@@ -296,7 +535,7 @@ function ApplicationUrls() {
                         <Box display="flex" alignItems="center" gap={1}>
                             <ErrorOutline color="error" fontSize="small" />
                             <Typography variant="body2" color="text.secondary">Needs Attention</Typography>
-                            <Tooltip title="URLs that are already expired or returned an SSL error. Sort by Urgency and look for red expiry/status indicators.">
+                            <Tooltip title="Certificate groups that are expired or returned an SSL error. Shared host certificates are counted once to avoid duplicate renewal noise.">
                                 <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
                             </Tooltip>
                         </Box>
@@ -305,8 +544,8 @@ function ApplicationUrls() {
                     <Paper variant="outlined" sx={{ px: 2, py: 1.5, borderRadius: 2, minWidth: 170 }}>
                         <Box display="flex" alignItems="center" gap={1}>
                             <TravelExplore color="action" fontSize="small" />
-                            <Typography variant="body2" color="text.secondary">Managed</Typography>
-                            <Tooltip title="Platform-managed URLs, typically on devops.gov.bc.ca. These are tracked for visibility but not usually renewed by staff here.">
+                            <Typography variant="body2" color="text.secondary">Platform Managed</Typography>
+                            <Tooltip title="Platform-managed certificate groups, typically on devops.gov.bc.ca. These are tracked for visibility but not usually renewed by staff here.">
                                 <InfoOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
                             </Tooltip>
                         </Box>
@@ -315,270 +554,584 @@ function ApplicationUrls() {
                 </Stack>
             </Paper>
 
-            <Paper
-                variant="outlined"
-                sx={{
-                    p: 2,
-                    mb: 3,
-                    display: 'flex',
-                    gap: 2,
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    borderRadius: 3,
-                }}
-            >
-                <TextField
-                    size="small"
-                    placeholder="Search applications or URLs..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    InputProps={{
-                        startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
-                        endAdornment: searchTerm ? (
-                            <InputAdornment position="end">
-                                <IconButton size="small" onClick={() => setSearchTerm("")}>
-                                    <Close fontSize="small" />
-                                </IconButton>
-                            </InputAdornment>
-                        ) : null
+            <Paper variant="outlined" sx={{ mb: 3, borderRadius: 3, overflow: "hidden" }}>
+                <Tabs
+                    value={viewMode}
+                    onChange={(_, value: ViewMode) => setViewMode(value)}
+                    sx={{
+                        px: 2,
+                        pt: 1,
+                        borderBottom: 1,
+                        borderColor: "divider",
+                        bgcolor: "background.paper",
                     }}
-                    sx={{ minWidth: 300, flexGrow: 1 }}
-                />
+                >
+                    <Tab
+                        value="applications"
+                        icon={<Apps fontSize="small" />}
+                        iconPosition="start"
+                        label={`Applications & Routes (${urls.length})`}
+                        sx={{ textTransform: "none", fontWeight: 700 }}
+                    />
+                    <Tab
+                        value="certificates"
+                        icon={<VerifiedUser fontSize="small" />}
+                        iconPosition="start"
+                        label={`Certificates We Track (${rootCertificateRows.length})`}
+                        sx={{ textTransform: "none", fontWeight: 700 }}
+                    />
+                </Tabs>
 
-                <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
-                    <Typography variant="body2" color="text.secondary" fontWeight={600}>
-                        Environments:
+                <Box
+                    sx={{
+                        px: 2.5,
+                        py: 1.25,
+                        borderBottom: 1,
+                        borderColor: "divider",
+                        bgcolor: "rgba(15,23,42,0.025)",
+                    }}
+                >
+                    <Typography variant="body2" color="text.secondary">
+                        {viewMode === "applications"
+                            ? "Use this tab to find application URLs quickly and manage environments. Shared SSL relationships are still shown where relevant."
+                            : "Use this tab to review the certificate-owning root hosts staff are responsible for tracking."}
                     </Typography>
-                    {allEnvironments.map((env) => {
-                        const selected = selectedEnvs[env] !== false;
-                        return (
-                            <Button
-                                key={env}
-                                size="small"
-                                variant={selected ? "contained" : "outlined"}
-                                color={selected ? "primary" : "inherit"}
-                                onClick={() => handleEnvToggle(env)}
-                                sx={{
-                                    minWidth: 0,
-                                    px: 1.25,
-                                    borderRadius: 5,
-                                    boxShadow: 'none',
-                                }}
-                            >
-                                {env}
-                            </Button>
-                        );
-                    })}
                 </Box>
 
-                <Button
-                    variant="outlined"
-                    color="inherit"
-                    startIcon={<SortIcon />}
-                    onClick={handleSortClick}
-                    sx={{ color: 'text.secondary', borderRadius: 5 }}
-                >
-                    Sort By: {sortBy === 'expiry' ? 'Urgency' : 'Name'}
-                </Button>
-            </Paper>
+                {viewMode === 'certificates' ? (
+                    <Box sx={{ p: 2.5 }}>
+                        <Box sx={{ mb: 2 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                                Certificates We Track
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Root certificate hosts staff may need to track. Platform-managed hosts and inherited child routes are excluded here.
+                            </Typography>
+                        </Box>
 
-            <Paper variant="outlined" sx={{ width: '100%', overflow: 'hidden', borderRadius: 3 }}>
-                <TableContainer>
-                    <Table sx={{ minWidth: 650 }} aria-label="application urls table">
-                        <TableHead>
-                            <TableRow sx={{ bgcolor: 'action.hover' }}>
-                                <TableCell sx={{ fontWeight: 600 }}>URL</TableCell>
-                                <TableCell sx={{ fontWeight: 600 }}>SSL Status & Expiry</TableCell>
-                                {canManageApplicationUrls && (
-                                    <TableCell align="right" sx={{ fontWeight: 600 }}>Actions</TableCell>
-                                )}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {Object.keys(groupedApps).length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={canManageApplicationUrls ? 4 : 2} align="center" sx={{ py: 8 }}>
-                                        <Typography variant="h6" color="text.secondary" gutterBottom>
-                                            {searchTerm || Object.values(selectedEnvs).some(v => !v)
-                                                ? "No application URLs match your filters"
-                                                : "No application URLs configured"}
-                                        </Typography>
-                                        {canManageApplicationUrls && !searchTerm && Object.values(selectedEnvs).every(v => v) && (
-                                            <Button
-                                                variant="outlined"
-                                                startIcon={<Add />}
-                                                onClick={() => setIsAddModalOpen(true)}
-                                                sx={{ mt: 2 }}
-                                            >
-                                                Add Your First Application
-                                            </Button>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                Object.entries(groupedApps).sort(sortGroups).map(([appName, appUrls]) => (
-                                    <Box component={TableRow} key={`group-${appName}`} sx={{ display: 'contents' }}>
-                                        {/* Section Header Row */}
-                                        <TableRow key={`header-${appName}`} sx={{ bgcolor: 'action.selected' }}>
-                                            <TableCell colSpan={canManageApplicationUrls ? 4 : 2} sx={{ fontWeight: 700, py: 1.5, fontSize: '0.95rem' }}>
-                                                <Box display="flex" alignItems="center" justifyContent="space-between">
-                                                    <Box display="flex" alignItems="center" gap={1.25}>
-                                                        <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                                                            {appName}
-                                                        </Typography>
-                                                        <Chip
-                                                            label={`${appUrls.length} env${appUrls.length > 1 ? "s" : ""}`}
-                                                            size="small"
-                                                            variant="outlined"
-                                                            sx={{ height: 22 }}
-                                                        />
-                                                    </Box>
-                                                    {canManageApplicationUrls && (
-                                                        <Button
-                                                            startIcon={<Add />}
-                                                            size="small"
-                                                            variant="outlined"
-                                                            color="primary"
-                                                            sx={{
-                                                                fontSize: '0.8rem',
-                                                                textTransform: 'none',
-                                                                borderRadius: 5,
-                                                                fontWeight: 700,
-                                                                boxShadow: 'none',
-                                                            }}
-                                                            onClick={() => {
-                                                                setAddModalAppName(appName);
-                                                                setIsAddModalOpen(true);
-                                                            }}
-                                                        >
-                                                            Add Env
-                                                        </Button>
-                                                    )}
-                                                </Box>
-                                            </TableCell>
-                                        </TableRow>
-
-                                        {/* Environment Rows */}
-                                        {appUrls.map((url) => (
-                                            <TableRow
-                                                key={url.id}
-                                                sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { bgcolor: 'action.hover' } }}
-                                            >
-                                                <TableCell sx={{ maxWidth: 500 }}>
-                                                    <Box display="flex" alignItems="center" gap={1.5}>
-                                                        <EnvironmentChip environment={url.environment} />
-                                                        <Typography
-                                                            variant="body2"
-                                                            component="a"
-                                                            href={url.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            sx={{
-                                                                color: 'primary.main',
-                                                                textDecoration: 'none',
-                                                                fontWeight: 500,
-                                                                whiteSpace: 'nowrap',
-                                                                overflow: 'hidden',
-                                                                textOverflow: 'ellipsis',
-                                                                maxWidth: 350,
-                                                                display: 'block',
-                                                                '&:hover': { textDecoration: 'underline' }
-                                                            }}
-                                                            title={url.url}
-                                                        >
-                                                            {url.url}
-                                                        </Typography>
-                                                        <CopyToClipboardButton text={url.url} />
-                                                    </Box>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Box display="flex" flexDirection="column" gap={0.5}>
-                                                        <ExpiryDisplay expiryDate={url.ssl_expiry} url={url.url} />
-                                                        <Box display="flex" gap={1} alignItems="center">
-                                                            <SSLStatusChip status={url.ssl_status} />
-                                                            {(() => {
-                                                                const hasStatus = url.renewal_status && url.renewal_status !== 'NONE';
-                                                                const hasTicket = !!url.ticket_reference;
-                                                                const hasComments = !!url.renewal_comments;
-
-                                                                if (!hasStatus && !hasTicket && !hasComments) return null;
-
-                                                                let icon = <ConfirmationNumber fontSize="small" />;
-                                                                let color: "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" = "info";
-                                                                let label = "Ticket";
-
-                                                                if (hasStatus) {
-                                                                    switch (url.renewal_status) {
-                                                                        case 'ORDERED':
-                                                                            icon = <ShoppingCart fontSize="small" />;
-                                                                            color = "warning";
-                                                                            label = "Ordered";
-                                                                            break;
-                                                                        case 'PLANNED':
-                                                                            icon = <Event fontSize="small" />;
-                                                                            color = "success";
-                                                                            label = "Planned";
-                                                                            break;
-                                                                        case 'TICKET_CREATED':
-                                                                        default:
-                                                                            icon = <ConfirmationNumber fontSize="small" />;
-                                                                            color = "info";
-                                                                            label = "Ticket";
-                                                                            break;
-                                                                    }
-                                                                } else if (hasComments) {
-                                                                    // No status, but comments exist
-                                                                    icon = <Help fontSize="small" />;
-                                                                    color = "default";
-                                                                    label = "Note";
-                                                                }
-
-                                                                // Append ticket reference to label if exists
-                                                                if (hasTicket) {
-                                                                    label = `${label}: ${url.ticket_reference}`;
-                                                                }
-
-                                                                return (
-                                                                    <Tooltip title={url.renewal_comments || "No comments"}>
-                                                                        <Chip
-                                                                            icon={icon}
-                                                                            label={label}
-                                                                            size="small"
-                                                                            variant="outlined"
-                                                                            color={color}
-                                                                            sx={{ height: 24, fontSize: '0.75rem' }}
-                                                                        />
-                                                                    </Tooltip>
-                                                                );
-                                                            })()}
-                                                        </Box>
-                                                    </Box>
-                                                </TableCell>
-                                                {canManageApplicationUrls && (
-                                                    <TableCell align="right">
-                                                        <Tooltip title="Edit environment details">
+                        {rootCertificateRows.length === 0 ? (
+                            <Paper variant="outlined" sx={{ p: 4, borderRadius: 2.5, textAlign: "center" }}>
+                                <Typography variant="h6" color="text.secondary" gutterBottom>
+                                    No root certificates need tracking right now
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    This view shows only certificate-owning root hosts that staff may need to renew.
+                                </Typography>
+                            </Paper>
+                        ) : (
+                            <Stack spacing={1.25}>
+                                {rootCertificateRows.map(({ group, rootRow, status }) => (
+                                    <Paper
+                                        key={`root-overview-${group.key}`}
+                                        variant="outlined"
+                                        sx={{
+                                            p: 1.75,
+                                            borderRadius: 2.5,
+                                            bgcolor: "rgba(255,255,255,0.88)",
+                                            borderColor: "rgba(15,23,42,0.08)",
+                                        }}
+                                    >
+                                        <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, alignItems: { xs: "flex-start", md: "center" }, flexWrap: "wrap" }}>
+                                            <Box sx={{ minWidth: 0 }}>
+                                                <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                                                        {getCertificateGroupDisplay(group)}
+                                                    </Typography>
+                                                    {group.rows.length > 1 && (
+                                                        <Tooltip title={buildCertificateGroupTooltip(group, false)} slotProps={sharedTooltipSlotProps}>
                                                             <IconButton
                                                                 size="small"
-                                                                onClick={() => handleEdit(url)}
                                                                 sx={{
+                                                                    width: 24,
+                                                                    height: 24,
                                                                     border: '1px solid',
                                                                     borderColor: 'divider',
-                                                                    borderRadius: 2,
                                                                 }}
                                                             >
-                                                                <Edit fontSize="small" />
+                                                                <Info sx={{ fontSize: 16 }} />
                                                             </IconButton>
                                                         </Tooltip>
-                                                    </TableCell>
-                                                )}
-                                            </TableRow>
-                                        ))}
-                                    </Box>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                                                    )}
+                                                </Box>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    Covers {group.appCount} app{group.appCount === 1 ? "" : "s"} across {group.rows.length} route{group.rows.length === 1 ? "" : "s"}
+                                                </Typography>
+                                            </Box>
+                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                                                <SSLStatusChip status={status} />
+                                                <ExpiryDisplay expiryDate={rootRow.ssl_expiry} url={rootRow.url} />
+                                                <Button
+                                                    size="small"
+                                                    variant="outlined"
+                                                    onClick={() => handleJumpToApplicationView(rootRow.id)}
+                                                    sx={{ textTransform: "none", borderRadius: 5 }}
+                                                >
+                                                    View Routes
+                                                </Button>
+                                            </Box>
+                                        </Box>
+                                    </Paper>
+                                ))}
+                            </Stack>
+                        )}
+                    </Box>
+                ) : (
+                    <>
+                        <Box
+                            sx={{
+                                p: 2,
+                                display: 'flex',
+                                gap: 2,
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                                borderBottom: 1,
+                                borderColor: "divider",
+                            }}
+                        >
+                            <Box sx={{ minWidth: 220 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                                    Applications & Routes
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                    Full URL inventory, environment management, and shared SSL context.
+                                </Typography>
+                            </Box>
+                            <TextField
+                                size="small"
+                                placeholder="Search applications or URLs..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                InputProps={{
+                                    startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
+                                    endAdornment: searchTerm ? (
+                                        <InputAdornment position="end">
+                                            <IconButton size="small" onClick={() => setSearchTerm("")}>
+                                                <Close fontSize="small" />
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ) : null
+                                }}
+                                sx={{ minWidth: 300, flexGrow: 1 }}
+                            />
+
+                            <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+                                <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                                    Environments:
+                                </Typography>
+                                {allEnvironments.map((env) => {
+                                    const selected = selectedEnvs[env] !== false;
+                                    return (
+                                        <Button
+                                            key={env}
+                                            size="small"
+                                            variant={selected ? "contained" : "outlined"}
+                                            color={selected ? "primary" : "inherit"}
+                                            onClick={() => handleEnvToggle(env)}
+                                            sx={{
+                                                minWidth: 0,
+                                                px: 1.25,
+                                                borderRadius: 5,
+                                                boxShadow: 'none',
+                                            }}
+                                        >
+                                            {env}
+                                        </Button>
+                                    );
+                                })}
+                            </Box>
+
+                            <Button
+                                variant="outlined"
+                                color="inherit"
+                                startIcon={<SortIcon />}
+                                onClick={handleSortClick}
+                                sx={{ color: 'text.secondary', borderRadius: 5 }}
+                            >
+                                Sort By: {sortBy === 'expiry' ? 'Urgency' : 'Name'}
+                            </Button>
+                        </Box>
+
+                        {Object.keys(groupedApps).length === 0 ? (
+                            <Box sx={{ py: 8, textAlign: "center" }}>
+                                <Typography variant="h6" color="text.secondary" gutterBottom>
+                                    {searchTerm || Object.values(selectedEnvs).some(v => !v)
+                                        ? "No application URLs match your filters"
+                                        : "No application URLs configured"}
+                                </Typography>
+                                {canManageApplicationUrls && !searchTerm && Object.values(selectedEnvs).every(v => v) && (
+                                    <Button
+                                        variant="outlined"
+                                        startIcon={<Add />}
+                                        onClick={() => setIsAddModalOpen(true)}
+                                        sx={{ mt: 2 }}
+                                    >
+                                        Add Your First Application
+                                    </Button>
+                                )}
+                            </Box>
+                        ) : (
+                            <Stack spacing={2} sx={{ p: 2 }}>
+                                {Object.entries(groupedApps).sort(sortGroups).map(([appName, appUrls]) => (
+                                    (() => {
+                                        const AppIcon = getAppIcon(appName);
+                                        return (
+                                    <Paper
+                                        key={`group-${appName}`}
+                                        variant="outlined"
+                                        sx={{
+                                            borderRadius: 3,
+                                            overflow: "hidden",
+                                            background: "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(248,250,252,0.82) 100%)",
+                                            borderColor: "rgba(15,23,42,0.08)",
+                                        }}
+                                    >
+                                        <Box
+                                            sx={{
+                                                px: 2,
+                                                py: 1.5,
+                                                borderBottom: "1px solid",
+                                                borderColor: "divider",
+                                                bgcolor: "rgba(15,23,42,0.028)",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                gap: 2,
+                                                flexWrap: "wrap",
+                                            }}
+                                        >
+                                            <Box display="flex" alignItems="center" gap={1.25}>
+                                                <Box
+                                                    sx={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        gap: 1.25,
+                                                        minWidth: 0,
+                                                    }}
+                                                >
+                                                    <Box
+                                                        sx={{
+                                                            width: 34,
+                                                            height: 34,
+                                                            borderRadius: 2,
+                                                            display: "grid",
+                                                            placeItems: "center",
+                                                            background: "linear-gradient(135deg, rgba(15,23,42,0.06) 0%, rgba(15,23,42,0.02) 100%)",
+                                                            border: "1px solid",
+                                                            borderColor: "rgba(15,23,42,0.08)",
+                                                            color: "text.primary",
+                                                            flexShrink: 0,
+                                                        }}
+                                                    >
+                                                        <AppIcon sx={{ fontSize: 18 }} />
+                                                    </Box>
+                                                    <Box sx={{ minWidth: 0 }}>
+                                                        <Typography
+                                                            variant="subtitle2"
+                                                            sx={{
+                                                                fontWeight: 800,
+                                                                fontSize: "0.98rem",
+                                                                lineHeight: 1.15,
+                                                                color: "text.primary",
+                                                                whiteSpace: "nowrap",
+                                                                overflow: "hidden",
+                                                                textOverflow: "ellipsis",
+                                                            }}
+                                                        >
+                                                            {appName}
+                                                        </Typography>
+                                                    </Box>
+                                                </Box>
+                                                <Chip
+                                                    label={`${appUrls.length} env${appUrls.length > 1 ? "s" : ""}`}
+                                                    size="small"
+                                                    variant="outlined"
+                                                    sx={{ height: 22 }}
+                                                />
+                                            </Box>
+                                            {canManageApplicationUrls && (
+                                                <Button
+                                                    startIcon={<Add />}
+                                                    size="small"
+                                                    variant="outlined"
+                                                    color="primary"
+                                                    sx={{
+                                                        fontSize: '0.8rem',
+                                                        textTransform: 'none',
+                                                        borderRadius: 5,
+                                                        fontWeight: 700,
+                                                        boxShadow: 'none',
+                                                    }}
+                                                    onClick={() => {
+                                                        setAddModalAppName(appName);
+                                                        setIsAddModalOpen(true);
+                                                    }}
+                                                >
+                                                    Add New Environment
+                                                </Button>
+                                            )}
+                                        </Box>
+
+                                        <Box sx={{ p: 2 }}>
+                                            <Stack spacing={1.5}>
+                                                {appUrls.map((url) => (
+                                                    <Paper
+                                                        key={url.id}
+                                                        id={
+                                                            (() => {
+                                                                const certificateGroup = certificateGroups.get(getCertificateGroupKey(url));
+                                                                const rootRow = certificateGroup ? getCertificateGroupRootRow(certificateGroup) : url;
+                                                                return rootRow.id === url.id ? `ssl-root-row-${url.id}` : undefined;
+                                                            })()
+                                                        }
+                                                        variant="outlined"
+                                                        sx={{
+                                                            p: 1.5,
+                                                            borderRadius: 2.5,
+                                                            borderColor: "rgba(15,23,42,0.08)",
+                                                            bgcolor: "rgba(255,255,255,0.84)",
+                                                            boxShadow: "0 1px 2px rgba(15,23,42,0.03)",
+                                                        }}
+                                                    >
+                                                        <Box
+                                                            sx={{
+                                                                display: "grid",
+                                                                gridTemplateColumns: { xs: "1fr", lg: canManageApplicationUrls ? "minmax(0, 1.2fr) minmax(280px, 0.9fr) auto" : "minmax(0, 1.2fr) minmax(280px, 0.9fr)" },
+                                                                gap: 2,
+                                                                alignItems: "start",
+                                                            }}
+                                                        >
+                                                            <Box>
+                                                                {(() => {
+                                                                    const certificateGroup = certificateGroups.get(getCertificateGroupKey(url));
+                                                                    const inherited = isInheritedSslRoute(url);
+                                                                    const sharedRouteCount = certificateGroup?.rows.length || 1;
+                                                                    const sharedAppCount = certificateGroup?.appCount || 1;
+                                                                    const fallbackGroup = {
+                                                                        key: url.url,
+                                                                        origin: url.url,
+                                                                        host: url.url,
+                                                                        rows: [url],
+                                                                        appCount: 1,
+                                                                    };
+                                                                    const resolvedGroup = certificateGroup || fallbackGroup;
+                                                                    const tooltipTitle = buildCertificateGroupTooltip(resolvedGroup, inherited);
+
+                                                                    return (
+                                                                        <Box display="flex" flexDirection="column" gap={1}>
+                                                                            <Box display="flex" alignItems="center" gap={1.25} flexWrap="wrap">
+                                                                                <EnvironmentChip environment={url.environment} />
+                                                                                <Typography
+                                                                                    variant="body2"
+                                                                                    component="a"
+                                                                                    href={url.url}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    sx={{
+                                                                                        color: 'primary.main',
+                                                                                        textDecoration: 'none',
+                                                                                        fontWeight: 600,
+                                                                                        wordBreak: 'break-all',
+                                                                                        '&:hover': { textDecoration: 'underline' }
+                                                                                    }}
+                                                                                    title={url.url}
+                                                                                >
+                                                                                    {url.url}
+                                                                                </Typography>
+                                                                                <CopyToClipboardButton text={url.url} />
+                                                                            </Box>
+                                                                            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                                                                                {sharedRouteCount > 1 && !inherited && (
+                                                                                    <>
+                                                                                        <Chip
+                                                                                            size="small"
+                                                                                            variant="outlined"
+                                                                                            color="default"
+                                                                                            icon={<AccountTree fontSize="small" />}
+                                                                                            label={`Root host for ${sharedRouteCount} route${sharedRouteCount > 1 ? "s" : ""}`}
+                                                                                            sx={{ height: 24, fontSize: '0.75rem' }}
+                                                                                        />
+                                                                                        <Tooltip title={tooltipTitle} slotProps={sharedTooltipSlotProps}>
+                                                                                            <IconButton
+                                                                                                size="small"
+                                                                                                sx={{
+                                                                                                    width: 24,
+                                                                                                    height: 24,
+                                                                                                    border: '1px solid',
+                                                                                                    borderColor: 'divider',
+                                                                                                }}
+                                                                                            >
+                                                                                                <Info sx={{ fontSize: 16 }} />
+                                                                                            </IconButton>
+                                                                                        </Tooltip>
+                                                                                    </>
+                                                                                )}
+                                                                                {sharedAppCount > 1 && (
+                                                                                    <Tooltip title={tooltipTitle} slotProps={sharedTooltipSlotProps}>
+                                                                                        <Chip
+                                                                                            size="small"
+                                                                                            variant="outlined"
+                                                                                            label={`Shared across ${sharedAppCount} apps`}
+                                                                                            sx={{ height: 24, fontSize: '0.75rem' }}
+                                                                                        />
+                                                                                    </Tooltip>
+                                                                                )}
+                                                                            </Stack>
+                                                                        </Box>
+                                                                    );
+                                                                })()}
+                                                            </Box>
+
+                                                            <Box>
+                                                                {(() => {
+                                                                    const certificateGroup = certificateGroups.get(getCertificateGroupKey(url));
+                                                                    const inherited = isInheritedSslRoute(url);
+                                                                    const rootRow = certificateGroup ? getCertificateGroupRootRow(certificateGroup) : url;
+                                                                    const rootLabel = certificateGroup ? getCertificateGroupDisplay(certificateGroup) : url.url;
+
+                                                                    const scrollToRoot = () => {
+                                                                        const rootElement = document.getElementById(`ssl-root-row-${rootRow.id}`);
+                                                                        rootElement?.scrollIntoView({ behavior: "smooth", block: "center" });
+                                                                    };
+
+                                                                    return (
+                                                                        <Box display="flex" flexDirection="column" gap={0.75}>
+                                                                            {inherited ? (
+                                                                                <Box display="flex" flexDirection="column" gap={0.75}>
+                                                                                    <Button
+                                                                                        variant="text"
+                                                                                        size="small"
+                                                                                        color="info"
+                                                                                        startIcon={<South fontSize="small" />}
+                                                                                        onClick={scrollToRoot}
+                                                                                        sx={{
+                                                                                            justifyContent: "flex-start",
+                                                                                            px: 0,
+                                                                                            minWidth: 0,
+                                                                                            textTransform: "none",
+                                                                                            fontWeight: 700,
+                                                                                            alignSelf: "flex-start",
+                                                                                        }}
+                                                                                    >
+                                                                                        SSL inherited from {rootLabel}
+                                                                                    </Button>
+                                                                                    <Typography variant="caption" color="text.secondary">
+                                                                                        {getExpirySummaryLabel(rootRow.ssl_expiry)}. Refer to root host for renewal tracking.
+                                                                                    </Typography>
+                                                                                </Box>
+                                                                            ) : (
+                                                                                url.url.includes("devops.gov.bc.ca") ? (
+                                                                                    <Chip
+                                                                                        size="small"
+                                                                                        label="Platform managed"
+                                                                                        variant="outlined"
+                                                                                        color="default"
+                                                                                        sx={{ alignSelf: "flex-start" }}
+                                                                                    />
+                                                                                ) : (
+                                                                                    <ExpiryDisplay expiryDate={url.ssl_expiry} url={url.url} />
+                                                                                )
+                                                                            )}
+                                                                            <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
+                                                                                {url.url.includes("devops.gov.bc.ca") ? null : (
+                                                                                    <SSLStatusChip status={inherited ? `${url.ssl_status || "Unknown"} (Inherited)` : url.ssl_status} />
+                                                                                )}
+                                                                                {!inherited && certificateGroup && certificateGroup.rows.length > 1 && !url.url.includes("devops.gov.bc.ca") && (
+                                                                                    <Chip
+                                                                                        size="small"
+                                                                                        variant="outlined"
+                                                                                        label={`Covers ${certificateGroup.rows.length} route${certificateGroup.rows.length > 1 ? "s" : ""}`}
+                                                                                        sx={{ height: 24, fontSize: '0.75rem' }}
+                                                                                    />
+                                                                                )}
+                                                                                {(() => {
+                                                                                    const hasStatus = url.renewal_status && url.renewal_status !== 'NONE';
+                                                                                    const hasTicket = !!url.ticket_reference;
+                                                                                    const hasComments = !!url.renewal_comments;
+
+                                                                                    if (!hasStatus && !hasTicket && !hasComments) return null;
+
+                                                                                    let icon = <ConfirmationNumber fontSize="small" />;
+                                                                                    let color: "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" = "info";
+                                                                                    let label = "Ticket";
+
+                                                                                    if (hasStatus) {
+                                                                                        switch (url.renewal_status) {
+                                                                                            case 'ORDERED':
+                                                                                                icon = <ShoppingCart fontSize="small" />;
+                                                                                                color = "warning";
+                                                                                                label = "Ordered";
+                                                                                                break;
+                                                                                            case 'PLANNED':
+                                                                                                icon = <Event fontSize="small" />;
+                                                                                                color = "success";
+                                                                                                label = "Planned";
+                                                                                                break;
+                                                                                            case 'TICKET_CREATED':
+                                                                                            default:
+                                                                                                icon = <ConfirmationNumber fontSize="small" />;
+                                                                                                color = "info";
+                                                                                                label = "Ticket";
+                                                                                                break;
+                                                                                        }
+                                                                                    } else if (hasComments) {
+                                                                                        icon = <Help fontSize="small" />;
+                                                                                        color = "default";
+                                                                                        label = "Note";
+                                                                                    }
+
+                                                                                    if (hasTicket) {
+                                                                                        label = `${label}: ${url.ticket_reference}`;
+                                                                                    }
+
+                                                                                    return (
+                                                                                        <Tooltip title={url.renewal_comments || "No comments"}>
+                                                                                            <Chip
+                                                                                                icon={icon}
+                                                                                                label={label}
+                                                                                                size="small"
+                                                                                                variant="outlined"
+                                                                                                color={color}
+                                                                                                sx={{ height: 24, fontSize: '0.75rem' }}
+                                                                                            />
+                                                                                        </Tooltip>
+                                                                                    );
+                                                                                })()}
+                                                                            </Box>
+                                                                        </Box>
+                                                                    );
+                                                                })()}
+                                                            </Box>
+
+                                                            {canManageApplicationUrls && (
+                                                                <Box sx={{ display: "flex", justifyContent: { xs: "flex-start", lg: "flex-end" } }}>
+                                                                    <Tooltip title="Edit environment details">
+                                                                        <IconButton
+                                                                            size="small"
+                                                                            onClick={() => handleEdit(url)}
+                                                                            sx={{
+                                                                                border: '1px solid',
+                                                                                borderColor: 'divider',
+                                                                                borderRadius: 2,
+                                                                            }}
+                                                                        >
+                                                                            <Edit fontSize="small" />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                </Box>
+                                                            )}
+                                                        </Box>
+                                                    </Paper>
+                                                ))}
+                                            </Stack>
+                                        </Box>
+                                    </Paper>
+                                        );
+                                    })()
+                                ))}
+                            </Stack>
+                        )}
+                    </>
+                )}
             </Paper>
 
             {canManageApplicationUrls && editingUrl && (
