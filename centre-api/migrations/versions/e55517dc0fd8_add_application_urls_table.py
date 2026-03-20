@@ -26,9 +26,13 @@ def upgrade():
     sa.Column('url', sa.String(length=500), nullable=False),
     sa.Column('ssl_expiry', sa.DateTime(), nullable=True),
     sa.Column('ssl_status', sa.String(length=50), nullable=True),
+    sa.Column('ssl_error_message', sa.String(length=500), nullable=True),
+    sa.Column('ticket_reference', sa.String(length=50), nullable=True),
+    sa.Column('renewal_status', sa.String(length=50), nullable=True),
+    sa.Column('renewal_comments', sa.Text(), nullable=True),
     sa.Column('last_checked', sa.DateTime(), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
-    sa.Column('created_date', sa.DateTime(), nullable=False),
+    sa.Column('created_date', sa.DateTime(), nullable=True),
     sa.Column('updated_date', sa.DateTime(), nullable=True),
     sa.Column('created_by', sa.String(length=50), nullable=True),
     sa.Column('updated_by', sa.String(length=50), nullable=True),
@@ -48,34 +52,34 @@ def upgrade():
         ),
         [
             # CENTRE
-            {'app_name': 'EPIC Centre', 'environment': 'DEV', 'url': 'https://epic-centre-dev.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'EPIC Centre', 'environment': 'TEST', 'url': 'https://epic-centre-test.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'EPIC Centre', 'environment': 'PROD', 'url': 'https://epic-centre.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Centre', 'environment': 'DEV', 'url': 'https://eao-dev.apps.gold.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Centre', 'environment': 'TEST', 'url': 'https://eao-test.apps.gold.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Centre', 'environment': 'PROD', 'url': 'https://system.eao.gov.bc.ca/', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
             
             # SUBMIT
-            {'app_name': 'EPIC Submit', 'environment': 'DEV', 'url': 'https://epic-submit-dev.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'EPIC Submit', 'environment': 'TEST', 'url': 'https://epic-submit-test.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'EPIC Submit', 'environment': 'PROD', 'url': 'https://epic-submit.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Submit', 'environment': 'DEV', 'url': 'https://dev.submit.eao.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Submit', 'environment': 'TEST', 'url': 'https://test.submit.eao.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Submit', 'environment': 'PROD', 'url': 'https://submit.eao.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
 
             # TRACK
-            {'app_name': 'EPIC Track', 'environment': 'DEV', 'url': 'https://epic-track-dev.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'EPIC Track', 'environment': 'TEST', 'url': 'https://epic-track-test.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'EPIC Track', 'environment': 'PROD', 'url': 'https://epic-track.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Track', 'environment': 'DEV', 'url': 'https://eao-dev.apps.gold.devops.gov.bc.ca/track', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Track', 'environment': 'TEST', 'url': 'https://eao-test.apps.gold.devops.gov.bc.ca/track', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Track', 'environment': 'PROD', 'url': 'https://system.eao.gov.bc.ca/track', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
 
             # COMPLIANCE
-            {'app_name': 'EPIC Compliance', 'environment': 'DEV', 'url': 'https://epic-compliance-dev.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'EPIC Compliance', 'environment': 'TEST', 'url': 'https://epic-compliance-test.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'EPIC Compliance', 'environment': 'PROD', 'url': 'https://epic-compliance.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Compliance', 'environment': 'DEV', 'url': 'https://eao-dev.apps.gold.devops.gov.bc.ca/compliance', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Compliance', 'environment': 'TEST', 'url': 'https://eao-test.apps.gold.devops.gov.bc.ca/compliance', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Compliance', 'environment': 'PROD', 'url': 'https://system.eao.gov.bc.ca/compliance', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
 
             # ENGAGE
-            {'app_name': 'EPIC Engage', 'environment': 'DEV', 'url': 'https://epic-engage-dev.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'EPIC Engage', 'environment': 'TEST', 'url': 'https://epic-engage-test.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'EPIC Engage', 'environment': 'PROD', 'url': 'https://epic-engage.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Engage', 'environment': 'DEV', 'url': 'https://dev.engage.eao.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Engage', 'environment': 'TEST', 'url': 'https://test.engage.eao.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'EPIC Engage', 'environment': 'PROD', 'url': 'https://engage.eao.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
 
              # CONDITION REPO
-            {'app_name': 'Condition Repository', 'environment': 'DEV', 'url': 'https://condition-repository-dev.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'Condition Repository', 'environment': 'TEST', 'url': 'https://condition-repository-test.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'Condition Repository', 'environment': 'PROD', 'url': 'https://condition-repository.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'Condition Repository', 'environment': 'DEV', 'url': 'https://condition-web-c8b80a-dev.apps.gold.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'Condition Repository', 'environment': 'TEST', 'url': 'https://eao-test.apps.gold.devops.gov.bc.ca/condition', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'Condition Repository', 'environment': 'PROD', 'url': 'https://system.eao.gov.bc.ca/condition', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
 
             # EAGLE ADMIN
             {'app_name': 'Eagle Admin (EPIC)', 'environment': 'DEV', 'url': 'https://epic-dev.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
