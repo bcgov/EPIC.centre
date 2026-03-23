@@ -38,7 +38,7 @@ class ApplicationUrls(Resource):
             data = create_schema.load(request.get_json())
         except ValidationError as err:
             return {'message': 'Validation failed', 'errors': err.messages}, 400
-            
+
         new_url = ApplicationUrl(
             app_name=data['app_name'],
             environment=data['environment'],
@@ -50,7 +50,7 @@ class ApplicationUrls(Resource):
             is_active=True
         )
         new_url.save()
-        
+
         return new_url.to_dict(), 201
 
 
@@ -70,11 +70,11 @@ class ApplicationUrlResource(Resource):
             data = update_schema.load(request.get_json(), partial=True)
         except ValidationError as err:
             return {'message': 'Validation failed', 'errors': err.messages}, 400
-        
+
         # Update only provided fields
         for key, value in data.items():
             setattr(app_url, key, value)
-        
+
         app_url.save()
         return app_url.to_dict(), 200
 
