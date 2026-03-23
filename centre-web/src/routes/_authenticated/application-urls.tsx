@@ -22,6 +22,9 @@ import {
     Stack,
     Tabs,
     Tab,
+    Checkbox,
+    FormControlLabel,
+    FormGroup,
 } from "@mui/material";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
@@ -49,13 +52,14 @@ import {
     South,
     Info,
     VerifiedUser,
-    Window,
-    AccountBalance,
-    AssignmentTurnedIn,
-    RuleFolder,
-    Gavel,
-    FactCheck,
-    Security,
+    HubOutlined,
+    CloudUploadOutlined,
+    VisibilityOutlined,
+    GavelOutlined,
+    RuleOutlined,
+    VpnKeyOutlined,
+    WebOutlined,
+    BarChartOutlined,
 } from "@mui/icons-material";
 
 export const Route = createFileRoute("/_authenticated/application-urls")({
@@ -209,25 +213,28 @@ const getAppIcon = (appName: string) => {
     const normalized = appName.toLowerCase();
 
     if (normalized.includes("condition")) {
-        return RuleFolder;
+        return RuleOutlined;
     }
     if (normalized.includes("submit")) {
-        return AssignmentTurnedIn;
+        return CloudUploadOutlined;
     }
     if (normalized.includes("eagle")) {
-        return AccountBalance;
+        return VisibilityOutlined;
     }
     if (normalized.includes("compliance")) {
-        return FactCheck;
+        return GavelOutlined;
     }
     if (normalized.includes("auth")) {
-        return Security;
+        return VpnKeyOutlined;
     }
     if (normalized.includes("centre")) {
-        return Gavel;
+        return HubOutlined;
+    }
+    if (normalized.includes("metabase")) {
+        return BarChartOutlined;
     }
 
-    return Window;
+    return WebOutlined;
 };
 
 const sharedTooltipSlotProps = {
@@ -277,6 +284,7 @@ function ApplicationUrls() {
         TEST: true,
         DEV: true
     });
+    const [showPlatformManaged, setShowPlatformManaged] = useState(true);
 
     // Sorting State
     const [sortBy, setSortBy] = useState<SortOption>('expiry');
@@ -421,6 +429,11 @@ function ApplicationUrls() {
                 return false;
             }
 
+            // 3. Filter platform managed
+            if (!showPlatformManaged && isPlatformManagedUrl(url)) {
+                return false;
+            }
+
             return true;
         });
 
@@ -442,7 +455,7 @@ function ApplicationUrls() {
         });
 
         return groups;
-    }, [urls, searchTerm, selectedEnvs]);
+    }, [urls, searchTerm, selectedEnvs, showPlatformManaged]);
 
     // Sorting comparator for app groups
     const sortGroups = useMemo(() => {
@@ -583,8 +596,8 @@ function ApplicationUrls() {
                     >
                         <Box display="flex" alignItems="center" gap={1}>
                             <TravelExplore sx={{ fontSize: 20, color: '#475569' }} />
-                            <Typography variant="body2" sx={{ color: '#0f172a', fontWeight: 600 }}>Platform Managed</Typography>
-                            <Tooltip title="Platform-managed certificate groups, typically on devops.gov.bc.ca. These are tracked for visibility but not usually renewed by staff here.">
+                            <Typography variant="body2" sx={{ color: '#0f172a', fontWeight: 600 }}>Managed by OpenShift Platform</Typography>
+                            <Tooltip title="Certificate groups managed by the OpenShift platform (e.g. devops.gov.bc.ca). We track these for visibility, but our staff does not renew them.">
                                 <InfoOutlined sx={{ fontSize: 16, color: '#64748b' }} />
                             </Tooltip>
                         </Box>
@@ -616,7 +629,7 @@ function ApplicationUrls() {
                         value="certificates"
                         icon={<VerifiedUser fontSize="small" />}
                         iconPosition="start"
-                        label={`Certificates We Track (${rootCertificateRows.length})`}
+                        label={`Certificates We Manage (${rootCertificateRows.length})`}
                         sx={{ textTransform: "none", fontWeight: 700 }}
                     />
                 </Tabs>
@@ -633,7 +646,7 @@ function ApplicationUrls() {
                     <Typography variant="body2" color="text.secondary">
                         {viewMode === "applications"
                             ? "Use this tab to find application URLs quickly and manage environments. Shared SSL relationships are still shown where relevant."
-                            : "Use this tab to review the certificate-owning root hosts staff are responsible for tracking."}
+                            : "Use this tab to review the root certificates that our staff is responsible for renewing and managing."}
                     </Typography>
                 </Box>
 
@@ -641,10 +654,10 @@ function ApplicationUrls() {
                     <Box sx={{ p: 2.5 }}>
                         <Box sx={{ mb: 2 }}>
                             <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                                Certificates We Track
+                                Certificates We Manage
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                                Root certificate hosts staff may need to track. Platform-managed hosts and inherited child routes are excluded here.
+                                Root certificates that our staff manages. Inherited routes and certificates managed by the OpenShift platform are excluded here.
                             </Typography>
                         </Box>
 
@@ -760,33 +773,40 @@ function ApplicationUrls() {
                                 sx={{ minWidth: 300, flexGrow: 1 }}
                             />
 
-                            <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
-                                <Typography variant="body2" color="text.secondary" fontWeight={600} sx={{ mr: 0.5 }}>
-                                    Environments:
+                            <Box display="flex" alignItems="center" gap={2} flexWrap="wrap" sx={{ mr: 'auto' }}>
+                                <Typography variant="body2" color="text.secondary" fontWeight={600}>
+                                    Show:
                                 </Typography>
-                                {allEnvironments.map((env) => {
-                                    const selected = selectedEnvs[env] !== false;
-                                    return (
-                                        <Chip
+                                <FormGroup row sx={{ gap: { xs: 1, md: 2 } }}>
+                                    {allEnvironments.map((env) => (
+                                        <FormControlLabel
                                             key={env}
-                                            label={env}
-                                            onClick={() => handleEnvToggle(env)}
-                                            color={selected ? "primary" : "default"}
-                                            variant={selected ? "filled" : "outlined"}
-                                            sx={{
-                                                fontWeight: 700,
-                                                borderRadius: '8px',
-                                                border: selected ? 'none' : '1px solid',
-                                                borderColor: selected ? 'transparent' : 'rgba(15,23,42,0.12)',
-                                                bgcolor: selected ? 'primary.main' : 'transparent',
-                                                color: selected ? 'primary.contrastText' : 'text.secondary',
-                                                '&:hover': {
-                                                    bgcolor: selected ? 'primary.dark' : 'rgba(15,23,42,0.04)',
-                                                }
-                                            }}
+                                            control={
+                                                <Checkbox
+                                                    size="small"
+                                                    checked={selectedEnvs[env] !== false}
+                                                    onChange={() => handleEnvToggle(env)}
+                                                    sx={{ py: 0.5, color: 'text.secondary', '&.Mui-checked': { color: 'primary.main' } }}
+                                                />
+                                            }
+                                            label={<Typography variant="body2" fontWeight={600} color={selectedEnvs[env] !== false ? "text.primary" : "text.secondary"}>{env}</Typography>}
+                                            sx={{ m: 0 }}
                                         />
-                                    );
-                                })}
+                                    ))}
+                                    <Divider orientation="vertical" flexItem sx={{ my: 0.5 }} />
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                size="small"
+                                                checked={showPlatformManaged}
+                                                onChange={(e) => setShowPlatformManaged(e.target.checked)}
+                                                sx={{ py: 0.5, color: '#64748b', '&.Mui-checked': { color: '#0369a1' } }}
+                                            />
+                                        }
+                                        label={<Typography variant="body2" fontWeight={600} color={showPlatformManaged ? "text.primary" : "text.secondary"}>OpenShift Platform Managed</Typography>}
+                                        sx={{ m: 0 }}
+                                    />
+                                </FormGroup>
                             </Box>
 
                             <Button
@@ -796,7 +816,7 @@ function ApplicationUrls() {
                                 onClick={handleSortClick}
                                 sx={{ color: 'text.secondary', borderRadius: 5 }}
                             >
-                                Sort By: {sortBy === 'expiry' ? 'Urgency' : 'Name'}
+                                Sort By: {sortBy === 'expiry' ? 'Renewal Urgency' : 'Name'}
                             </Button>
                         </Box>
 
@@ -1076,7 +1096,7 @@ function ApplicationUrls() {
                                                                                             alignSelf: "flex-start",
                                                                                         }}
                                                                                     >
-                                                                                        SSL inherited from {rootLabel}
+                                                                                        SSL Inherited from {rootRow.app_name} {rootRow.environment} ({rootLabel})
                                                                                     </Button>
                                                                                     <Typography variant="caption" color="text.secondary">
                                                                                         {getExpirySummaryLabel(rootRow.ssl_expiry)}. Refer to root host for renewal tracking.
@@ -1085,10 +1105,10 @@ function ApplicationUrls() {
                                                                             ) : isPlatformManaged ? (
                                                                                 <Chip
                                                                                     size="small"
-                                                                                    label="Platform managed"
+                                                                                    label="Managed by OpenShift Platform"
                                                                                     variant="outlined"
                                                                                     color="default"
-                                                                                    sx={{ alignSelf: "flex-start" }}
+                                                                                    sx={{ alignSelf: "flex-start", borderRadius: '6px' }}
                                                                                 />
                                                                             ) : (
                                                                                 <ExpiryDisplay expiryDate={url.ssl_expiry} url={url.url} />
@@ -1214,7 +1234,7 @@ function ApplicationUrls() {
                 onClose={handleSortClose}
             >
                 <MenuItem onClick={() => handleSortChange('expiry')} selected={sortBy === 'expiry'}>
-                    <ListItemText>Sort by Urgency (Expiry)</ListItemText>
+                    <ListItemText>Sort by Renewal Urgency</ListItemText>
                     {sortBy === 'expiry' && (sortOrder === 'asc' ? <ArrowUpward fontSize="small" sx={{ ml: 1, color: 'text.secondary' }} /> : <ArrowDownward fontSize="small" sx={{ ml: 1, color: 'text.secondary' }} />)}
                 </MenuItem>
                 <MenuItem onClick={() => handleSortChange('name')} selected={sortBy === 'name'}>
