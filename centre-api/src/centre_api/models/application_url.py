@@ -16,7 +16,7 @@ class ApplicationUrl(BaseModel):
     app_name = db.Column(db.String(100), nullable=False)
     environment = db.Column(db.String(50), nullable=False)  # DEV, TEST, PROD
     url = db.Column(db.String(500), nullable=False)
-    
+
     # SSL Status Tracking
     ssl_expiry = db.Column(db.DateTime, nullable=True)
     ssl_status = db.Column(db.String(50), nullable=True)  # 'Valid', 'Expired', 'Soon'
@@ -26,7 +26,7 @@ class ApplicationUrl(BaseModel):
     renewal_comments = db.Column(db.Text, nullable=True)
     created_date = db.Column(db.DateTime, default=datetime.utcnow)
     last_checked = db.Column(db.DateTime, nullable=True)
-    
+
     is_active = db.Column(db.Boolean, default=True)
 
     def to_dict(self):
