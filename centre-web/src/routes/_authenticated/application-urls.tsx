@@ -379,7 +379,7 @@ function ApplicationUrls() {
             const status = getCertificateGroupStatus(group);
             return status === "Error" || status === "Expired";
         }).length;
-        const managedCount = groups.filter((group) => getCertificateGroupStatus(group) === "Managed").length;
+        const managedCount = urls.filter((url) => isPlatformManagedUrl(url) || url.ssl_status === "Managed").length;
 
         return { appCount, expiringCount, errorCount, managedCount };
     }, [certificateGroups, urls]);
