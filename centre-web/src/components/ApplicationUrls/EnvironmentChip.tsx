@@ -1,21 +1,21 @@
 import { Chip } from "@mui/material";
 
 export function EnvironmentChip({ environment }: { environment: string }) {
-    let bgcolor = "#e0e0e0";
-    let color = "#000000";
+    let bgcolor = "#f1f5f9"; // Slate 100
+    let color = "#475569";   // Slate 600
 
     switch (environment) {
         case "PROD":
-            bgcolor = "#1565c0"; // Primary Blue 800
-            color = "#ffffff";
+            bgcolor = "#eff6ff"; // Blue 50
+            color = "#1d4ed8";   // Blue 700
             break;
         case "TEST":
-            bgcolor = "#ed6c02"; // Warning Orange
-            color = "#ffffff";
+            bgcolor = "#fff7ed"; // Orange 50
+            color = "#c2410c";   // Orange 700
             break;
         case "DEV":
-            bgcolor = "#0288d1"; // Info Light Blue
-            color = "#ffffff";
+            bgcolor = "#f0fdfa"; // Teal 50
+            color = "#0f766e";   // Teal 700
             break;
     }
 
@@ -26,11 +26,12 @@ export function EnvironmentChip({ environment }: { environment: string }) {
             sx={{
                 bgcolor: bgcolor,
                 color: color,
-                fontWeight: 700,
+                fontWeight: 800,
                 fontSize: '0.7rem',
-                height: 20,
-                borderRadius: '4px', // Slightly more square for a "tag" look
-                border: 'none'
+                height: 22,
+                borderRadius: '6px',
+                border: '1px solid',
+                borderColor: `${color}30`
             }}
         />
     );
