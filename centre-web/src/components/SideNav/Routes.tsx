@@ -4,7 +4,7 @@ import { SubListItem } from "./SubListItem";
 import { useCurrentUser } from "@/contexts/UserContext";
 
 export default function Routes() {
-  const { isAdmin } = useCurrentUser();
+  const { isAdmin, canViewApplicationUrls } = useCurrentUser();
 
   return (
     <>
@@ -27,6 +27,14 @@ export default function Routes() {
           route={{
             name: "EPIC.auth",
             path: `/request-access/auth`,
+          }}
+        />
+      )}
+      {canViewApplicationUrls && (
+        <MainListItem
+          route={{
+            name: "Application URLs/SSL",
+            path: "/application-urls",
           }}
         />
       )}
