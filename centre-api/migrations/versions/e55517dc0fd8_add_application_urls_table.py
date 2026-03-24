@@ -77,14 +77,14 @@ def upgrade():
             {'app_name': 'EPIC Engage', 'environment': 'PROD', 'url': 'https://engage.eao.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
 
              # CONDITION REPO
-            {'app_name': 'Condition Repository', 'environment': 'DEV', 'url': 'https://condition-web-c8b80a-dev.apps.gold.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'Condition Repository', 'environment': 'DEV', 'url': 'https://eao-dev.apps.gold.devops.gov.bc.ca/condition', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
             {'app_name': 'Condition Repository', 'environment': 'TEST', 'url': 'https://eao-test.apps.gold.devops.gov.bc.ca/condition', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
             {'app_name': 'Condition Repository', 'environment': 'PROD', 'url': 'https://system.eao.gov.bc.ca/condition', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
 
             # EAGLE ADMIN
             {'app_name': 'Eagle Admin (EPIC)', 'environment': 'DEV', 'url': 'https://epic-dev.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
             {'app_name': 'Eagle Admin (EPIC)', 'environment': 'TEST', 'url': 'https://epic-test.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
-            {'app_name': 'Eagle Admin (EPIC)', 'environment': 'PROD', 'url': 'https://epic.apps.silver.devops.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
+            {'app_name': 'Eagle Admin (EPIC)', 'environment': 'PROD', 'url': 'https://projects.eao.gov.bc.ca', 'created_date': datetime.utcnow(), 'created_by': 'system', 'is_active': True},
         ]
     )
 
