@@ -282,9 +282,9 @@ class ApplicationsService:
             }
             for role_group in role_groups
         ]
-        access_levels = [access_level for access_level in access_levels if not access_level['hide_in_centre']]
+        access_levels = [access_level for access_level in access_levels if not access_level['hide_in_centre'] and access_level['name']]
 
-        access_levels.sort(key=lambda x: int(x['level']))
+        access_levels.sort(key=lambda x: int(x['level']) if x['level'] else 0)
 
         return access_levels
 

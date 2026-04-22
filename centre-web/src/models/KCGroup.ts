@@ -63,6 +63,10 @@ const RAW_EPIC_GROUPS = {
       name: "DEVELOPER",
       path: "/CONDITION-REPO/DEVELOPER",
     },
+    VIEWER: {
+      name: "VIEWER",
+      path: "/CONDITION-REPO/VIEWER",
+    },
   },
   ENGAGE: {
     EAO_IT_ADMIN: {
