@@ -81,7 +81,7 @@ class EpicAdminGroupsPath(Enum):
     """Enum representing Epic admin group paths (from env)."""
 
     COMPLIANCE = _env('EPIC_ADMIN_GROUP_PATH_COMPLIANCE', 'COMPLIANCE/SUPERUSER')
-    CONDITION_REPO = _env('EPIC_ADMIN_GROUP_PATH_CONDITION_REPO', 'CONDITION-REPO/ADMIN')
+    CONDITION_REPO = _env('EPIC_ADMIN_GROUP_PATH_CONDITION_REPO', 'CONDITION-REPO/INSTANCE_ADMIN')
     SUBMIT = _env('EPIC_ADMIN_GROUP_PATH_SUBMIT', 'SUBMIT/EAO_MANAGER')
     TRACK = _env('EPIC_ADMIN_GROUP_PATH_TRACK', 'TRACK/INSTANCE_ADMIN')
     ENGAGE = _env('EPIC_ADMIN_GROUP_PATH_ENGAGE', 'ENGAGE/INSTANCE_ADMIN')
@@ -106,7 +106,7 @@ EPIC_ADMIN_GROUPS_PATHS_TO_CLIENT = defaultdict(lambda: None, {
 
 GROUP_MAP = {
     EpicGroups.COMPLIANCE.value: EpicAdminSubGroups.SUPERUSER.value,
-    EpicGroups.CONDITION_REPO.value: EpicAdminSubGroups.ADMIN.value,
+    EpicGroups.CONDITION_REPO.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
     EpicGroups.SUBMIT.value: EpicAdminSubGroups.EAO_MANAGER.value,
     EpicGroups.TRACK.value: EpicAdminSubGroups.TRACK_ADMIN.value,
     EpicGroups.ENGAGE.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,

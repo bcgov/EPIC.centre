@@ -55,13 +55,25 @@ const RAW_EPIC_GROUPS = {
     },
   },
   CONDITION_REPO: {
-    ADMIN: {
-      name: "ADMIN",
-      path: "/CONDITION-REPO/ADMIN",
+    INSTANCE_ADMIN: {
+      name: "INSTANCE_ADMIN",
+      path: "/CONDITION-REPO/INSTANCE_ADMIN",
+    },
+    SUPER_USER: {
+      name: "SUPER_USER",
+      path: "/CONDITION-REPO/SUPER_USER",
+    },
+    STAFF: {
+      name: "STAFF",
+      path: "/CONDITION-REPO/STAFF",
     },
     DEVELOPER: {
       name: "DEVELOPER",
       path: "/CONDITION-REPO/DEVELOPER",
+    },
+    VIEWER: {
+      name: "VIEWER",
+      path: "/CONDITION-REPO/VIEWER",
     },
   },
   ENGAGE: {
