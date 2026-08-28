@@ -33,6 +33,7 @@ export const AppUserManagementButton = ({
           cursor: "default",
           display: "inline-flex",
           alignItems: "center",
+          whiteSpace: "nowrap",
         }}
       >
         App User Management
@@ -44,7 +45,7 @@ export const AppUserManagementButton = ({
   }
 
   return (
-    <CentreLink onClick={handleClick}>
+    <CentreLink onClick={handleClick} sx={{ whiteSpace: "nowrap" }}>
       App User Management
       <OpenInNewIcon
         sx={{ fontSize: "1rem", verticalAlign: "middle", marginLeft: "4px" }}

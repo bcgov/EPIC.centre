@@ -88,16 +88,16 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
           : undefined
       }
     >
-      <Table>
+      <Table sx={{ tableLayout: "fixed" }}>
         <CentreTableHead>
           <TableRow>
             <CentreTableHeadCell
               sx={{
                 width: {
-                  xs: "28%",
-                  sm: "30%",
+                  xs: "20%",
+                  sm: "20%",
                   md: "20%",
-                  lg: "25%",
+                  lg: "20%",
                 },
               }}
             >
@@ -106,10 +106,20 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
             <CentreTableHeadCell
               sx={{
                 width: {
-                  xs: "28%",
-                  sm: "30%",
+                  xs: "20%",
+                  sm: "20%",
                   md: "20%",
-                  lg: "25%",
+                  lg: "20%",
+                },
+              }}
+            ></CentreTableHeadCell>
+            <CentreTableHeadCell
+              sx={{
+                width: {
+                  xs: "20%",
+                  sm: "20%",
+                  md: "20%",
+                  lg: "20%",
                 },
               }}
             >
@@ -118,7 +128,7 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
             <CentreTableHeadCell
               sx={{
                 width: {
-                  xs: "22%",
+                  xs: "20%",
                   sm: "20%",
                   md: "20%",
                   lg: "20%",
@@ -130,10 +140,10 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
             <CentreTableHeadCell
               sx={{
                 width: {
-                  xs: "22%",
+                  xs: "20%",
                   sm: "20%",
-                  md: "40%",
-                  lg: "30%",
+                  md: "20%",
+                  lg: "20%",
                 },
               }}
             ></CentreTableHeadCell>
@@ -144,6 +154,15 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
             apps.map((app) => (
               <TableRow key={app.name}>
                 <CentreTableCell>{getAppChipTitle(app.name)}</CentreTableCell>
+                <CentreTableCell
+                  sx={
+                    isDisabled
+                      ? {
+                          color: "#898785",
+                        }
+                      : undefined
+                  }
+                ></CentreTableCell>
                 <CentreTableCell
                   sx={
                     isDisabled
@@ -170,6 +189,7 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
                   </CentreLink>
                 </CentreTableCell>
                 <CentreTableCell
+                  align="right"
                   sx={
                     isDisabled
                       ? { color: "#898785", minHeight: "40px" }
@@ -190,7 +210,7 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
             <TableRow>
               <CentreTableCell
                 align="center"
-                colSpan={4}
+                colSpan={5}
                 sx={
                   isDisabled
                     ? {
