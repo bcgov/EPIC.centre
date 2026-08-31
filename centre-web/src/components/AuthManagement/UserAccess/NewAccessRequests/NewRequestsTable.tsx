@@ -93,16 +93,16 @@ export const NewRequestsTable = ({
           : undefined
       }
     >
-      <Table>
+      <Table sx={{ tableLayout: "fixed" }}>
         <CentreTableHead>
           <TableRow>
             <CentreTableHeadCell
               sx={{
                 width: {
-                  xs: "28%",
-                  sm: "30%",
+                  xs: "20%",
+                  sm: "20%",
                   md: "20%",
-                  lg: "25%",
+                  lg: "20%",
                 },
               }}
             >
@@ -111,10 +111,10 @@ export const NewRequestsTable = ({
             <CentreTableHeadCell
               sx={{
                 width: {
-                  xs: "18%",
-                  sm: "18%",
-                  md: "15%",
-                  lg: "15%",
+                  xs: "20%",
+                  sm: "20%",
+                  md: "20%",
+                  lg: "20%",
                 },
               }}
             >
@@ -123,10 +123,10 @@ export const NewRequestsTable = ({
             <CentreTableHeadCell
               sx={{
                 width: {
-                  xs: "28%",
-                  sm: "30%",
+                  xs: "20%",
+                  sm: "20%",
                   md: "20%",
-                  lg: "25%",
+                  lg: "20%",
                 },
               }}
             >
@@ -135,7 +135,7 @@ export const NewRequestsTable = ({
             <CentreTableHeadCell
               sx={{
                 width: {
-                  xs: "22%",
+                  xs: "20%",
                   sm: "20%",
                   md: "20%",
                   lg: "20%",
@@ -147,10 +147,10 @@ export const NewRequestsTable = ({
             <CentreTableHeadCell
               sx={{
                 width: {
-                  xs: "22%",
+                  xs: "20%",
                   sm: "20%",
-                  md: "40%",
-                  lg: "30%",
+                  md: "20%",
+                  lg: "20%",
                 },
               }}
             ></CentreTableHeadCell>
@@ -190,6 +190,7 @@ export const NewRequestsTable = ({
                   </CentreLink>
                 </CentreTableCell>
                 <CentreTableCell
+                  align="right"
                   sx={
                     isDisabled
                       ? { color: "#898785", minHeight: "40px" }
