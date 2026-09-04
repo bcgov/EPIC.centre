@@ -157,6 +157,45 @@ class DevConfig(_Config):  # pylint: disable=too-few-public-methods
     print(f'SQLAlchemy URL (DevConfig): {_Config.SQLALCHEMY_DATABASE_URI}')
 
 
+def _generate_test_jwt_keys(kid: str):
+    """Generate an ephemeral RSA keypair for local/test-only JWT signing.
+
+    Runs once at import time (test config only) so no key material needs to be embedded
+    in source. flask_jwt_oidc's JwtManager requires JWT_OIDC_TEST_KEYS (a JWKS dict) and
+    JWT_OIDC_TEST_PRIVATE_KEY_PEM to be set whenever JWT_OIDC_TEST_MODE is on; a freshly
+    generated keypair satisfies that without needing to match any real IdP.
+    """
+    from base64 import urlsafe_b64encode  # pylint: disable=import-outside-toplevel
+
+    from cryptography.hazmat.primitives import serialization  # pylint: disable=import-outside-toplevel
+    from cryptography.hazmat.primitives.asymmetric import rsa  # pylint: disable=import-outside-toplevel
+
+    def _b64url_uint(value: int) -> str:
+        length = (value.bit_length() + 7) // 8 or 1
+        return urlsafe_b64encode(value.to_bytes(length, 'big')).decode('ascii').rstrip('=')
+
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    public_numbers = private_key.public_key().public_numbers()
+
+    private_key_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).decode('ascii')
+
+    jwks = {
+        'keys': [{
+            'kid': kid,
+            'kty': 'RSA',
+            'alg': 'RS256',
+            'use': 'sig',
+            'n': _b64url_uint(public_numbers.n),
+            'e': _b64url_uint(public_numbers.e),
+        }]
+    }
+    return jwks, private_key_pem
+
+
 class TestConfig(_Config):  # pylint: disable=too-few-public-methods
     """In support of testing only.used by the py.test suite."""
 
@@ -175,12 +214,21 @@ class TestConfig(_Config):  # pylint: disable=too-few-public-methods
 
     JWT_OIDC_TEST_MODE = True
     # JWT_OIDC_ISSUER = _get_config('JWT_OIDC_TEST_ISSUER')
-    JWT_OIDC_TEST_AUDIENCE = os.getenv('JWT_OIDC_TEST_AUDIENCE')
+    # Defaulted (not just env-read) so a locally signed test JWT (see tests/conftest.py's
+    # `jwt` fixture + JwtManager.create_jwt) has somewhere consistent to source its
+    # aud/iss/alg claims from, without requiring every dev's .env to define these.
+    JWT_OIDC_TEST_AUDIENCE = os.getenv('JWT_OIDC_TEST_AUDIENCE', 'centre-web')
     JWT_OIDC_TEST_CLIENT_SECRET = os.getenv('JWT_OIDC_TEST_CLIENT_SECRET')
-    JWT_OIDC_TEST_ISSUER = os.getenv('JWT_OIDC_TEST_ISSUER')
+    JWT_OIDC_TEST_ISSUER = os.getenv('JWT_OIDC_TEST_ISSUER', 'http://localhost:8081/auth/realms/demo')
     JWT_OIDC_WELL_KNOWN_CONFIG = os.getenv('JWT_OIDC_WELL_KNOWN_CONFIG')
-    JWT_OIDC_TEST_ALGORITHMS = os.getenv('JWT_OIDC_TEST_ALGORITHMS')
+    JWT_OIDC_TEST_ALGORITHMS = os.getenv('JWT_OIDC_TEST_ALGORITHMS', 'RS256')
     JWT_OIDC_TEST_JWKS_URI = os.getenv('JWT_OIDC_TEST_JWKS_URI', default=None)
+
+    # Ephemeral test-only RSA keypair, generated fresh at import time (see
+    # _generate_test_jwt_keys above) rather than embedded as static key material.
+    # Satisfies flask_jwt_oidc's JwtManager, which requires both when JWT_OIDC_TEST_MODE
+    # is on; not a production secret either way.
+    JWT_OIDC_TEST_KEYS, JWT_OIDC_TEST_PRIVATE_KEY_PEM = _generate_test_jwt_keys(JWT_OIDC_TEST_AUDIENCE)
 
 
 class DockerConfig(_Config):  # pylint: disable=too-few-public-methods

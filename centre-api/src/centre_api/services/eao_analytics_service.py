@@ -1,5 +1,6 @@
 """Service for EAO Analytics management."""
 
+from centre_api.exceptions import ResourceNotFoundError
 from centre_api.models.applications import Application
 from centre_api.models.eao_analytics import EaoAnalytics
 
@@ -20,7 +21,8 @@ class EaoAnalyticsService:
             EaoAnalytics: The created or updated analytics record
 
         Raises:
-            ValueError: If required fields are missing or application not found
+            ValueError: If required fields are missing
+            ResourceNotFoundError: If the application does not exist
         """
         if not user_auth_guid or not app_name:
             raise ValueError('Missing required fields: user_auth_guid, app_name')
@@ -28,7 +30,7 @@ class EaoAnalyticsService:
         # Look up app_id from app_name
         application = Application.query.filter_by(name=app_name).first()
         if not application:
-            raise ValueError(f'Application with name "{app_name}" not found')
+            raise ResourceNotFoundError(f'Application with name "{app_name}" not found')
 
         app_id = application.id
 
