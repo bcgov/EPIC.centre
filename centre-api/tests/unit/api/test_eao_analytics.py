@@ -13,7 +13,6 @@
 # limitations under the License.
 """Tests for EAO Analytics API endpoints."""
 from http import HTTPStatus
-from unittest.mock import patch
 
 from centre_api.models.applications import Application
 from centre_api.models.eao_analytics import EaoAnalytics
@@ -23,13 +22,14 @@ from centre_api.services.eao_analytics_service import EaoAnalyticsService
 class TestEaoAnalyticsAPI:
     """Test suite for EAO Analytics endpoints."""
 
-    @patch('centre_api.resources.eao_analytics.auth.require')
-    def test_create_analytics_success(self, mock_auth, client, session):
+    def test_create_analytics_success(self, client, session, auth_header):
         """Test successful creation of analytics record."""
-        # Create a test application first
+        # Create a test application first. Uses a name not seeded by migrations (unlike
+        # 'epic_submit'/'epic_compliance') so EaoAnalyticsService's lookup-by-name can't
+        # resolve to a different, pre-existing row with the same name.
         app = Application(
             title='Test App',
-            name='epic_submit',
+            name='test_analytics_create_success',
             description='Test application',
             launch_url='https://test.com',
             is_active=True
@@ -40,14 +40,14 @@ class TestEaoAnalyticsAPI:
         # Test data
         payload = {
             'user_auth_guid': 'test-user-guid-123',
-            'app_name': 'epic_submit'
+            'app_name': 'test_analytics_create_success'
         }
 
         # Make request
         response = client.post(
             '/api/eao-analytics',
             json=payload,
-            headers={'Authorization': 'Bearer test-token'}
+            headers=auth_header
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -56,8 +56,7 @@ class TestEaoAnalyticsAPI:
         assert data['app_id'] == app.id
         assert 'last_login_time' in data
 
-    @patch('centre_api.resources.eao_analytics.auth.require')
-    def test_create_analytics_missing_fields(self, mock_auth, client):
+    def test_create_analytics_missing_fields(self, client, session, auth_header):  # noqa: ARG002
         """Test creation with missing required fields."""
         payload = {
             'user_auth_guid': 'test-user-guid-123'
@@ -67,16 +66,18 @@ class TestEaoAnalyticsAPI:
         response = client.post(
             '/api/eao-analytics',
             json=payload,
-            headers={'Authorization': 'Bearer test-token'}
+            headers=auth_header
         )
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
         data = response.get_json()
         assert 'message' in data
-        assert 'Missing required fields' in data['message']
+        # EaoAnalyticsCreateSchema marks app_name as required, so schema-level validation
+        # (marshmallow) rejects this before the service's own "Missing required fields"
+        # check is ever reached - the response message reflects that validation error.
+        assert 'app_name' in str(data['message'])
 
-    @patch('centre_api.resources.eao_analytics.auth.require')
-    def test_create_analytics_app_not_found(self, mock_auth, client):
+    def test_create_analytics_app_not_found(self, client, session, auth_header):  # noqa: ARG002
         """Test creation with non-existent app_name."""
         payload = {
             'user_auth_guid': 'test-user-guid-123',
@@ -86,20 +87,19 @@ class TestEaoAnalyticsAPI:
         response = client.post(
             '/api/eao-analytics',
             json=payload,
-            headers={'Authorization': 'Bearer test-token'}
+            headers=auth_header
         )
 
         assert response.status_code == HTTPStatus.NOT_FOUND
         data = response.get_json()
         assert 'not found' in data['message'].lower()
 
-    @patch('centre_api.resources.eao_analytics.auth.require')
-    def test_update_existing_analytics(self, mock_auth, client, session):
+    def test_update_existing_analytics(self, client, session, auth_header):
         """Test updating existing analytics record."""
         # Create test application
         app = Application(
             title='Test App',
-            name='epic_submit',
+            name='test_analytics_update_existing',
             description='Test',
             launch_url='https://test.com',
             is_active=True
@@ -124,12 +124,12 @@ class TestEaoAnalyticsAPI:
         # Update record
         payload = {
             'user_auth_guid': user_guid,
-            'app_name': 'epic_submit'
+            'app_name': 'test_analytics_update_existing'
         }
         response = client.post(
             '/api/eao-analytics',
             json=payload,
-            headers={'Authorization': 'Bearer test-token'}
+            headers=auth_header
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -145,14 +145,14 @@ class TestEaoAnalyticsAPI:
         # Create test applications
         app1 = Application(
             title='Test App 1',
-            name='epic_submit',
+            name='test_analytics_get_all_1',
             description='Test',
             launch_url='https://test.com',
             is_active=True
         )
         app2 = Application(
             title='Test App 2',
-            name='epic_compliance',
+            name='test_analytics_get_all_2',
             description='Test',
             launch_url='https://test.com',
             is_active=True
@@ -177,7 +177,7 @@ class TestEaoAnalyticsAPI:
         # Create test application
         app = Application(
             title='Test App',
-            name='epic_submit',
+            name='test_analytics_by_user_guid',
             description='Test',
             launch_url='https://test.com',
             is_active=True
@@ -200,17 +200,21 @@ class TestEaoAnalyticsAPI:
 
     def test_get_analytics_by_app_name(self, session):
         """Test getting analytics filtered by app_name."""
-        # Create test applications
+        # Create test applications. Names must be unique (not already seeded by migrations,
+        # e.g. 'epic_submit') - EaoAnalyticsService.get_analytics filters by
+        # Application.query.filter_by(name=...).first(), which would otherwise resolve to
+        # whichever row (seeded or test-created) the DB happens to return first, not
+        # necessarily the one this test just created and recorded a login against.
         app1 = Application(
             title='Test App 1',
-            name='epic_submit',
+            name='test_analytics_by_app_name_1',
             description='Test',
             launch_url='https://test.com',
             is_active=True
         )
         app2 = Application(
             title='Test App 2',
-            name='epic_compliance',
+            name='test_analytics_by_app_name_2',
             description='Test',
             launch_url='https://test.com',
             is_active=True
@@ -225,7 +229,7 @@ class TestEaoAnalyticsAPI:
         session.commit()
 
         # Test service method directly
-        analytics = EaoAnalyticsService.get_analytics(app_name='epic_submit')
+        analytics = EaoAnalyticsService.get_analytics(app_name='test_analytics_by_app_name_1')
 
         assert isinstance(analytics, list)
         assert len(analytics) == 1
@@ -233,17 +237,17 @@ class TestEaoAnalyticsAPI:
 
     def test_get_analytics_by_user_and_app(self, session):
         """Test getting analytics filtered by both user_auth_guid and app_name."""
-        # Create test applications
+        # Create test applications (unique names - see test_get_analytics_by_app_name).
         app1 = Application(
             title='Test App 1',
-            name='epic_submit',
+            name='test_analytics_combined_1',
             description='Test',
             launch_url='https://test.com',
             is_active=True
         )
         app2 = Application(
             title='Test App 2',
-            name='epic_compliance',
+            name='test_analytics_combined_2',
             description='Test',
             launch_url='https://test.com',
             is_active=True
@@ -262,7 +266,7 @@ class TestEaoAnalyticsAPI:
         # Test service method directly
         analytics = EaoAnalyticsService.get_analytics(
             user_auth_guid=user_guid,
-            app_name='epic_submit'
+            app_name='test_analytics_combined_1'
         )
 
         assert isinstance(analytics, list)
