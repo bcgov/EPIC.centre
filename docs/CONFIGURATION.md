@@ -1,197 +1,159 @@
-# EPIC.centre — Configuration
+# EPIC.centre Configuration
 
----
+Last reviewed: 2026-09-16
 
-## Overview
+Configuration is split between backend Flask config, frontend runtime config, Helm values, and OpenShift Secrets/ConfigMaps.
 
-- **Local**: `.env` files per service, copied from `sample.env`.
-- **OpenShift**: Secrets injected at deploy time by `vault-service`. No `.env` files exist in deployed environments. Config defined in `centre-api/devops/vaults.json`.
+## Sources Of Truth
 
----
+| Area | Local source | Deployment source |
+| --- | --- | --- |
+| Backend env vars | `centre-api/sample.env`, `centre-api/src/centre_api/config.py` | `deployment/charts/centre-api/templates/configmap.yaml`, `deployment/charts/centre-api/templates/deployment.yaml`, Secrets |
+| Frontend env vars | `centre-web/sample.env`, `centre-web/src/utils/config.ts` | `deployment/charts/centre-web/templates/configmap.yaml` mounted as runtime `config.js` |
+| Admin group and client mappings | `centre-api/src/centre_api/enums/epic_app.py`, `centre-web/src/utils/adminGroupPaths.ts` | `deployment/charts/centre-api/values.yaml` plus environment-specific values |
+| CI/CD settings | `.github/workflows/*.yml` | GitHub repository/environment secrets |
 
-## Backend — `centre-api`
+## Backend Configuration
 
-Variables below are sourced from the OpenShift ConfigMap for the `centre-api` deployment. Sensitive values (DB credentials, client secrets, SMTP, S3) are stored in the secrets vault and injected as Secrets — see [Secrets Management](#secrets-management-openshift) below.
+Backend config is loaded by `centre-api/src/centre_api/config.py` through `python-dotenv` and Flask `app.config.from_object(...)`.
+
+### Database
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_USERNAME` | PostgreSQL username |
+| `DATABASE_PASSWORD` | PostgreSQL password |
+| `DATABASE_NAME` | PostgreSQL database name |
+| `DATABASE_HOST` | PostgreSQL host or service name |
+| `DATABASE_PORT` | PostgreSQL port |
+| `DATABASE_TEST_USERNAME` | Test DB username |
+| `DATABASE_TEST_PASSWORD` | Test DB password |
+| `DATABASE_TEST_NAME` | Test DB name |
+| `DATABASE_TEST_HOST` | Test DB host |
+| `DATABASE_TEST_PORT` | Test DB port |
+
+The local compose main database is exposed on `54332`; the test database is exposed on `54333`.
 
 ### JWT / OIDC
 
-Used by `flask-jwt-oidc` to validate incoming Bearer tokens.
+Used by `flask-jwt-oidc` to validate incoming bearer tokens.
 
-| Variable | Description |
-|----------|-------------|
-| `JWT_OIDC_ISSUER` | Keycloak realm issuer URL — must match the `iss` claim in all tokens |
-| `JWT_OIDC_WELL_KNOWN_CONFIG` | OIDC discovery document URL |
-| `JWT_OIDC_ALGORITHMS` | Signing algorithm (e.g. `RS256`) |
-| `JWT_OIDC_AUDIENCE` | Expected `aud` claim value |
-| `JWT_OIDC_CACHING_ENABLED` | Enable JWKS public key caching |
-| `JWT_OIDC_JWKS_CACHE_TIMEOUT` | JWKS cache TTL in milliseconds |
+| Variable | Purpose |
+| --- | --- |
+| `JWT_OIDC_WELL_KNOWN_CONFIG` | OIDC discovery URL |
+| `JWT_OIDC_ALGORITHMS` | Accepted signing algorithm, normally `RS256` |
+| `JWT_OIDC_JWKS_URI` | JWKS URI, optional when discovery config provides it |
+| `JWT_OIDC_ISSUER` | Expected token issuer |
+| `JWT_OIDC_AUDIENCE` | Expected token audience/client |
+| `JWT_OIDC_CACHING_ENABLED` | Enables JWKS caching |
+| `JWT_OIDC_JWKS_CACHE_TIMEOUT` | JWKS cache timeout used by the JWT library |
+| `JWT_OIDC_TEST_*` | Test-mode JWT settings |
 
-### Keycloak Admin Integration
+### Auth And External APIs
 
-`KEYCLOAK_BASE_URL` and `KEYCLOAK_REALM_NAME` are used alongside the `centre-admin` client credentials (stored in Secrets) to call the Keycloak Admin REST API via `client_credentials` grant.
+| Variable | Purpose |
+| --- | --- |
+| `AUTH_API` | Base URL for EPIC.auth/Auth API. Centre delegates user and group operations here. |
+| `SUBMIT_API_URL` | Base URL for EPIC Submit API. Used when Submit access is granted. |
+| `KEYCLOAK_BASE_URL` | Keycloak/loginproxy base URL. Present in config and chart values. |
+| `KEYCLOAK_REALM_NAME` | Keycloak realm name. Present in config and chart values. |
+| `KEYCLOAK_ADMIN_CLIENT` | Secret-backed admin client value. Present in deployment template. |
+| `KEYCLOAK_ADMIN_SECRET` | Secret-backed admin secret value. Present in deployment template. |
+| `CONNECT_TIMEOUT` | Intended outbound HTTP timeout. The chart injects it; current Flask config does not define it, so service code falls back to `30` unless config loading is updated. |
 
-| Variable | Description |
-|----------|-------------|
-| `KEYCLOAK_BASE_URL` | Keycloak base URL |
-| `KEYCLOAK_REALM_NAME` | Realm name — must match the configured Keycloak realm |
+### Application URLs
 
-### Application
+These values control launchpad URLs returned by the API through `get_app_launch_url()`.
 
-| Variable | Description |
-|----------|-------------|
-| `APP_NAME` | Application name — used in email templates and logging |
-| `CORS_ORIGIN` | Comma-separated exact origins — no wildcards in production |
-| `EPIC_CENTRE_WEB_URL` | Frontend public URL — used for constructing deep links in email payloads |
-| `CONNECT_TIMEOUT` | HTTP client connection timeout (seconds) for outbound API calls |
-| `PYTHONBUFFERED` | Disables Python output buffering — ensures logs appear in real time in OpenShift |
-
-### Email
-
-| Variable | Description |
-|----------|-------------|
-| `DST_EMAIL` | Sender address and DST notification recipient for all email templates |
-
-SMTP credentials (`MAIL_*`) are stored in the secrets vault and injected as Secrets.
-
-### External API Integrations
-
-| Variable | Description |
-|----------|-------------|
-| `AUTH_API` | Base URL for the Auth API service (Keycloak user/group management proxy) |
-| `SUBMIT_API_URL` | Base URL for the EPIC Submit API |
-
-### Application Launch URLs
-
-Populate the launchpad tile URLs returned by `get_app_launch_url()`.
-
-| Variable | Application |
-|----------|------------|
-| `EPIC_TRACK_LAUNCH_URL` | EPIC Track |
-| `EPIC_SUBMIT_LAUNCH_URL` | EPIC Submit |
-| `EPIC_ENGAGE_LAUNCH_URL` | EPIC Engage |
-| `EPIC_COMPLIANCE_LAUNCH_URL` | EPIC Compliance |
+| Variable | App |
+| --- | --- |
 | `CONDITION_REPOSITORY_LAUNCH_URL` | Condition Repository |
-| `EPIC_PUBLIC_LAUNCH_URL` | EPIC Public |
+| `EPIC_COMPLIANCE_LAUNCH_URL` | EPIC.compliance |
+| `DOCUMENT_SEARCH_LAUNCH_URL` | Document Search |
+| `EPIC_TRACK_LAUNCH_URL` | EPIC.track |
+| `EPIC_PUBLIC_LAUNCH_URL` | EPIC.public |
+| `EPIC_SUBMIT_LAUNCH_URL` | EPIC.submit |
+| `EPIC_ENGAGE_LAUNCH_URL` | EPIC.engage |
 | `INTRANET_LAUNCH_URL` | Intranet |
+
+The API chart currently injects most launch URL values but not `DOCUMENT_SEARCH_LAUNCH_URL`; the frontend separately uses `VITE_DOCUMENT_SEARCH_URL`.
 
 ### User Management URLs
 
-Deep links into each application's user management UI, used in admin workflows.
+These values are returned by the app config endpoint for admin deep links.
 
-| Variable | Application |
-|----------|------------|
-| `EPIC_TRACK_USER_MANAGEMENT_URL` | EPIC Track |
-| `EPIC_SUBMIT_USER_MANAGEMENT_URL` | EPIC Submit |
-| `EPIC_ENGAGE_USER_MANAGEMENT_URL` | EPIC Engage |
-| `EPIC_COMPLIANCE_USER_MANAGEMENT_URL` | EPIC Compliance |
-| `EPIC_PUBLIC_USER_MANAGEMENT_URL` | EPIC Public |
+| Variable | App |
+| --- | --- |
+| `DOCUMENT_SEARCH_USER_MANAGEMENT_URL` | Document Search |
+| `CONDITION_REPOSITORY_USER_MANAGEMENT_URL` | Condition Repository |
+| `EPIC_COMPLIANCE_USER_MANAGEMENT_URL` | EPIC.compliance |
+| `EPIC_TRACK_USER_MANAGEMENT_URL` | EPIC.track |
+| `EPIC_ENGAGE_USER_MANAGEMENT_URL` | EPIC.engage |
+| `EPIC_PUBLIC_USER_MANAGEMENT_URL` | EPIC.public |
+| `EPIC_SUBMIT_USER_MANAGEMENT_URL` | EPIC.submit |
 
-### Keycloak Group Names
+The API chart currently injects EPIC Public, Engage, Submit, Track, and Compliance management URLs. Add chart values/templates if another URL must be available in deployed environments.
 
-Top-level Keycloak group names per application. Must match Keycloak exactly — used by `AuthApiService` to resolve group membership.
+### Application Groups, Admin Groups, And Clients
 
-| Variable | Application |
-|----------|------------|
-| `EPIC_GROUP_TRACK` | EPIC Track |
-| `EPIC_GROUP_SUBMIT` | EPIC Submit |
-| `EPIC_GROUP_ENGAGE` | EPIC Engage |
-| `EPIC_GROUP_COMPLIANCE` | EPIC Compliance |
-| `EPIC_GROUP_CONDITION_REPO` | Condition Repository |
-| `EPIC_GROUP_CENTRE` | EPIC.centre |
-| `EPIC_GROUP_PUBLIC` | EPIC Public |
+| Variable group | Purpose |
+| --- | --- |
+| `EPIC_GROUP_*` | Top-level Keycloak group names, such as `TRACK`, `SUBMIT`, `CENTRE` |
+| `EPIC_ADMIN_SUBGROUP_*` | Admin subgroup names, such as `INSTANCE_ADMIN`, `EAO_MANAGER`, `SUPER_USER` |
+| `EPIC_ADMIN_GROUP_PATH_*` | Full admin group paths used for authorization checks |
+| `EPIC_APP_CLIENT_*` | Keycloak client IDs used to map app names to clients |
 
-### Keycloak Admin Group Paths
+Keep backend enum defaults, Helm values, and frontend `adminGroupPaths.ts` aligned. Backend checks are enforced in the API; frontend checks control navigation and display.
 
-Full Keycloak group paths (e.g. `/APP/ADMIN_SUBGROUP`) used to locate admin subgroups for each application.
+### Other Backend Variables
 
-| Variable | Application |
-|----------|------------|
-| `EPIC_ADMIN_GROUP_PATH_TRACK` | EPIC Track |
-| `EPIC_ADMIN_GROUP_PATH_SUBMIT` | EPIC Submit |
-| `EPIC_ADMIN_GROUP_PATH_ENGAGE` | EPIC Engage |
-| `EPIC_ADMIN_GROUP_PATH_COMPLIANCE` | EPIC Compliance |
-| `EPIC_ADMIN_GROUP_PATH_CONDITION_REPO` | Condition Repository |
-| `EPIC_ADMIN_GROUP_PATH_CENTRE` | EPIC.centre |
-| `EPIC_ADMIN_GROUP_PATH_PUBLIC` | EPIC Public |
+| Variable | Purpose |
+| --- | --- |
+| `FLASK_ENV` | Selects Flask config: `development`, `testing`, `production`, `staging`, `docker` |
+| `FLASK_APP` | Flask entry point, normally `wsgi.py` |
+| `APP_NAME` | Application display/logging name |
+| `DST_EMAIL` | Sender and DST notification recipient for access workflow emails |
+| `EPIC_CENTRE_WEB_URL` | Public web URL used in email links |
+| `CORS_ORIGIN` | Comma-separated exact allowed browser origins |
+| `PYTHONBUFFERED` | Python stdout/stderr buffering flag for OpenShift logs |
+| `S3_*` | Present in `sample.env`; not used by current service code found in this review |
 
-### Keycloak Admin Subgroup Names
+## Frontend Configuration
 
-Subgroup name strings used to identify admin roles within each application group.
+Frontend config is loaded by `centre-web/src/utils/config.ts`. In OpenShift, `config.js` is mounted into `/usr/share/nginx/html/config/` and populates `window._env_`. In local development, Vite `import.meta.env` is used.
 
-| Variable | Description |
-|----------|-------------|
-| `EPIC_ADMIN_SUBGROUP_SUPER_USER` | DST super-user subgroup name |
-| `EPIC_ADMIN_SUBGROUP_SUPERUSER` | Alias / variant of super-user subgroup name |
-| `EPIC_ADMIN_SUBGROUP_EAO_MANAGER` | EAO manager subgroup name |
-| `EPIC_ADMIN_SUBGROUP_ADMIN` | Admin subgroup name |
-| `EPIC_ADMIN_SUBGROUP_INSTANCE_ADMIN` | Instance admin subgroup name |
+| Variable | Purpose |
+| --- | --- |
+| `VITE_API_URL` | API base URL without `/api`; the app appends `/api` internally |
+| `VITE_ENV` | Display/runtime environment |
+| `VITE_VERSION` | Display version |
+| `VITE_APP_TITLE` | Browser title/application title |
+| `VITE_APP_URL` | Public frontend URL, used for OIDC callback/logout redirects |
+| `VITE_OIDC_AUTHORITY` | OIDC authority URL |
+| `VITE_CLIENT_ID` | OIDC public client ID |
+| `VITE_DOCUMENT_SEARCH_URL` | Document Search URL used by launchpad/document search components |
+| `VITE_AI_SEARCH_URL` | AI document search URL |
+| `VITE_INTRANET_HUB_URL` | Intranet hub URL displayed on launchpad |
+| `VITE_BASE_PATH` | Local/sample config supports it; current Helm `config.js` does not emit it |
 
-### Keycloak Client IDs
+## GitHub Secrets
 
-Used to identify Keycloak clients when checking resource-level roles via the Admin API.
+The workflows reference these repository or environment secrets:
 
-| Variable | Application |
-|----------|------------|
-| `EPIC_APP_CLIENT_EPIC_TRACK` | EPIC Track |
-| `EPIC_APP_CLIENT_EPIC_SUBMIT` | EPIC Submit |
-| `EPIC_APP_CLIENT_EPIC_ENGAGE` | EPIC Engage |
-| `EPIC_APP_CLIENT_EPIC_COMPLIANCE` | EPIC Compliance |
-| `EPIC_APP_CLIENT_CONDITION_REPOSITORY` | Condition Repository |
-| `EPIC_APP_CLIENT_EPIC_PUBLIC` | EPIC Public |
-| `EPIC_APP_CLIENT_EPIC_CENTRE` | EPIC.centre |
+| Secret | Used by |
+| --- | --- |
+| `OPENSHIFT_LOGIN_REGISTRY` | `oc login` in CD/deploy workflows |
+| `OPENSHIFT_SA_TOKEN` | OpenShift and Docker registry login |
+| `OPENSHIFT_SA_NAME` | Docker registry login username |
+| `OPENSHIFT_IMAGE_REGISTRY` | Image push target |
+| `OPENSHIFT_REPOSITORY` | OpenShift namespace prefix |
 
-### Local Development Only
+## Configuration Review Checklist
 
-The following variables are used locally via `centre-api/.env` and are not present in the OpenShift ConfigMap.
+When adding or changing a variable:
 
-| Variable | Description |
-|----------|-------------|
-| `FLASK_ENV` | `development` — enables Flask debug mode |
-| `FLASK_APP` | `wsgi.py` — WSGI entry point |
-| `DATABASE_HOST` / `DATABASE_PORT` / `DATABASE_NAME` / `DATABASE_USERNAME` / `DATABASE_PASSWORD` | Local PostgreSQL connection (Docker Compose, port `54332`) |
-| `DATABASE_TEST_*` | Isolated test database (Docker Compose, port `54333`) |
-| `JWT_OIDC_TEST_*` | Mock token config for pytest — points to local Keycloak `demo` realm |
-
----
-
-## Frontend — `centre-web/.env`
-
-All variables are prefixed `VITE_` and bundled at build time (not runtime).
-
-| Variable | Description |
-|----------|-------------|
-| `VITE_API_URL` | Backend API base URL (e.g. `http://localhost:5000/api`) |
-| `VITE_OIDC_AUTHORITY` | Keycloak realm URL — passed to `react-oidc-context` |
-| `VITE_CLIENT_ID` | Keycloak public client ID for the SPA |
-| `VITE_APP_URL` | Frontend public URL |
-| `VITE_ENV` | `development` \| `test` \| `production` |
-| `VITE_VERSION` | Displayed version string |
-| `VITE_APP_TITLE` | Browser `<title>` |
-| `VITE_DOCUMENT_SEARCH_URL` | Document Search service base URL |
-| `VITE_AI_SEARCH_URL` | AI document search service URL |
-| `VITE_INTRANET_HUB_URL` | Intranet hub URL |
-| `VITE_BASE_PATH` | Base path if app is not served at `/` |
-
----
-
-## Secrets Management (OpenShift)
-
-Secrets are injected via a `vault-service` pod running in each namespace:
-
-```
-Secrets Vault
-    └── vault script (via vault-service pod)
-            └── oc set env / OpenShift Secret
-                    └── centre-api Deployment (env vars)
-```
-
-The vault configuration — which secrets to pull per environment — is defined in `centre-api/devops/vaults.json` (not committed; obtain from the infrastructure team).
-
-To refresh secrets in a running environment:
-
-```bash
-# Requires active oc session with appropriate permissions
-export OPENSHIFT_REPOSITORY=[PREFIX]
-export OPS_REPOSITORY=[OPS_PREFIX]
-make update-env TAG_NAME=dev   # or test / prod
-```
+1. Add or update local sample env files.
+2. Load the value in `centre-api/src/centre_api/config.py` or `centre-web/src/utils/config.ts`.
+3. Add Helm `values.yaml` entries and ConfigMap/Deployment template wiring.
+4. Update this document.
+5. Verify the value is available in the running pod with `oc set env --list` or by inspecting the mounted frontend `config.js`.

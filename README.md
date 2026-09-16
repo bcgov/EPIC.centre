@@ -1,241 +1,81 @@
-# Centre Setup Instructions
+# EPIC.centre
 
-This document outlines the setup instructions for both the backend and front-end components of the project. Ensure you follow the steps in sequence for a smooth setup.
+EPIC.centre is the front door for EPIC staff access. It gives users one launchpad for EPIC applications and gives authorized administrators one place to review access requests, manage application group membership, and maintain application URL/SSL information.
 
-## Backend Setup in WSL
+This repository contains two deployable services:
 
-### 1. Install Python 3.12.4
-Ensure Python 3.12.4 is installed in your WSL environment. Download it from the [official Python website](https://www.python.org/downloads/release/python-3124/).
+| Service | Path | Purpose |
+| --- | --- | --- |
+| `centre-web` | `centre-web/` | React/Vite single-page application served by Nginx |
+| `centre-api` | `centre-api/` | Flask REST API for application registry, access workflow, user management proxying, settings, analytics, and URL/SSL records |
 
-### 2. Set Up PYTHONPATH
-Add the following line to your `.bashrc` or `.zshrc` file to set the `PYTHONPATH` environment variable:
-export PYTHONPATH="/path/to/centre-api:${PYTHONPATH}"
+## What EPIC.centre Does
 
-### 3. Configure Environment Variables
-Create a `.env` file in your centre-api with the necessary configurations. Reference sample.env to see what variables you need to configure
+- Shows staff the EPIC applications they can access.
+- Lets staff request access to supported applications.
+- Lets DST and app administrators approve or reject access requests.
+- Delegates user and group operations to EPIC.auth/Auth API and Keycloak.
+- Tracks app ordering, bookmarks, last-accessed timestamps, access requests, email notifications, and application URL/SSL metadata.
+- Syncs EPIC Submit staff users when Submit access is granted.
 
-### 4. Start Docker Compose
-In a separate terminal, launch Docker Compose to set up your containers:
-docker-compose up
+## Documentation
 
-### 5. Run Setup
-Navigate to your project directory and run the setup command to prepare your development environment:
+Start with the documentation map:
+
+- [Documentation overview](docs/OVERVIEW.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Development setup](docs/DEVELOPMENT.md)
+- [Configuration](docs/CONFIGURATION.md)
+- [Deployment](docs/DEPLOYMENT.md)
+- [Database](docs/DATABASE.md)
+- [Operations runbook](docs/OPERATIONS.md)
+- [Architecture diagrams](docs/diagrams/README.md)
+
+The canonical architecture document is [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The older root-level [EPIC_CENTRE_ARCHITECTURE.md](EPIC_CENTRE_ARCHITECTURE.md) is kept only as a pointer for existing links.
+
+## Quick Start
+
+Prerequisites:
+
+- Python 3.9, matching the API Dockerfile, Makefile, and CI workflow.
+- Node.js 18, matching the web Dockerfile and CI workflow.
+- Docker with Compose support.
+- Optional: `oc` and Helm for OpenShift work.
+
+Backend:
+
+```bash
+cd centre-api
+cp sample.env .env
+docker compose up -d
 make setup
-
-### 5. Run Server
-Once the setup is completed use make run to start the server:
 make run
+```
 
+The API runs at `http://localhost:5000/api`. Operational probes are mounted outside the API prefix at `http://localhost:5000/ops/healthz` and `http://localhost:5000/ops/readyz`.
 
-## Backend Setup on Windows
+Frontend:
 
-## Step 1: Download the Latest Python Version
-
-1. Visit the official Python website: [Python Downloads](https://www.python.org/downloads/)
-2. Download and install the latest version of Python for your operating system.
-
-
-## Step 4: Set Environment Variables
-
-1. Set the `FLASK_APP` and `FLASK_ENV` environment variables:
-    - set FLASK_APP=app.py 
-      set FLASK_ENV=development
-      
-2. Configure `PYTHONPATH` to your project's folder location up to `centre-api/src`:
-    - set PYTHONPATH=path\to\centre-api\src &&    PYTHONPATH=path\to\centre-api
-
-## Step 2: Start Docker
-
-1. Open a terminal.
-2. Navigate to the `centre-api` directory:
-    cd centre-api
-
-3. Run the following command to start the services using Docker Compose:
-    docker-compose up
-
-## Step 3: Set Up `centre-api`
-
-1. Open a separate terminal.
-
-2. Navigate to the `` directory:
-    cd centre-api
-
-3. Create a virtual environment. Refer to the official Python documentation on how to create a virtual environment: [Python venv](https://docs.python.org/3/library/venv.html).
-    python -m venv venv
-
-4. Activate the virtual environment:
-    - venv\Scripts\activate
-
-5. Install the required Python packages from both `dev.txt` and `prod.txt` requirements files:
-    python -m pip install -r path/to/requirements/dev.txt
-    python -m pip install -r path/to/requirements/prod.txt
-
-6. Run your Flask app using the Flask CLI:
-    - python -m flask run -p 5000
-
-## Front End Setup
-
-### 1. Navigate to Front End Directory
-Change to the front-end directory:
+```bash
 cd centre-web
-
-### 2. Install Dependencies
-Install necessary npm packages:
+cp sample.env .env
 npm install
-
-### 3. Run Development Server
-Launch the development server:
 npm run dev
+```
 
-# Helm
-In openshift, you should have namespaces as such:
-xxxx-tools
-xxxx-dev
-xxxx-test
-xxxx-prod
+The Vite dev server runs at `http://localhost:5173` unless Vite selects another port.
 
-After the oc login which can be gotten from the openshift command line tool page
-install command https://helm.sh/docs/helm/helm_install/
+Local authentication needs a Keycloak realm or a reachable shared auth environment. The committed API `docker-compose.yml` references a `centre-api/setup` import folder that is not present in the repo; test Keycloak fixtures live under `centre-api/tests/docker/setup`.
 
-## Patroni
-You can reuse a patroni chart like https://github.com/bcgov/nr-patroni-chart
-follow instructions on the link
+## Repository Layout
 
-- if the resource quota was exceeded you can change the values in values.yaml, you can always do that locally and install like this as well `$ helm install -f myvalues.yaml myredis ./redis`
+```text
+EPIC.centre/
+|-- centre-api/          # Flask API, migrations, tests, Dockerfile
+|-- centre-web/          # React/Vite app, Nginx container, Cypress support files
+|-- deployment/charts/   # Helm charts for API, web, Patroni, and BuildConfigs
+|-- docs/                # Maintained project documentation
+`-- .github/workflows/   # CI/CD workflows
+```
 
-## API
-
-can reuse the charts here https://github.com/bcgov/EPIC.submit/tree/develop/deployment/charts the api and the api-bc
-
-### *api.yml
-Install it in the xxxx-dev with name xxx-api. Upon success you will have the DeploymentConfig, Route, Service, Secrets and ConfigMap
-
-### *bc.yml
-Install it in a xxxx-tools with bane yourApp-api. Upon success you will have BuildConfig and ImageStream.
-
-The ImageStream is used to host the docker image in openshift registry and point to different build tags: latest, dev, etc.
-
-The Deployment config will reference these builds using the tags
-
-The BuildConfig is run to manually build a docker image and push it to the openshift registry
-
-### Role Binding
-You need to give the service account "default" image pulling permissions. Create an image pulling role and bind it to the default service account
-
-### Network Policy
-
-The tools namespace will be common to dev, test and prod and you will need to allow for connections between namespaces via Network policy:
-
-You need a policy to allow pods in xxxx-dev to connect with each other
-    spec:
-    
-    podSelector: {}
-    
-    ingress:
-    
-    - from:
-    
-    - namespaceSelector:
-    
-    matchLabels:
-    
-    environment: dev
-    
-    name: c8b80a
-    
-    policyTypes:
-    
-    - Ingress
-
-
-# Github Workflows
-you can find a working example here: https://github.com/bcgov/EPIC.centre/tree/main/.github/workflows
-
-- create a github-action service account openshift in the tools namespace and bind to it image puller and image pusher roles
-- Add the following secrets in the repo settings under repository secrets: OPENSHIFT_IMAGE_REGISTRY (the public image repository, ignore the path just the base  url), OPENSHIFT_LOGIN_REGISTRY (you can pull this from the same place you get your oc login command, OPENSHIFT_REPOSITORY, OPENSHIFT_SA_NAME (github_action), OPENSHIFT_SA_TOKEN(github-action token, find it in secrets)
-
-# Codecov
-if you intend to use codecov in your CI workflows, you have to go to the bcgov codecov account and register your app there, get a token and add it as a repo secret with name CODECOV_TOKEN
-
-### JEST
-example work yml for jest:
-
-  testing:
-    needs: setup-job
-    runs-on: ubuntu-20.04
-
-    steps:
-      - uses: actions/checkout@v3
-    
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-    
-      - name: Install dependencies
-        run: |
-          npm install --legacy-peer-deps
-        env:
-          FONTAWESOME_PACKAGE_TOKEN: ${{ secrets.FONTAWESOME_PACKAGE_TOKEN }}
-    
-      - name: Test with jest
-        id: test
-        run: |
-          npm test -- --coverage
-    
-      # Set codecov branch name with prefix if pull request
-      - name: Sets Codecov branch name
-        run: |
-          echo "CODECOV_BRANCH=PR_${{github.head_ref}}" >> $GITHUB_ENV
-        if: github.event_name == 'pull_request'
-    
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          flags: app-web
-          name: codecov-app-web
-          fail_ci_if_error: true
-          verbose: true
-          override_branch: ${{env.CODECOV_BRANCH}}
-          token: ${{ secrets.CODECOV_TOKEN }}
-### Cypress
-you have to add a some dev dependencies and set them up in the app and then you can use the below example yml for cypress:
-
-      testing:
-        needs: setup-job
-        runs-on: ubuntu-20.04
-    
-        steps:
-          - uses: actions/checkout@v2
-    
-          - name: Use Node.js ${{ matrix.node-version }}
-            uses: actions/setup-node@v1
-            with:
-              node-version: ${{ matrix.node-version }}
-    
-          - name: Install dependencies
-            run: |
-              npm install --legacy-peer-deps
-    
-          - name: Test with Cypress
-            id: test
-            run: |
-              npx cypress run --component --headed --browser chrome
-    
-          - name: Sets Codecov branch name
-            run: |
-              echo "CODECOV_BRANCH=PR_${{ github.head_ref }}" >> $GITHUB_ENV
-            if: github.event_name == 'pull_request'
-    
-          - name: Upload coverage to Codecov
-            uses: codecov/codecov-action@v4
-            with:
-              flags: app-web
-              name: codecov-app-web
-              fail_ci_if_error: true
-              verbose: true
-              override_branch: ${{ env.CODECOV_BRANCH }}
-              token: ${{ secrets.CODECOV_TOKEN }}
-              directory: ./app-web/coverage
-
-
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the current CI/CD flow, promotion behavior, rollback options, and recommended hardening items.

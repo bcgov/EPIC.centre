@@ -1,124 +1,128 @@
-# EPIC.centre — Development Setup
+# EPIC.centre Development Setup
 
----
+Last reviewed: 2026-09-16
+
+Use this page for local development across `centre-api` and `centre-web`. For service-specific quick commands, see [../centre-api/README.md](../centre-api/README.md) and [../centre-web/README.md](../centre-web/README.md).
 
 ## Prerequisites
 
-| Tool | Version | Notes |
-|------|---------|-------|
-| Python | 3.12 | Use `pyenv install 3.12` |
-| Node.js | 18+ | Use `nvm install 18` |
-| Docker + Docker Compose | Latest | Required for local services |
-| `make` | Any | Pre-installed on macOS/Linux |
-| `oc` CLI | 4.x | Required for OpenShift operations only |
+| Tool | Version used by repo | Evidence |
+| --- | --- | --- |
+| Python | 3.9 | `centre-api/Dockerfile`, `centre-api/Makefile`, `.github/workflows/api-ci.yml` |
+| Node.js | 18 | `centre-web/Dockerfile`, `.github/workflows/web-ci.yml` |
+| Docker / Docker Compose | Current local version | API compose services and optional test Keycloak |
+| `make` | Any recent version | API command wrapper |
+| `oc` CLI | 4.x | OpenShift deploy/support work only |
+| Helm | 3.x | Chart install/upgrade work only |
 
----
-
-## Local Services (Docker Compose)
-
-From `centre-api/`:
-
-```bash
-docker-compose up -d
-```
-
-Starts three containers:
-
-| Container | Image | Port | Purpose |
-|-----------|-------|------|---------|
-| `centre-api-db` | `postgres` | `54332` | Main development database |
-| `centre-api-db-test` | `postgres` | `54333` | Isolated test database |
-| `keycloak` | `keycloak:12.0.2` | `8081` | OIDC provider — realm: `demo`, credentials in `centre-api/setup/` |
-
-Keycloak imports test realm fixtures from `centre-api/setup/` on start. Allow ~30 seconds before proceeding.
-
----
-
-## Backend Setup
+## Backend Local Setup
 
 ```bash
 cd centre-api
-
-cp sample.env .env          # Copy env template — see CONFIGURATION.md
-make setup                  # Create venv + pip install -r requirements.txt + pip install -e .
-make db                     # flask db upgrade — applies all pending Alembic migrations
-make run                    # flask run -p 5000 via Gunicorn
+cp sample.env .env
+docker compose up -d
+make setup
+make db
+make run
 ```
 
-- API base URL: `http://localhost:5000/api`
-- Swagger UI: `http://localhost:5000/api` (Flask-RESTX auto-generated)
+The API is available at:
 
----
+- Swagger/API root: `http://localhost:5000/api`
+- Health: `http://localhost:5000/ops/healthz`
+- Readiness: `http://localhost:5000/ops/readyz`
 
-## Frontend Setup
+`make setup` creates `venv/`, installs `requirements.txt`, installs dev requirements, and installs the package in editable mode. The Makefile currently invokes `python3.9`, so install Python 3.9 locally or adjust the Makefile intentionally.
+
+## Backend Docker Compose
+
+`centre-api/docker-compose.yml` defines:
+
+| Service | Host port | Purpose |
+| --- | --- | --- |
+| `centre-api-db` | `54332` | Main local PostgreSQL database |
+| `centre-api-db-test` | `54333` | Test PostgreSQL database |
+| `keycloak` | `8081` | Keycloak 12.0.2 local identity provider |
+
+Important local auth caveat: the main compose file mounts `./setup` into the Keycloak container, but `centre-api/setup` is not committed. A committed test realm exists under `centre-api/tests/docker/setup/demo-realm.json`. Either provide the expected local setup folder, use the test compose directory intentionally, or point `.env` at a reachable shared auth environment.
+
+Also check `DATABASE_TEST_PORT` before running pytest. The compose test database is exposed on host port `54333`; `sample.env` currently uses `5432`.
+
+## Frontend Local Setup
 
 ```bash
 cd centre-web
-
-cp sample.env .env          # Copy env template — see CONFIGURATION.md
+cp sample.env .env
 npm install
-npm run dev                 # Vite dev server with HMR
+npm run dev
 ```
 
-- App URL: `http://localhost:3000`
-- Proxies API requests per `vite.config.ts`
+Vite uses its default dev port, usually `http://localhost:5173`.
 
----
+Set `VITE_API_URL` to the API base URL without `/api`, for example:
 
-## Running Tests
+```text
+VITE_API_URL=http://localhost:5000
+```
 
-### Backend
+The frontend code appends `/api` internally through `AppConfig.apiUrl`.
+
+## Test And Quality Commands
+
+Backend:
 
 ```bash
 cd centre-api
-make test        # pytest — uses DATABASE_TEST_* vars, JWT_OIDC_TEST_* for mock tokens
-make ci          # pylint + flake8 + pytest (full CI equivalent)
+make pylint
+make flake8
+make lint
+make test
+make ci
 ```
 
-Test database runs on port `54333`. JWT validation in tests uses `JWT_OIDC_TEST_*` env vars pointing to the local Keycloak `demo` realm.
+`make ci` runs linting and pytest locally. The GitHub API CI workflow currently runs linting and a Docker build; its pytest job exists but is commented out.
 
-### Frontend
+Frontend:
 
 ```bash
 cd centre-web
-npm run cy:run      # Cypress headless
-npm run cy:open     # Cypress interactive UI
+npm run lint
+npm run build
+npm run preview
 ```
 
----
+The repo has Cypress dependencies and support files, but `package.json` does not currently define `cy:run` or `cy:open` scripts, and no Cypress config file is committed at the project root. The GitHub web CI workflow has a Cypress job scaffold, but it is commented out.
 
-## Backend CLI Reference
-
-| Command | Description |
-|---------|-------------|
-| `make setup` | Create virtualenv, install all deps including dev extras |
-| `make run` | Start Flask dev server on `:5000` |
-| `make db` | `flask db upgrade` — apply all pending Alembic migrations |
-| `make db-migrate message="…"` | `flask db migrate` — auto-generate new migration from model diff |
-| `make db-downgrade` | `flask db downgrade` — roll back one migration revision |
-| `make test` | `pytest` |
-| `make lint` | `pylint` + `flake8` |
-| `make ci` | `lint` + `test` |
-| `make clean` | Remove virtualenv, build artefacts, test cache |
-
-## Frontend CLI Reference
+## API Command Reference
 
 | Command | Description |
-|---------|-------------|
-| `npm run dev` | Vite dev server with HMR on `:3000` |
-| `npm run build` | Production build to `dist/` |
-| `npm run lint` | ESLint |
-| `npm run cy:run` | Cypress headless test run |
-| `npm run cy:open` | Cypress interactive runner |
+| --- | --- |
+| `make setup` | Recreate local virtualenv, install runtime and dev dependencies |
+| `make run` | Run migrations, then start Flask on port 5000 |
+| `make db` | Run `flask db upgrade` |
+| `make db-migrate message="..."` | Run `flask db migrate -m "..."` |
+| `make db-downgrade` | Roll back one migration revision |
+| `make test` | Run pytest |
+| `make lint` | Run pylint and flake8 |
+| `make clean` | Remove virtualenv, build artifacts, Python cache, and test cache |
 
----
+## Frontend Command Reference
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start Vite dev server |
+| `npm run build` | Run TypeScript build and Vite production build |
+| `npm run lint` | Run ESLint |
+| `npm run preview` | Preview the built app locally |
 
 ## Common Setup Issues
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| Keycloak not reachable at `:8081` | Container still starting | Wait 30–60 s; check `docker logs keycloak` |
-| `flask db upgrade` fails | DB container not running or wrong port | Verify `DATABASE_PORT=54332` in `.env`; check `docker ps` |
-| CORS errors in browser console | Frontend origin not in allowlist | Add `http://localhost:3000` to `CORS_ORIGIN` in `.env` |
-| `401 Unauthorized` on all API calls | `JWT_OIDC_ISSUER` mismatch | Must match the local Keycloak issuer URL set in `.env` exactly |
-| `make: venv/bin/activate: No such file` | Stale virtualenv state | `make clean && make setup` |
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| `python3.9: command not found` | Local Python 3.9 is missing | Install Python 3.9 or intentionally update the Makefile/runtime together |
+| API cannot connect to DB | Compose database is not running or `.env` port mismatch | Start compose and verify `DATABASE_PORT=54332` |
+| Tests cannot connect to DB | `DATABASE_TEST_PORT` does not match test database exposure | Use `54333` for the compose test DB or run tests against a dedicated local DB |
+| Keycloak import fails | Missing `centre-api/setup` folder | Provide local realm import files or use `centre-api/tests/docker` intentionally |
+| Frontend calls `/api/api/...` | `VITE_API_URL` includes `/api` | Set `VITE_API_URL` to the API host only |
+| `401 Unauthorized` | OIDC issuer/audience/config mismatch | Align frontend `VITE_OIDC_AUTHORITY`, backend `JWT_OIDC_*`, and Keycloak client config |
+| `403 Access denied` on URL/SSL page | Missing `view_ssl_info` or `edit_app_url` client role | Add the role in Keycloak/Auth API for the `epic-centre` client |

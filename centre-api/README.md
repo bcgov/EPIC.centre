@@ -1,50 +1,57 @@
-# CENTRE-API
+# Centre API
 
-A centre Python flask API application to be used as a template.
+Flask API for EPIC.centre. It owns Centre workflow data, validates JWTs, delegates user/group operations to EPIC.auth/Auth API, and exposes endpoints used by `centre-web`.
 
-## Getting Started
+## Local Setup
 
-### Development Environment
-* Install the following:
-    - [Python](https://www.python.org/)
-    - [Docker](https://www.docker.com/)
-    - [Docker-Compose](https://docs.docker.com/compose/install/)
-* Install Dependencies
-    - Run `make setup` in the root of the project (centre-api)
-* Start the databases
-    - Run `docker-compose up` in the root of the project (centre-api)
+```bash
+cp sample.env .env
+docker compose up -d
+make setup
+make db
+make run
+```
 
-## Environment Variables
+API URLs:
 
-The development scripts for this application allow customization via an environment file in the root directory called `.env`. See an example of the environment variables that can be overridden in `sample.env`.
+- Swagger/API: `http://localhost:5000/api`
+- Health: `http://localhost:5000/ops/healthz`
+- Readiness: `http://localhost:5000/ops/readyz`
+
+The Makefile currently uses `python3.9` when creating `venv/`.
 
 ## Commands
 
-### Development
+| Command | Purpose |
+| --- | --- |
+| `make setup` | Recreate `venv/`, install dependencies, install app in editable mode |
+| `make run` | Run migrations, then start Flask on port 5000 |
+| `make db` | Apply Alembic migrations |
+| `make db-migrate message="..."` | Generate a new migration |
+| `make db-downgrade` | Roll back one migration |
+| `make pylint` | Run pylint |
+| `make flake8` | Run flake8 |
+| `make lint` | Run pylint and flake8 |
+| `make test` | Run pytest |
+| `make ci` | Run lint and tests locally |
 
-The following commands support various development scenarios and needs.
-Before running the following commands run `. venv/bin/activate` to enter into the virtual env.
+## Main API Areas
 
+| Namespace | Purpose |
+| --- | --- |
+| `/api/applications` | Launchpad applications, request catalog, access levels |
+| `/api/users` | User search, status updates, access assignment/revocation |
+| `/api/access-requests` | Request review and status changes |
+| `/api/user-applications` | Bookmarks and launchpad sort order |
+| `/api/user-settings` | User UI settings |
+| `/api/eao-analytics` | Login/launch history records |
+| `/api/application-urls` | Application URL and SSL tracking |
+| `/api/app-configs` | Application configuration values |
 
-> `make run`
->
-> Runs the python application and runs database migrations.  
-Open [http://localhost:5000/api](http://localhost:5000/api) to view it in the browser.<br/>
-> The page will reload if you make edits.<br/>
-> You will also see any lint errors in the console.
+## Notes
 
-> `make test`
->
-> Runs the application unit tests<br>
+- Local compose exposes PostgreSQL on `54332` and test PostgreSQL on `54333`.
+- The main compose file references `./setup` for Keycloak import data, but that folder is not committed. Test fixtures live under `tests/docker/setup`.
+- OpenShift deployment runs `flask db upgrade` in an init container through `pre-hook-update-db.sh`.
 
-> `make lint`
->
-> Lints the application code.
-
-## Debugging in the Editor
-
-### Visual Studio Code
-
-Ensure the latest version of [VS Code](https://code.visualstudio.com) is installed.
-
-The [`launch.json`](.vscode/launch.json) is already configured with a launch task (CENTRE-API Launch) that allows you to launch chrome in a debugging capacity and debug through code within the editor. 
+More detail lives in [../docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md), [../docs/CONFIGURATION.md](../docs/CONFIGURATION.md), and [../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
