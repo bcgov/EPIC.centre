@@ -8,11 +8,9 @@ This directory is the maintained documentation set for EPIC.centre. The root REA
 
 1. [Architecture](ARCHITECTURE.md) - system overview, runtime components, auth flow, admin model, and diagrams.
 2. [Development](DEVELOPMENT.md) - local API/web setup, commands, testing, and known local setup caveats.
-3. [Configuration](CONFIGURATION.md) - backend and frontend environment variables, Keycloak/Auth API mapping, and runtime config.
-4. [Database](DATABASE.md) - active schema, migrations, seed data, and backup notes.
-5. [Deployment](DEPLOYMENT.md) - GitHub Actions, OpenShift charts, image tags, probes, and release flow.
-6. [Operations](OPERATIONS.md) - admin workflows, email queue behavior, health checks, and troubleshooting.
-7. [Diagrams](diagrams/README.md) - PNG diagram assets linked from the architecture page.
+3. [Database](DATABASE.md) - top-level schema, migrations, and seed data.
+4. [Deployment](DEPLOYMENT.md) - GitHub Actions, OpenShift charts, image tags, probes, and release flow.
+5. [Diagrams](diagrams/README.md) - PNG diagram assets linked from the architecture page.
 
 ## Documentation Ownership
 
@@ -43,6 +41,4 @@ Application records are seeded by Alembic migrations and launch URLs are resolve
 ## Known Documentation-Sensitive Caveats
 
 - The old root-level `EPIC_CENTRE_ARCHITECTURE.md` is now only a compatibility pointer. Keep active architecture content in [ARCHITECTURE.md](ARCHITECTURE.md).
-- Backend admin group paths are env-driven through `centre-api/src/centre_api/enums/epic_app.py`; frontend admin checks also contain static paths in `centre-web/src/utils/adminGroupPaths.ts`. Keep both aligned when Keycloak groups change.
-- The API chart injects `CONNECT_TIMEOUT`, but the backend config class currently does not define a `CONNECT_TIMEOUT` attribute. Service calls therefore use their code fallback unless that config loading is corrected.
 - Local Keycloak fixture paths need attention before promising a one-command local auth setup. The main API compose file references `centre-api/setup`, while committed test fixtures live under `centre-api/tests/docker/setup`.

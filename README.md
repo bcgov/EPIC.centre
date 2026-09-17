@@ -7,7 +7,7 @@ This repository contains two deployable services:
 | Service | Path | Purpose |
 | --- | --- | --- |
 | `centre-web` | `centre-web/` | React/Vite single-page application served by Nginx |
-| `centre-api` | `centre-api/` | Flask REST API for application registry, access workflow, user management proxying, settings, analytics, and URL/SSL records |
+| `centre-api` | `centre-api/` | Flask REST API for application registry, access management, user management proxying, settings, analytics, and URL/SSL records |
 
 ## What EPIC.centre Does
 
@@ -25,10 +25,8 @@ Start with the documentation map:
 - [Documentation overview](docs/OVERVIEW.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Development setup](docs/DEVELOPMENT.md)
-- [Configuration](docs/CONFIGURATION.md)
 - [Deployment](docs/DEPLOYMENT.md)
 - [Database](docs/DATABASE.md)
-- [Operations runbook](docs/OPERATIONS.md)
 - [Architecture diagrams](docs/diagrams/README.md)
 
 The canonical architecture document is [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The older root-level [EPIC_CENTRE_ARCHITECTURE.md](EPIC_CENTRE_ARCHITECTURE.md) is kept only as a pointer for existing links.

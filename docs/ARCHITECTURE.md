@@ -121,28 +121,6 @@ Keep these files aligned when Keycloak group names change:
 - Backend deployment values: `deployment/charts/centre-api/values.yaml`
 - Frontend admin checks: `centre-web/src/utils/adminGroupPaths.ts`
 
-## Access Request Flow
-
-```text
-Staff user
-  -> POST /api/applications/{id}/access_request
-  -> access_requests row with status PENDING
-  -> email_queue rows for requester, DST, and app admins
-
-Admin user
-  -> reviews request in /request-access/auth
-  -> approves by assigning a Keycloak group through PUT /api/users/{username}/access
-      -> Centre API delegates group write to Auth API
-      -> request status becomes APPROVED
-      -> email_queue row for access_granted_notification.html
-      -> if app is epic_submit, Centre API calls Submit API to create/sync staff user
-  -> or rejects through PUT /api/access-requests/{id}?status=REJECTED
-      -> request status becomes REJECTED
-      -> email_queue row for access_denied_notification.html
-```
-
-Compliance requests require compliance-specific admin access for approval/rejection. DST admin access alone is intentionally not enough in `AccessRequestsService.has_admin_access_on_app()`.
-
 ## Application Registry
 
 The registry is seeded by migrations and exposed through `/api/applications`. The runtime launch URL is resolved from environment variables rather than the seeded `launch_url` column.

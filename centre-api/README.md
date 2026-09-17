@@ -54,4 +54,4 @@ The Makefile currently uses `python3.9` when creating `venv/`.
 - The main compose file references `./setup` for Keycloak import data, but that folder is not committed. Test fixtures live under `tests/docker/setup`.
 - OpenShift deployment runs `flask db upgrade` in an init container through `pre-hook-update-db.sh`.
 
-More detail lives in [../docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md), [../docs/CONFIGURATION.md](../docs/CONFIGURATION.md), and [../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
+More detail lives in [../docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md) and [../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
