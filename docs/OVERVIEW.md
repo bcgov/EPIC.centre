@@ -1,67 +1,44 @@
-# EPIC.centre
+# EPIC.centre Documentation Overview
 
-> Last updated: [DATE]
+Last reviewed: 2026-09-16
 
----
+This directory is the maintained documentation set for EPIC.centre. The root README is intentionally short; the documents here hold the detail needed by developers, operators, and maintainers.
 
-## Purpose
+## Reading Path
 
-EPIC.centre is an authentication and authorization management portal that provides a user-facing abstraction layer over Keycloak. It serves two primary functions:
+1. [Architecture](ARCHITECTURE.md) - system overview, runtime components, auth flow, admin model, and diagrams.
+2. [Development](DEVELOPMENT.md) - local API/web setup, commands, testing, and known local setup caveats.
+3. [Database](DATABASE.md) - top-level schema, migrations, and seed data.
+4. [Deployment](DEPLOYMENT.md) - GitHub Actions, OpenShift charts, image tags, probes, and release flow.
+5. [Diagrams](diagrams/README.md) - PNG diagram assets linked from the architecture page.
 
-1. **SSO Launchpad** — Centralized portal for accessing all EPIC applications via a shared Keycloak session. Supports per-app bookmarking and last-accessed tracking.
-2. **Access Management UI** — Role-based admin interface for managing Keycloak group membership across EPIC applications, handling access request workflows, and managing user account state — without requiring direct Keycloak Admin Console access.
+## Documentation Ownership
 
----
+Use these rules when changing documentation:
 
-## User Roles
+- The current source of truth for runtime behavior is the code under `centre-api/`, `centre-web/`, `deployment/charts/`, and `.github/workflows/`.
+- Keep [ARCHITECTURE.md](ARCHITECTURE.md) as the single architecture narrative. Other documents should link to it instead of duplicating the whole system design.
+- Keep service-specific quick commands in [centre-api/README.md](../centre-api/README.md) and [centre-web/README.md](../centre-web/README.md), but put cross-service setup in [DEVELOPMENT.md](DEVELOPMENT.md).
+- Update [diagrams/README.md](diagrams/README.md) and the embedded images in [ARCHITECTURE.md](ARCHITECTURE.md) whenever diagram files are renamed, moved, or refreshed.
+- Remove date, URL, and version placeholders before committing. If a value is environment-specific or private, describe where to find it.
 
-| Role | Keycloak Group | Scope |
-|------|---------------|-------|
-| **DST Admin** | `CENTRE/SUPER_USER` | Full access — all users, all applications |
-| **App Admin** | `{APP}/INSTANCE_ADMIN` (or equivalent) | Scoped to their assigned application only |
-| **Staff** | Any application group membership | Launchpad, access requests, bookmarks |
+## Current Application Registry
 
----
+Application records are seeded by Alembic migrations and launch URLs are resolved from environment variables:
 
-## EPIC Application Registry
+| Canonical name | Display title | Notes |
+| --- | --- | --- |
+| `condition_repository` | Condition Repository | Requestable application |
+| `epic_compliance` | EPIC.compliance | Excluded from self-service request catalog |
+| `document_search` | Document Search | Public launchpad entry, not requestable |
+| `epic_track` | EPIC.track | Requestable application |
+| `epic_public` | EPIC.public | Requestable application |
+| `epic_submit` | EPIC.submit | Requestable application; approval also calls Submit API |
+| `epic_engage` | EPIC.engage | Requestable application |
+| `intranet` | Intranet | Public launchpad entry, not requestable |
+| `epic_centre` | EPIC.centre | Inactive application row used for Centre analytics |
 
-- EPIC Track
-- EPIC Submit
-- EPIC Engage
-- EPIC Compliance
-- Condition Repository
-- EPIC Public
+## Known Documentation-Sensitive Caveats
 
----
-
-## Key Resources
-
-| Resource | Location |
-|----------|----------|
-| GitHub Repository | `https://github.com/bcgov/EPIC.centre` |
-| Swagger / OpenAPI Docs | `https://[API_HOST]/api` |
-| OpenShift Console | [URL] |
-| Keycloak Admin Console | `[KEYCLOAK_URL]/auth/admin` |
-
----
-
-
-## Repository State
-
-- **Integration branch**: `develop` — auto-deploys to `dev` on push
-- **Production branch**: `develop` — production-aligned
-- **Last release**: [VERSION / DATE]
-- **Open issues**: [URL]
-
----
-
-## Documentation Index
-
-| Document | Contents |
-|----------|---------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System design, component interactions, OIDC auth flow, Keycloak group structure |
-| [DEVELOPMENT.md](DEVELOPMENT.md) | Local dev setup, Docker Compose services, test execution, CLI reference |
-| [CONFIGURATION.md](CONFIGURATION.md) | All environment variables, Keycloak config, secrets management |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | CI/CD pipelines, OpenShift image promotion, Helm charts, rollback |
-| [DATABASE.md](DATABASE.md) | Schema, ER diagram, SQLAlchemy models, Alembic migrations |
-| [OPERATIONS.md](OPERATIONS.md) | Runbook — access approval flow, email notifications, monitoring, troubleshooting |
+- The old root-level `EPIC_CENTRE_ARCHITECTURE.md` is now only a compatibility pointer. Keep active architecture content in [ARCHITECTURE.md](ARCHITECTURE.md).
+- Local Keycloak fixture paths need attention before promising a one-command local auth setup. The main API compose file references `centre-api/setup`, while committed test fixtures live under `centre-api/tests/docker/setup`.
