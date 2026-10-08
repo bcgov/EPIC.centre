@@ -150,6 +150,16 @@ class UserService:
             del_sub_group_mappings=True
         )
 
+        # Revoking EPIC.track access must also remove the user's EPIC.submit
+        # staff work assignments. Submit keys these off the identity id, which
+        # is the Keycloak username (e.g. "<guid>@idir") carried in `username`.
+        if app_name == EpicAppName.EPIC_TRACK.value:
+            try:
+                SubmitApiService.remove_staff_user_work_by_user(username)
+            except requests.RequestException:
+                # Log error but don't fail as the main access is already revoked
+                pass
+
         return response
 
     @classmethod

@@ -1,5 +1,6 @@
 {
     "python.analysis.extraPaths": [
         "./centre-api/src"
-    ]
+    ],
+    "python.defaultInterpreterPath": "${workspaceFolder}/centre-api/venv/Scripts/python.exe"
 }
