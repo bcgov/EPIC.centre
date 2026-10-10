@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Common setup and fixtures for the pytest suite used by this service."""
+import time
 from random import random
 
 import pytest
@@ -80,6 +81,38 @@ def client(app):  # pylint: disable=redefined-outer-name
 def jwt():
     """Return a session-wide jwt manager."""
     return _jwt
+
+
+@pytest.fixture()
+def auth_header(app, jwt):  # pylint: disable=redefined-outer-name
+    """Return an Authorization header carrying a real, locally-signed test JWT.
+
+    `@auth.require` (centre_api.auth.Auth.require) wraps each resource method with
+    `jwt.requires_auth` at import time, so patching `auth.require` in a test has no effect -
+    the real decorator already ran. The only way to exercise these endpoints is to present a
+    token that actually verifies against the JWT_OIDC_TEST_KEYS configured for the app.
+    """
+    with app.app_context():
+        header = {
+            'alg': app.config.get('JWT_OIDC_TEST_ALGORITHMS'),
+            'typ': 'JWT',
+            'kid': app.config.get('JWT_OIDC_TEST_AUDIENCE'),
+        }
+        claims = {
+            'sub': 'test-user-sub',
+            'preferred_username': 'test-user',
+            'email': 'test-user@example.com',
+            'given_name': 'Test',
+            'family_name': 'User',
+            'aud': app.config.get('JWT_OIDC_TEST_AUDIENCE'),
+            'iss': app.config.get('JWT_OIDC_TEST_ISSUER'),
+            'iat': int(time.time()),
+            'exp': int(time.time()) + 3600,
+            'realm_access': {'roles': []},
+            'resource_access': {},
+        }
+        token = jwt.create_jwt(claims=claims, header=header)
+    return {'Authorization': f'Bearer {token}'}
 
 
 @pytest.fixture(scope='session')

@@ -16,8 +16,10 @@ from http import HTTPStatus
 
 from flask import request
 from flask_restx import Namespace, Resource
+from marshmallow import ValidationError
 
 from centre_api.auth import auth
+from centre_api.exceptions import ResourceNotFoundError
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.schemas.eao_analytics import EaoAnalyticsCreateSchema, EaoAnalyticsSchema
 from centre_api.services.eao_analytics_service import EaoAnalyticsService
@@ -50,8 +52,11 @@ class CreateEaoAnalytics(Resource):
 
             return EaoAnalyticsSchema().dump(analytics), HTTPStatus.OK
 
-        except ValueError as e:
-            return {'message': f'Invalid data: {str(e)}'}, HTTPStatus.BAD_REQUEST
+        except ResourceNotFoundError as e:
+            return {'message': str(e.description)}, HTTPStatus.NOT_FOUND
+        except (ValueError, ValidationError) as e:
+            message = e.messages if isinstance(e, ValidationError) else str(e)
+            return {'message': f'Invalid data: {message}'}, HTTPStatus.BAD_REQUEST
         except (RuntimeError, AttributeError) as e:
             return {'message': f'Error creating analytics record: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
 
