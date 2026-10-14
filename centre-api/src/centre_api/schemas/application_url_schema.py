@@ -4,7 +4,7 @@ from marshmallow import Schema, fields, validate
 
 class ApplicationUrlSchema(Schema):
     """Schema for validating application URL data."""
-    
+
     app_name = fields.String(
         required=True,
         validate=validate.Length(min=1, max=100),
@@ -28,12 +28,14 @@ class ApplicationUrlSchema(Schema):
     renewal_comments = fields.Str(allow_none=True)
 
     class Meta:
-        unknown = "exclude"
+        """Marshmallow configuration options."""
+
+        unknown = 'exclude'
 
 
 class ApplicationUrlUpdateSchema(Schema):
     """Schema for updating application URL data."""
-    
+
     url = fields.URL(validate=validate.Length(max=500))
     ssl_status = fields.Str(
         validate=validate.OneOf(['Valid', 'Expiring Soon', 'Expired', 'Error', 'Managed', 'Unknown']),
@@ -50,4 +52,6 @@ class ApplicationUrlUpdateSchema(Schema):
     created_date = fields.DateTime(dump_only=True)
 
     class Meta:
-        unknown = "exclude"
+        """Marshmallow configuration options."""
+
+        unknown = 'exclude'
