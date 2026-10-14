@@ -78,9 +78,15 @@ class _Config():  # pylint: disable=too-few-public-methods
 
     # Service account details
     KEYCLOAK_BASE_URL = os.getenv('KEYCLOAK_BASE_URL')
-    KEYCLOAK_REALM_NAME = os.getenv('KEYCLOAK_REALM_NAME')
-    KEYCLOAK_SERVICE_ACCOUNT_ID = os.getenv('MET_ADMIN_CLIENT_ID')
-    KEYCLOAK_SERVICE_ACCOUNT_SECRET = os.getenv('MET_ADMIN_CLIENT_SECRET')
+    KEYCLOAK_REALM_NAME = os.getenv('KEYCLOAK_REALM_NAME', os.getenv('KEYCLOAK_URL_REALM'))
+    KEYCLOAK_SERVICE_ACCOUNT_ID = os.getenv(
+        'KEYCLOAK_SERVICE_ACCOUNT_ID',
+        os.getenv('CENTRE_ADMIN_CLIENT_ID', os.getenv('MET_ADMIN_CLIENT_ID'))
+    )
+    KEYCLOAK_SERVICE_ACCOUNT_SECRET = os.getenv(
+        'KEYCLOAK_SERVICE_ACCOUNT_SECRET',
+        os.getenv('CENTRE_ADMIN_CLIENT_SECRET', os.getenv('MET_ADMIN_CLIENT_SECRET'))
+    )
     KEYCLOAK_ADMIN_CLIENT = os.getenv('KEYCLOAK_ADMIN_CLIENT')
     KEYCLOAK_ADMIN_SECRET = os.getenv('KEYCLOAK_ADMIN_SECRET')
 
@@ -90,6 +96,9 @@ class _Config():  # pylint: disable=too-few-public-methods
 
     AUTH_API = os.getenv('AUTH_API', 'http://localhost:8080')
     SUBMIT_API_URL = os.getenv('SUBMIT_API_URL', 'http://localhost:8080')
+
+    # Timeout (seconds) for outbound service-to-service HTTP calls
+    CONNECT_TIMEOUT = int(os.getenv('CONNECT_TIMEOUT', '30'))
 
     # Application Launch URLs Configuration
     APP_LAUNCH_URLS = {
@@ -132,7 +141,9 @@ class _Config():  # pylint: disable=too-few-public-methods
 
     # Epic admin group paths (Group/Subgroup)
     EPIC_ADMIN_GROUP_PATH_COMPLIANCE = os.getenv('EPIC_ADMIN_GROUP_PATH_COMPLIANCE', 'COMPLIANCE/SUPERUSER')
-    EPIC_ADMIN_GROUP_PATH_CONDITION_REPO = os.getenv('EPIC_ADMIN_GROUP_PATH_CONDITION_REPO', 'CONDITION-REPO/INSTANCE_ADMIN')
+    EPIC_ADMIN_GROUP_PATH_CONDITION_REPO = os.getenv(
+        'EPIC_ADMIN_GROUP_PATH_CONDITION_REPO', 'CONDITION-REPO/INSTANCE_ADMIN'
+    )
     EPIC_ADMIN_GROUP_PATH_SUBMIT = os.getenv('EPIC_ADMIN_GROUP_PATH_SUBMIT', 'SUBMIT/EAO_MANAGER')
     EPIC_ADMIN_GROUP_PATH_TRACK = os.getenv('EPIC_ADMIN_GROUP_PATH_TRACK', 'TRACK/INSTANCE_ADMIN')
     EPIC_ADMIN_GROUP_PATH_ENGAGE = os.getenv('EPIC_ADMIN_GROUP_PATH_ENGAGE', 'ENGAGE/INSTANCE_ADMIN')
