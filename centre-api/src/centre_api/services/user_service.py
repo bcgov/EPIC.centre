@@ -35,14 +35,23 @@ class UserService:
     @classmethod
     def get_user_by_username(cls, username: str):
         """Retrieve a user by username and enrich with application access information."""
-        user = AuthApiService.get_user_by_username(username)
-        return cls._enrich_user_with_apps(user)
+        current_username = TokenInfo.get_username()
+        current_user = AuthApiService.get_user_by_username(current_username)
+        is_self = bool(current_username) and username.lower() == current_username.lower()
+        if not is_self and not AuthApiService.is_admin(current_user):
+            raise PermissionError('User does not have permission to view other users.')
+
+        user = current_user if is_self else AuthApiService.get_user_by_username(username)
+        return cls._enrich_user_with_apps(user, current_user)
 
     @classmethod
     def get_users(cls, search_text: str = None, include_groups: bool = True):
         """Retrieve users and enrich them with application access information."""
-        users = AuthApiService.get_users(search_text, include_groups)
         current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
+        if not AuthApiService.is_admin(current_user):
+            raise PermissionError('User does not have permission to list users.')
+
+        users = AuthApiService.get_users(search_text, include_groups)
         return [cls._enrich_user_with_apps(user, current_user) for user in users]
 
     @staticmethod
@@ -96,34 +105,62 @@ class UserService:
     @classmethod
     def update_user_access(cls, username: str, access_data: dict):
         """Update user group."""
-        had_admin_access_on_app = cls.has_admin_access_on_app(access_data.get('app_name'))
+        app_name = access_data.get('app_name')
+        # DST admins can revoke compliance access but not grant it
+        allow_dst_admin = app_name != EpicAppName.EPIC_COMPLIANCE.value
+        had_admin_access_on_app = cls.has_admin_access_on_app(app_name, allow_dst_admin=allow_dst_admin)
         if not had_admin_access_on_app:
             raise PermissionError(f'User does not have permission to update access for app'
-                                  f' "{access_data.get("app_name")}".')
+                                  f' "{app_name}".')
 
-        response = AuthApiService.update_user_group(username, access_data)
-        access_request_id = access_data.get('access_request_id')
-        if access_data.get('app_name') == EpicAppName.EPIC_SUBMIT.value:
+        # Don't trust the client's parent_group_name; EPIC.auth uses it as the target group
+        parent_group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
+        if not parent_group_name:
+            raise ValueError(f'Invalid app_name: {app_name}')
+
+        group_name = access_data.get('group_name')
+        cls._validate_sub_group(parent_group_name, group_name)
+
+        access_request, auth_user_response = cls._get_matching_access_request(
+            access_data.get('access_request_id'), username, app_name
+        )
+
+        response = AuthApiService.update_user_group(username, parent_group_name, group_name)
+        if app_name == EpicAppName.EPIC_SUBMIT.value:
             try:
                 # Get the user's email
                 user = AuthApiService.get_user_by_username(username)
-                full_group_name = f"{access_data.get('parent_group_name')}/{access_data.get('group_name')}"
+                full_group_name = f'{parent_group_name}/{group_name}'
                 SubmitApiService.create_staff_user(user.get('email_address'), full_group_name)
             except requests.RequestException:
                 # Log error but don't fail as the main access is already granted
                 pass
 
-        if access_request_id:
-            access_request = AccessRequestsModal.find_by_id(access_request_id)
-            if access_request:
-                auth_user_response = AuthApiService.get_user_by_id(access_request.user_auth_guid)
-                app = access_request.app
-                with session_scope() as session:
-                    access_request.status = AccessRequestsStatusEnum.APPROVED.value
-                    session.add(access_request)
-                    _queue_access_granted_email(session, app, auth_user_response, access_data)
-                    session.commit()
+        if access_request:
+            app = access_request.app
+            with session_scope() as session:
+                access_request.status = AccessRequestsStatusEnum.APPROVED.value
+                session.add(access_request)
+                _queue_access_granted_email(session, app, auth_user_response, access_data)
+                session.commit()
         return response
+
+    @staticmethod
+    def _get_matching_access_request(access_request_id, username: str, app_name: str):
+        """Return the access request and requester if they match this grant."""
+        if not access_request_id:
+            return None, None
+
+        access_request = AccessRequestsModal.find_by_id(access_request_id)
+        if not access_request:
+            return None, None
+
+        auth_user_response = AuthApiService.get_user_by_id(access_request.user_auth_guid)
+        requester_username = str(auth_user_response.get('username', ''))
+        if access_request.app.name != app_name or requester_username.lower() != username.lower():
+            raise ValueError(f'Access request {access_request_id} does not match this access grant.')
+
+        return access_request, auth_user_response
 
     @classmethod
     def revoke_user_access(cls, username: str, access_data: dict):
@@ -163,15 +200,23 @@ class UserService:
         return response
 
     @classmethod
-    def has_admin_access_on_app(cls, app_name: str):
+    def has_admin_access_on_app(cls, app_name: str, allow_dst_admin: bool = True):
         """Check if the user had admin access on the given app."""
         current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
         has_dst_admin_roles = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
-        if has_dst_admin_roles:
+        if allow_dst_admin and has_dst_admin_roles:
             return True
 
         client_name = APP_NAME_TO_CLIENT_NAME_MAP.get(app_name)
         return AuthApiService.is_admin_of_app(current_user, client_name)
+
+    @staticmethod
+    def _validate_sub_group(parent_group_name: str, group_name: str):
+        """Ensure group_name is a subgroup of the app group."""
+        app_group = AuthApiService.get_group(parent_group_name)
+        sub_group_names = {sub_group.get('name') for sub_group in app_group.get('subGroups', [])}
+        if group_name not in sub_group_names:
+            raise ValueError(f'Invalid group_name "{group_name}" for app group "{parent_group_name}".')
 
     @classmethod
     def update_user_status(cls, username: str, patch_data: dict):
@@ -184,6 +229,10 @@ class UserService:
         :param patch_data: Dict of fields to update (e.g. {"enabled": True})
         :return: Updated user dict
         """
+        current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
+        if not AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value):
+            raise PermissionError('User does not have permission to update user status.')
+
         return AuthApiService.patch_user(username, patch_data)
 
 

@@ -7,7 +7,7 @@ from marshmallow import Schema, fields
 
 
 class UserSchema(Schema):
-    """Schema for serializing user data without exposing internal fields like 'groups'."""
+    """Schema for serializing user data."""
 
     id = fields.UUID()
     first_name = fields.Str()

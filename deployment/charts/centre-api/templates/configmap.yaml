@@ -12,6 +12,7 @@ data:
   JWT_OIDC_JWKS_CACHE_TIMEOUT: "{{ .Values.auth.jwt.cacheTimeout }}"
   JWT_OIDC_WELL_KNOWN_CONFIG: {{ .Values.auth.jwt.wellKnownConfig }}
   PYTHONBUFFERED: "{{ .Values.python.pythonBuffered }}"
+  FLASK_ENV: "{{ .Values.python.flaskEnv }}"
   KEYCLOAK_BASE_URL: {{ .Values.auth.keycloak.uri }}
   KEYCLOAK_REALM_NAME: {{ .Values.auth.keycloak.realm }}
   CONNECT_TIMEOUT: "{{ .Values.python.connectTimeout }}"

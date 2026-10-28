@@ -29,6 +29,11 @@ from dotenv import find_dotenv, load_dotenv
 load_dotenv(find_dotenv())
 
 
+def _mask_password(uri: str, password: str) -> str:
+    """Mask the password in a connection string."""
+    return uri.replace(f':{password}@', ':***@', 1) if password else uri
+
+
 def get_named_config(config_name: str = 'development'):
     """Return the configuration object based on the name.
 
@@ -64,7 +69,7 @@ class _Config():  # pylint: disable=too-few-public-methods
     DB_HOST = os.getenv('DATABASE_HOST', '')
     DB_PORT = os.getenv('DATABASE_PORT', '5432')
     SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{int(DB_PORT)}/{DB_NAME}'
-    SQLALCHEMY_ECHO = True
+    SQLALCHEMY_ECHO = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # JWT_OIDC Settings
@@ -165,7 +170,8 @@ class DevConfig(_Config):  # pylint: disable=too-few-public-methods
 
     TESTING = False
     DEBUG = True
-    print(f'SQLAlchemy URL (DevConfig): {_Config.SQLALCHEMY_DATABASE_URI}')
+    SQLALCHEMY_ECHO = True
+    print(f'SQLAlchemy URL (DevConfig): {_mask_password(_Config.SQLALCHEMY_DATABASE_URI, _Config.DB_PASSWORD)}')
 
 
 class TestConfig(_Config):  # pylint: disable=too-few-public-methods
@@ -205,7 +211,7 @@ class DockerConfig(_Config):  # pylint: disable=too-few-public-methods
     DB_PORT = os.getenv('DATABASE_DOCKER_PORT', '5432')
     SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{int(DB_PORT)}/{DB_NAME}'
 
-    print(f'SQLAlchemy URL (Docker): {SQLALCHEMY_DATABASE_URI}')
+    print(f'SQLAlchemy URL (Docker): {_mask_password(SQLALCHEMY_DATABASE_URI, DB_PASSWORD)}')
 
 
 class ProdConfig(_Config):  # pylint: disable=too-few-public-methods

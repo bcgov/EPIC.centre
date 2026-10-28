@@ -20,6 +20,7 @@ All services have 2 defaults sets of endpoints:
  - meta
 That are used to expose operational health information about the service, and meta information.
 """
+from http import HTTPStatus
 
 from flask import Blueprint
 
@@ -68,6 +69,13 @@ API = Api(
 )
 
 # HANDLER = ExceptionHandler(API)
+
+
+@API.errorhandler(PermissionError)
+def handle_permission_error(error):
+    """Return 403 for permission errors."""
+    return {'message': str(error)}, HTTPStatus.FORBIDDEN
+
 
 API.add_namespace(APPLICATIONS_API)
 API.add_namespace(APPLICATION_URLS_API)

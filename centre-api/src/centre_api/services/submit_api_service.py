@@ -18,6 +18,7 @@ import requests
 from flask import current_app, g
 
 from centre_api.services.keycloak_token_service import KeycloakTokenService
+from centre_api.utils.util import quote_path_segment
 
 
 class SubmitApiService:
@@ -67,7 +68,7 @@ class SubmitApiService:
 
             url = (
                 f'{current_app.config.get("SUBMIT_API_URL")}'
-                f'/api/staff-user-works/user/{auth_guid}'
+                f'/api/staff-user-works/user/{quote_path_segment(auth_guid)}'
             )
 
             timeout = current_app.config.get('CONNECT_TIMEOUT', 30)

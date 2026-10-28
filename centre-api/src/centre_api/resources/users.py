@@ -78,7 +78,10 @@ class User(Resource):
     def put(username):
         """Update a user group assignment."""
         access_data = API.payload
-        UserService.update_user_access(username, access_data)
+        try:
+            UserService.update_user_access(username, access_data)
+        except ValueError as e:
+            return {'message': str(e)}, HTTPStatus.BAD_REQUEST
         return 'User group updated', HTTPStatus.OK
 
     @staticmethod
@@ -87,5 +90,8 @@ class User(Resource):
     def delete(username):
         """Delete user groups assignment."""
         access_data = API.payload
-        UserService.revoke_user_access(username, access_data)
+        try:
+            UserService.revoke_user_access(username, access_data)
+        except ValueError as e:
+            return {'message': str(e)}, HTTPStatus.BAD_REQUEST
         return 'User group revoked', HTTPStatus.OK
