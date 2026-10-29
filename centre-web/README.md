@@ -18,6 +18,26 @@ Set `VITE_API_URL` to the API base URL without `/api`, for example:
 VITE_API_URL=http://localhost:5000
 ```
 
+## The EPIC map
+
+The Map page loads the EPIC map at runtime over [Module Federation](https://module-federation.io) from its own deployment in EPIC.map; none of its code is in this bundle. The tab and route are hidden unless both `VITE_MAP_WIDGET_URL` and `VITE_MAP_API_URL` are set.
+
+To run it locally, start the map's dev server from the EPIC.map repository root with `npm run dev:widget` (it serves on `http://127.0.0.1:5174`), then set:
+
+```text
+VITE_MAP_WIDGET_URL=http://127.0.0.1:5174
+VITE_MAP_API_URL=http://localhost:5000/api
+```
+
+Or point both at a deployed environment's map. Either way, map-api has to list this app's origin in `CORS_ORIGIN` and `epic-centre` in `ALLOWED_CLIENT_IDS`, or every call fails.
+
+Two files here are copies taken from EPIC.map and should stay byte-for-byte copies:
+
+- `federation.shared.mjs` - the modules Centre and the map share (React, MUI, emotion). From `EPIC.map/packages/epic-map/federation.shared.mjs`.
+- `src/types/epic-map-types.d.ts` - the map's props. Each map-widget deployment serves it at `/epic-map.d.ts`.
+
+Node 20.19 or later is required by `@module-federation/vite`; the image and CI build on Node 24.
+
 ## Scripts
 
 | Command | Purpose |
@@ -44,6 +64,8 @@ Common values:
 | `VITE_DOCUMENT_SEARCH_URL` | Document Search URL |
 | `VITE_AI_SEARCH_URL` | AI search URL |
 | `VITE_INTRANET_HUB_URL` | Launchpad support/intranet link |
+| `VITE_MAP_WIDGET_URL` | Origin of the EPIC map's federated remote (`remoteEntry.js` hangs off it) |
+| `VITE_MAP_API_URL` | map-api base URL, including `/api` |
 
 ## Main Routes
 
@@ -54,5 +76,6 @@ Common values:
 | `/request-access/auth` | Admin request and user management |
 | `/request-access/auth/users/$username` | User-specific access management |
 | `/application-urls` | Application URL and SSL tracking |
+| `/map` | The EPIC map, for users with the EPIC.track `view` role |
 
 More detail lives in [../docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md) and [../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).

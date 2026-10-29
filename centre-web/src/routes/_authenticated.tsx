@@ -43,12 +43,14 @@ function AuthenticatedRoute() {
     }
   }, [user?.id, recordLogin]);
 
-  if (isLoading || userLoading) {
-    return <PageLoader />;
+  // Check the session, not isLoading: a token renewal sets isLoading, and showing
+  // the loader then would remount the page (MAP-87).
+  if (!isAuthenticated) {
+    return isLoading ? <PageLoader /> : <Navigate to="/unauthenticated" />;
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/unauthenticated" />;
+  if (userLoading) {
+    return <PageLoader />;
   }
 
   return (

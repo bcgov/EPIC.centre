@@ -17,6 +17,7 @@ import {
   hasAdminGroup,
 } from "@/utils/adminGroupPaths";
 import { getUserRolesFromToken } from "@/utils/axiosUtils";
+import { getResourceAccessFromToken } from "@/utils/roleUtils";
 
 interface UserContextValue {
   user: CentreUser | undefined;
@@ -31,6 +32,7 @@ interface UserContextValue {
   isAISearchUser: boolean;
   canViewApplicationUrls: boolean;
   canManageApplicationUrls: boolean;
+  canViewMap: boolean;
 }
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
@@ -89,6 +91,12 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const canViewApplicationUrls =
     canManageApplicationUrls || parsedRoles.includes("view_ssl_info");
 
+  // The map is for EPIC.track users who have the `view` client role.
+  const trackRoles =
+    getResourceAccessFromToken(token)[EpicAppClientName.EPIC_TRACK]?.roles ||
+    [];
+  const canViewMap = trackRoles.includes("view");
+
   return (
     <UserContext.Provider
       value={{
@@ -103,6 +111,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         isAISearchUser,
         canViewApplicationUrls,
         canManageApplicationUrls,
+        canViewMap,
       }}
     >
       {children}

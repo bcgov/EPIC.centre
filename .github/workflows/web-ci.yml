@@ -37,7 +37,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [24.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -97,6 +97,10 @@ jobs:
   build-check:
     needs: setup-job
     runs-on: ubuntu-22.04
+
+    strategy:
+      matrix:
+        node-version: [24.x]
 
     steps:
       - uses: actions/checkout@v2

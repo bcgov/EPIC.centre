@@ -9,7 +9,7 @@ Use this page for local development across `centre-api` and `centre-web`. For se
 | Tool | Version used by repo | Evidence |
 | --- | --- | --- |
 | Python | 3.9 | `centre-api/Dockerfile`, `centre-api/Makefile`, `.github/workflows/api-ci.yml` |
-| Node.js | 18 | `centre-web/Dockerfile`, `.github/workflows/web-ci.yml` |
+| Node.js | 24 | `centre-web/Dockerfile`, `.github/workflows/web-ci.yml` |
 | Docker / Docker Compose | Current local version | API compose services and optional test Keycloak |
 | `make` | Any recent version | API command wrapper |
 | `oc` CLI | 4.x | OpenShift deploy/support work only |

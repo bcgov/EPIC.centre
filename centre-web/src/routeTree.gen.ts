@@ -19,6 +19,7 @@ import { Route as AccessDeniedImport } from './routes/access-denied'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as IndexImport } from './routes/index'
 import { Route as AuthenticatedIndexImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedMapImport } from './routes/_authenticated/map'
 import { Route as AuthenticatedApplicationUrlsImport } from './routes/_authenticated/application-urls'
 import { Route as AuthenticatedRequestAccessIndexImport } from './routes/_authenticated/request-access/index'
 import { Route as AuthenticatedLaunchpadIndexImport } from './routes/_authenticated/launchpad/index'
@@ -64,6 +65,11 @@ const IndexRoute = IndexImport.update({
 
 const AuthenticatedIndexRoute = AuthenticatedIndexImport.update({
   path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedMapRoute = AuthenticatedMapImport.update({
+  path: '/map',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
@@ -157,6 +163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApplicationUrlsImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/map': {
+      id: '/_authenticated/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof AuthenticatedMapImport
+      parentRoute: typeof AuthenticatedImport
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
@@ -201,6 +214,7 @@ export const routeTree = rootRoute.addChildren({
   IndexRoute,
   AuthenticatedRoute: AuthenticatedRoute.addChildren({
     AuthenticatedApplicationUrlsRoute,
+    AuthenticatedMapRoute,
     AuthenticatedIndexRoute,
     AuthenticatedLaunchpadIndexRoute,
     AuthenticatedRequestAccessIndexRoute,
@@ -238,6 +252,7 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_authenticated.tsx",
       "children": [
         "/_authenticated/application-urls",
+        "/_authenticated/map",
         "/_authenticated/",
         "/_authenticated/launchpad/",
         "/_authenticated/request-access/",
@@ -262,6 +277,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_authenticated/application-urls": {
       "filePath": "_authenticated/application-urls.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/map": {
+      "filePath": "_authenticated/map.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/": {

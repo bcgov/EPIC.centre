@@ -16,6 +16,7 @@
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@hookform/resolvers": "^5.2.1",
+    "@module-federation/runtime": "^2.9.2",
     "@mui/icons-material": "^5.15.21",
     "@mui/material": "^5.15.20",
     "@tanstack/react-query": "^5.45.1",
@@ -41,7 +42,9 @@
   "devDependencies": {
     "@cypress/code-coverage": "^3.12.44",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@module-federation/vite": "^1.23.7",
     "@tanstack/eslint-plugin-query": "^5.43.1",
+    "@types/geojson": "^7946.0.16",
     "@types/node": "^20.14.9",
     "@types/react": "^18.2.47",
     "@types/react-dom": "^18.2.18",
