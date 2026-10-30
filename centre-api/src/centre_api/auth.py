@@ -14,7 +14,7 @@
 """Bring in the common JWT Manager."""
 from functools import wraps
 
-from flask import current_app, g, request
+from flask import g, request
 from flask_jwt_oidc import JwtManager
 
 
@@ -25,25 +25,6 @@ jwt = (
 
 class Auth:  # pylint: disable=too-few-public-methods
     """Extending JwtManager to include additional functionalities."""
-
-    @staticmethod
-    def _get_roles(client_names=None):
-        """Extract realm roles and roles from the selected token clients."""
-        token_info = g.jwt_oidc_token_info
-        realm_roles = token_info.get('realm_access', {}).get('roles', [])
-        resource_access = token_info.get('resource_access', {})
-        clients_to_check = client_names or current_app.config.get('JWT_OIDC_AUDIENCE')
-
-        if isinstance(clients_to_check, list):
-            client_roles = [
-                role
-                for client in clients_to_check
-                for role in resource_access.get(client, {}).get('roles', [])
-            ]
-        else:
-            client_roles = resource_access.get(clients_to_check, {}).get('roles', [])
-
-        return set(realm_roles + client_roles)
 
     @classmethod
     def require(cls, f):
@@ -61,30 +42,6 @@ class Auth:  # pylint: disable=too-few-public-methods
             return f(*args, **kwargs)
 
         return decorated
-
-    @classmethod
-    def require_any_role(cls, roles, client_names=None):
-        """Validate the Bearer Token, IDIR identity, and at least one matching role."""
-
-        def decorator(f):
-            @jwt.requires_auth
-            @wraps(f)
-            def decorated(*args, **kwargs):
-                g.authorization_header = request.headers.get('Authorization', None)
-                g.token_info = g.jwt_oidc_token_info
-
-                if str(g.token_info.get('identity_provider', '')).lower() != 'idir':
-                    return {'message': 'IDIR authentication required'}, 403
-
-                if not cls._get_roles(client_names).intersection(set(roles)):
-                    return {'message': 'Access denied'}, 403
-
-                return f(*args, **kwargs)
-
-            return decorated
-
-        return decorator
-
 
 auth = (
     Auth()

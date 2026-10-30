@@ -18,14 +18,14 @@ from flask import request
 from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
+from centre_api.enums.epic_app import EpicAppClientName
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.schemas.eao_analytics import EaoAnalyticsCreateSchema, EaoAnalyticsSchema
 from centre_api.services.eao_analytics_service import EaoAnalyticsService
+from centre_api.utils.token_info import TokenInfo
 
 
 API = Namespace('eao-analytics', description='Endpoints for EAO Analytics management')
-CENTRE_SUPER_USER_ROLE = 'super_user'
-EPIC_CENTRE_CLIENT = 'epic-centre'
 
 
 @API.route('', methods=['POST'])
@@ -64,9 +64,12 @@ class GetEaoAnalytics(Resource):
 
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Get EAO Analytics records with optional filters')
-    @auth.require_any_role([CENTRE_SUPER_USER_ROLE], client_names=[EPIC_CENTRE_CLIENT])
+    @auth.require
     def get():
         """Get EAO Analytics records with optional filtering by user_auth_guid and/or app_name."""
+        if not TokenInfo.has_admin_roles(EpicAppClientName.EPIC_CENTRE.value):
+            return {'message': 'Access denied'}, HTTPStatus.FORBIDDEN
+
         try:
             user_auth_guid = request.args.get('user_auth_guid', type=str)
             app_name = request.args.get('app_name', type=str)
