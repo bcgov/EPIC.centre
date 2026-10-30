@@ -24,6 +24,8 @@ from centre_api.services.eao_analytics_service import EaoAnalyticsService
 
 
 API = Namespace('eao-analytics', description='Endpoints for EAO Analytics management')
+CENTRE_SUPER_USER_ROLE = 'super_user'
+EPIC_CENTRE_CLIENT = 'epic-centre'
 
 
 @API.route('', methods=['POST'])
@@ -62,7 +64,7 @@ class GetEaoAnalytics(Resource):
 
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Get EAO Analytics records with optional filters')
-    @auth.require
+    @auth.require_any_role([CENTRE_SUPER_USER_ROLE], client_names=[EPIC_CENTRE_CLIENT])
     def get():
         """Get EAO Analytics records with optional filtering by user_auth_guid and/or app_name."""
         try:
