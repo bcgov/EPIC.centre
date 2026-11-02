@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Bring in the common JWT Manager."""
+import re
 from functools import wraps
 
 from flask import g, request
@@ -26,6 +27,15 @@ jwt = (
 class Auth:  # pylint: disable=too-few-public-methods
     """Extending JwtManager to include additional functionalities."""
 
+    @staticmethod
+    def is_idir(token_info):
+        """Check verified claims, falling back to the protected IDIR username."""
+        if 'identity_provider' in token_info:
+            return str(token_info['identity_provider']).lower() == 'idir'
+
+        username = str(token_info.get('preferred_username', '')).lower()
+        return re.fullmatch(r'[0-9a-f]{32}@idir', username) is not None
+
     @classmethod
     def require(cls, f):
         """Validate the Bearer Token."""
@@ -35,8 +45,7 @@ class Auth:  # pylint: disable=too-few-public-methods
         def decorated(*args, **kwargs):
             g.authorization_header = request.headers.get('Authorization', None)
             g.token_info = g.jwt_oidc_token_info
-
-            if str(g.token_info.get('identity_provider', '')).lower() != 'idir':
+            if not cls.is_idir(g.token_info):
                 return {'message': 'IDIR authentication required'}, 403
 
             return f(*args, **kwargs)
