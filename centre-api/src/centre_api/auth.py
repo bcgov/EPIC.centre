@@ -36,10 +36,12 @@ class Auth:  # pylint: disable=too-few-public-methods
             g.authorization_header = request.headers.get('Authorization', None)
             g.token_info = g.jwt_oidc_token_info
 
+            if str(g.token_info.get('identity_provider', '')).lower() != 'idir':
+                return {'message': 'IDIR authentication required'}, 403
+
             return f(*args, **kwargs)
 
         return decorated
-
 
 auth = (
     Auth()
