@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Bring in the common JWT Manager."""
-import re
 from functools import wraps
 
 from flask import g, request
@@ -29,12 +28,9 @@ class Auth:  # pylint: disable=too-few-public-methods
 
     @staticmethod
     def is_idir(token_info):
-        """Check verified claims, falling back to the protected IDIR username."""
-        if 'identity_provider' in token_info:
-            return str(token_info['identity_provider']).lower() == 'idir'
-
-        username = str(token_info.get('preferred_username', '')).lower()
-        return re.fullmatch(r'[0-9a-f]{32}@idir', username) is not None
+        """Check whether the verified login source claim identifies IDIR."""
+        login_source = token_info.get('loginSource')
+        return isinstance(login_source, str) and login_source.strip().casefold() == 'idir'
 
     @classmethod
     def require(cls, f):
