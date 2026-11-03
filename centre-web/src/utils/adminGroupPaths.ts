@@ -2,24 +2,13 @@ import { EpicAppClientName, EpicAppName } from "@/models/EpicApp";
 import { KCGroup } from "@/models/KCGroup";
 
 /**
- * Admin group paths for each Epic application.
- * Note: Paths are normalized WITHOUT leading slash to match backend pattern.
- * Backend: "CENTRE/SUPER_USER"
- * Frontend KCGroup.path has leading slash: "/CENTRE/SUPER_USER"
+ * Partial map of Epic app client name to admin group path.
+ * Used as the input type for the admin checks below. The authoritative values
+ * are fetched from the backend (`admin-config/group-paths`) and must be passed
+ * in explicitly. Until they are available, pass an empty map and the checks
+ * will report no admin privileges.
  */
-export const EPIC_CLIENT_TO_ADMIN_GROUP_PATHS: Record<
-  EpicAppClientName,
-  string
-> = {
-  [EpicAppClientName.EPIC_CENTRE]: "CENTRE/SUPER_USER",
-  [EpicAppClientName.EPIC_TRACK]: "TRACK/INSTANCE_ADMIN",
-  [EpicAppClientName.EPIC_COMPLIANCE]: "COMPLIANCE/SUPERUSER",
-  [EpicAppClientName.EPIC_ENGAGE]: "ENGAGE/EAO_IT_ADMIN",
-  [EpicAppClientName.EPIC_SUBMIT]: "SUBMIT/EAO_MANAGER",
-  [EpicAppClientName.CONDITION_REPOSITORY]: "CONDITION-REPO/ADMIN",
-  [EpicAppClientName.EPIC_PUBLIC]: "PUBLIC/INSTANCE_ADMIN",
-  [EpicAppClientName.DOCUMENT_SEARCH]: "", // No admin group
-};
+export type AdminGroupPathsMap = Partial<Record<EpicAppClientName, string>>;
 
 /**
  * Map app names to client names for admin group lookups
@@ -65,13 +54,18 @@ export const hasAdminGroup = (
 /**
  * Check if user is admin of any Epic application
  * @param groups - User's KCGroup array
+ * @param adminGroupPaths - Map of client name to admin group path, sourced from
+ *   the backend. Pass an empty map until the values are available.
  * @returns boolean indicating if user has any admin privileges
  */
-export const isAdminOfAnyApp = (groups: KCGroup[] | undefined): boolean => {
+export const isAdminOfAnyApp = (
+  groups: KCGroup[] | undefined,
+  adminGroupPaths: AdminGroupPathsMap
+): boolean => {
   if (!groups) return false;
 
-  const adminPaths = Object.values(EPIC_CLIENT_TO_ADMIN_GROUP_PATHS).filter(
-    (path) => path !== ""
+  const adminPaths = Object.values(adminGroupPaths).filter(
+    (path): path is string => !!path
   );
 
   return groups.some((group) =>
@@ -83,16 +77,21 @@ export const isAdminOfAnyApp = (groups: KCGroup[] | undefined): boolean => {
  * Check if user is admin of a specific app
  * @param groups - User's KCGroup array
  * @param appName - The EpicAppName to check
+ * @param adminGroupPaths - Map of client name to admin group path, sourced from
+ *   the backend. Pass an empty map until the values are available.
  * @returns boolean indicating if user is admin of the app
  */
 export const isAdminOfApp = (
   groups: KCGroup[] | undefined,
-  appName: EpicAppName
+  appName: EpicAppName,
+  adminGroupPaths: AdminGroupPathsMap
 ): boolean => {
   if (!groups) return false;
 
   const clientName = EPIC_APP_NAME_TO_CLIENT_NAME[appName];
-  const adminGroupPath = EPIC_CLIENT_TO_ADMIN_GROUP_PATHS[clientName];
+  const adminGroupPath = adminGroupPaths[clientName];
+
+  if (!adminGroupPath) return false;
 
   return hasAdminGroup(groups, adminGroupPath);
 };
@@ -100,10 +99,13 @@ export const isAdminOfApp = (
 /**
  * Get admin status for all Epic applications
  * @param groups - User's KCGroup array
+ * @param adminGroupPaths - Map of client name to admin group path, sourced from
+ *   the backend. Pass an empty map until the values are available.
  * @returns Record mapping each app to admin status
  */
 export const getAdminStatusPerApp = (
-  groups: KCGroup[] | undefined
+  groups: KCGroup[] | undefined,
+  adminGroupPaths: AdminGroupPathsMap
 ): Record<EpicAppName, boolean> => {
   const result: Record<EpicAppName, boolean> = {
     [EpicAppName.EPIC_CENTRE]: false,
@@ -120,7 +122,7 @@ export const getAdminStatusPerApp = (
   if (!groups) return result;
 
   (Object.keys(result) as EpicAppName[]).forEach((appName) => {
-    result[appName] = isAdminOfApp(groups, appName);
+    result[appName] = isAdminOfApp(groups, appName, adminGroupPaths);
   });
 
   return result;

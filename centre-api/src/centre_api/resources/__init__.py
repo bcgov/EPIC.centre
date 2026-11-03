@@ -24,6 +24,7 @@ That are used to expose operational health information about the service, and me
 from flask import Blueprint
 
 from .access_requests import API as ACCESS_REQUESTS_API
+from .admin_config import API as ADMIN_CONFIG_API
 from .apihelper import Api
 from .app_config import API as APP_CONFIG_API
 from .applications import API as APPLICATIONS_API
@@ -70,6 +71,7 @@ API = Api(
 
 API.add_namespace(APPLICATIONS_API)
 API.add_namespace(APP_CONFIG_API)
+API.add_namespace(ADMIN_CONFIG_API)
 API.add_namespace(USER_APPLICATION_API)
 API.add_namespace(USERS_API)
 API.add_namespace(ACCESS_REQUESTS_API)
