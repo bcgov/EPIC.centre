@@ -28,11 +28,13 @@ class Auth:  # pylint: disable=too-few-public-methods
 
     @staticmethod
     def is_idir(token_info):
-        """Check whether a verified token claim identifies IDIR."""
-        return any(
-            isinstance(source, str) and source.strip().casefold() == 'idir'
-            for source in (token_info.get('loginSource'), token_info.get('identity_provider'))
-        )
+        """Check login source, falling back to the IDIR username suffix."""
+        login_source = token_info.get('loginSource')
+        if isinstance(login_source, str) and login_source.strip():
+            return login_source.strip().casefold() == 'idir'
+
+        username = token_info.get('preferred_username')
+        return isinstance(username, str) and username.strip().casefold().endswith('@idir')
 
     @classmethod
     def require(cls, f):
