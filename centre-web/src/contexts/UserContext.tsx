@@ -9,12 +9,13 @@ import {
 } from "react";
 import { useAuth } from "react-oidc-context";
 import { useGetUser } from "@/hooks/api/useUsers";
+import { useGetAdminGroupPaths } from "@/hooks/api/useAdminConfig";
 import {
   isAdminOfAnyApp,
   isAdminOfApp as checkIsAdminOfApp,
   getAdminStatusPerApp as computeAdminStatusPerApp,
-  EPIC_CLIENT_TO_ADMIN_GROUP_PATHS,
   hasAdminGroup,
+  type AdminGroupPathsMap,
 } from "@/utils/adminGroupPaths";
 import { getUserRolesFromToken } from "@/utils/axiosUtils";
 
@@ -55,29 +56,36 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     enabled: !!username && auth.isAuthenticated,
   });
 
+  // Resolve group paths from the IDIR-protected API; empty config fails closed.
+  const { data: fetchedAdminGroupPaths } = useGetAdminGroupPaths();
+  const adminGroupPaths = useMemo<AdminGroupPathsMap>(
+    () => fetchedAdminGroupPaths ?? {},
+    [fetchedAdminGroupPaths],
+  );
+
   // Compute admin status from user groups
   const isAdmin = useMemo(() => {
-    return isAdminOfAnyApp(user?.groups);
-  }, [user?.groups]);
+    return isAdminOfAnyApp(user?.groups, adminGroupPaths);
+  }, [user?.groups, adminGroupPaths]);
 
   const isDstAdmin = useMemo(() => {
-    const dstAdminPath =
-      EPIC_CLIENT_TO_ADMIN_GROUP_PATHS[EpicAppClientName.EPIC_CENTRE];
+    const dstAdminPath = adminGroupPaths[EpicAppClientName.EPIC_CENTRE];
+    if (!dstAdminPath) return false;
     return hasAdminGroup(user?.groups, dstAdminPath);
-  }, [user?.groups]);
+  }, [user?.groups, adminGroupPaths]);
 
   // Memoized function to check admin status for a specific app
   const isAdminOfApp = useCallback(
     (appName: EpicAppName) => {
-      return checkIsAdminOfApp(user?.groups, appName);
+      return checkIsAdminOfApp(user?.groups, appName, adminGroupPaths);
     },
-    [user?.groups],
+    [user?.groups, adminGroupPaths],
   );
 
   // Compute admin status for all apps
   const adminStatusPerApp = useMemo(() => {
-    return computeAdminStatusPerApp(user?.groups);
-  }, [user?.groups]);
+    return computeAdminStatusPerApp(user?.groups, adminGroupPaths);
+  }, [user?.groups, adminGroupPaths]);
 
   /**
    * Check if user has the ai search user role
