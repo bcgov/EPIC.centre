@@ -55,5 +55,15 @@ export default defineConfig(({ command }) => ({
   build: {
     // Federation's generated entry uses top-level await.
     target: "chrome89",
+    rollupOptions: {
+      output: {
+        // Keep Rollup's CJS interop helper in its own chunk. Otherwise it lands
+        // in the emotion shared chunk, React's chunk imports it from there, and
+        // the circular import crashes startup with a TDZ error.
+        manualChunks(id) {
+          if (id.includes("commonjsHelpers")) return "commonjsHelpers";
+        },
+      },
+    },
   },
 }));
