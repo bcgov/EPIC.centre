@@ -63,8 +63,8 @@ jobs:
 
     services:
       postgres:
-        # The major version Centre's Patroni runs
-        image: postgres:12
+        # Live centre-patroni runs 16; the chart's 12.4 tag is stale
+        image: postgres:16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres

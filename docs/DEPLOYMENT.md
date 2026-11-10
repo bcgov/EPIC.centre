@@ -19,7 +19,7 @@ The exact namespace prefix comes from the `OPENSHIFT_REPOSITORY` GitHub secret o
 
 | Workflow | Trigger | Current behavior |
 | --- | --- | --- |
-| `api-ci.yml` | Pull requests to `develop` touching `centre-api/**` | Installs dependencies, runs pylint and flake8, runs pytest against PostgreSQL 12 and uploads coverage to Codecov (`centre-api` flag), builds Docker image. |
+| `api-ci.yml` | Pull requests to `develop` touching `centre-api/**` | Installs dependencies, runs pylint and flake8, runs pytest against PostgreSQL 16 and uploads coverage to Codecov (`centre-api` flag), builds Docker image. |
 | `web-ci.yml` | Pull requests to `develop` touching `centre-web/**`, pushes to `develop`, manual dispatch | Runs `npm run lint`; runs Cypress component tests and uploads coverage to Codecov (`centre-web` flag); runs `npm run build --quiet || true`, so build failures do not currently fail CI. |
 | `api-cd.yml` | Pushes to `develop` touching `centre-api/**`, manual dispatch | Builds API image, pushes `latest` and selected env tag, restarts `centre-api` deployment. |
 | `web-cd.yml` | Pushes to `develop` touching `centre-web/**`, manual dispatch | Builds web image, pushes `latest` and selected env tag, restarts `centre-web` deployment. |
