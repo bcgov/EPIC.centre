@@ -24,11 +24,16 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Component specs live under src/, so this project needs Cypress's globals.
+       Listing types replaces the default of every @types package, hence node too. */
+    "types": ["cypress", "node"],
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  // cypress/support/component.ts declares cy.mount, which the specs under src/ call
+  "include": ["src", "cypress/support"]
 }
