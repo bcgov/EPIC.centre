@@ -35,6 +35,7 @@ class TestConnectionStringLogging:
             'DATABASE_DOCKER_PASSWORD': 'docker-secret-pw',
             'DATABASE_DOCKER_HOST': 'docker-host',
             'DATABASE_DOCKER_NAME': 'centre',
+            'DATABASE_DOCKER_PORT': '5432',
         }
 
         result = subprocess.run(
