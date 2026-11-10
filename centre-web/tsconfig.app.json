@@ -10,7 +10,9 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      // The EPIC map's vendored types
+      "@bcgov/epic-map-types": ["./src/types/epic-map-types.d.ts"]
     },
 
     /* Bundler mode */

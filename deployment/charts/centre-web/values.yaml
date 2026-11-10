@@ -28,4 +28,9 @@ urls:
   documentSearch: https://projects.eao.gov.bc.ca/search
   aiSearch: https://epic-search-poc-e6dtcgcmfqaehvcf.canadacentral-01.azurewebsites.net/search
   intranetHub: https://intranet.gov.bc.ca/eao/digital-services/support-for-epic-system/support-for-epic-centre
+  # EPIC map URLs; empty hides the Map tab. For dev:
+  #   mapWidget: https://map-widget-c8b80a-dev.apps.gold.devops.gov.bc.ca
+  #   mapApi: https://map-api-c8b80a-dev.apps.gold.devops.gov.bc.ca/api
+  mapWidget: ""
+  mapApi: ""
 

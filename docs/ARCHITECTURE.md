@@ -27,7 +27,7 @@ The PNGs are useful for orientation. The code-verified details below are the sou
 | Component | Path | Runtime | Responsibility |
 | --- | --- | --- | --- |
 | Browser client | `centre-web/` | React 18, TypeScript, Vite, Material UI, TanStack Router, TanStack Query, Zustand | Authenticates with OIDC, renders launchpad/access-management pages, calls Centre API with bearer tokens |
-| Static web server | `centre-web/Dockerfile`, `centre-web/nginx/` | Node 18 build stage, Nginx production stage | Builds and serves the SPA, including runtime `config.js` mounted from OpenShift ConfigMap |
+| Static web server | `centre-web/Dockerfile`, `centre-web/nginx/` | Node 24 build stage, Nginx production stage | Builds and serves the SPA, including runtime `config.js` mounted from OpenShift ConfigMap |
 | Centre API | `centre-api/` | Python 3.9, Flask 3, Flask-RESTX, Gunicorn | Owns Centre workflows, local persistence, auth checks, and integration calls |
 | PostgreSQL | `deployment/charts/centre-patroni/` | Patroni-managed PostgreSQL in OpenShift | Stores application registry, access requests, settings, login history, email queue, and URL/SSL records |
 | Identity provider | external | Keycloak / loginproxy OIDC | Authenticates users and issues JWTs |

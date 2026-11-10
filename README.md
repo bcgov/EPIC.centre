@@ -36,7 +36,7 @@ The canonical architecture document is [docs/ARCHITECTURE.md](docs/ARCHITECTURE.
 Prerequisites:
 
 - Python 3.9, matching the API Dockerfile, Makefile, and CI workflow.
-- Node.js 18, matching the web Dockerfile and CI workflow.
+- Node.js 24, matching the web Dockerfile and CI workflow.
 - Docker with Compose support.
 - Optional: `oc` and Helm for OpenShift work.
 

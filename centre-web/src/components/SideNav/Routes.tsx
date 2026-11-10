@@ -2,9 +2,10 @@ import { BCDesignTokens } from "epic.theme";
 import { MainListItem } from "./MainListItem";
 import { SubListItem } from "./SubListItem";
 import { useCurrentUser } from "@/contexts/UserContext";
+import { AppConfig } from "@/utils/config";
 
 export default function Routes() {
-  const { isAdmin, canViewApplicationUrls } = useCurrentUser();
+  const { isAdmin, canViewApplicationUrls, canViewMap } = useCurrentUser();
 
   return (
     <>
@@ -27,6 +28,14 @@ export default function Routes() {
           route={{
             name: "EPIC.auth",
             path: `/request-access/auth`,
+          }}
+        />
+      )}
+      {AppConfig.mapEnabled && canViewMap && (
+        <MainListItem
+          route={{
+            name: "Map",
+            path: "/map",
           }}
         />
       )}

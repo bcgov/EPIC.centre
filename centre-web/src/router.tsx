@@ -10,16 +10,6 @@ export default function RouterProviderWithAuthContext({
 }: RouterProviderWithAuthContextProps) {
   const authentication = useAuth();
   useEffect(() => {
-    // the `return` is important - addAccessTokenExpiring() returns a cleanup function
-
-    return authentication.events.addAccessTokenExpiring(() => {
-      // eslint-disable-next-line no-console
-      console.log("AccessTokenExpiring: Refreshing token");
-      authentication.signinSilent();
-    });
-  }, [authentication]);
-
-  useEffect(() => {
     if (authentication.user?.expired && authentication.isAuthenticated) {
       // eslint-disable-next-line no-console
       console.log("AccessToken expired");

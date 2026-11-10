@@ -17,5 +17,7 @@ data:
         "VITE_CLIENT_ID": "{{ .Values.keycloak.client }}",
         "VITE_DOCUMENT_SEARCH_URL": "{{ .Values.urls.documentSearch }}",
         "VITE_AI_SEARCH_URL": "{{ .Values.urls.aiSearch }}",
-        "VITE_INTRANET_HUB_URL": "{{ .Values.urls.intranetHub }}"
+        "VITE_INTRANET_HUB_URL": "{{ .Values.urls.intranetHub }}",
+        "VITE_MAP_WIDGET_URL": "{{ .Values.urls.mapWidget }}",
+        "VITE_MAP_API_URL": "{{ .Values.urls.mapApi }}"
       }
