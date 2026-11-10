@@ -32,9 +32,9 @@ DST_ADMIN = {'username': 'caller@idir', 'groups': [{'path': EpicAdminGroupsPath.
 COMPLIANCE_ADMIN = {'username': 'caller@idir', 'groups': [{'path': EpicAdminGroupsPath.COMPLIANCE.value}]}
 
 
-def _access_request(app_name):
+def _access_request(app_name, status=AccessRequestsStatusEnum.PENDING):
     """Build a fake access request."""
-    return SimpleNamespace(app=SimpleNamespace(name=app_name), user_auth_guid='requester-guid', status=None)
+    return SimpleNamespace(app=SimpleNamespace(name=app_name), user_auth_guid='requester-guid', status=status)
 
 
 class TestUserLookup:
@@ -242,6 +242,39 @@ class TestUpdateUserAccess:
             })
 
         mock_update_group.assert_not_called()
+
+    @pytest.mark.parametrize('status', [
+        AccessRequestsStatusEnum.APPROVED,
+        AccessRequestsStatusEnum.REJECTED,
+        AccessRequestsStatusEnum.CANCELLED,
+    ])
+    @patch('centre_api.services.user_service._queue_access_granted_email')
+    @patch('centre_api.services.user_service.AuthApiService.update_user_group')
+    @patch('centre_api.services.user_service.AuthApiService.get_user_by_id')
+    @patch('centre_api.services.user_service.AccessRequestsModal.find_by_id')
+    @patch('centre_api.services.user_service.AuthApiService.get_group')
+    @patch('centre_api.services.user_service.UserService.has_admin_access_on_app')
+    def test_access_request_that_is_not_pending_is_rejected(
+        self, mock_has_admin, mock_get_group, mock_find_request, mock_get_user_by_id, mock_update_group,
+        mock_queue_email, status
+    ):
+        """An access request that is no longer pending cannot be approved by a grant."""
+        access_request = _access_request(EpicAppName.EPIC_TRACK.value, status=status)
+        mock_has_admin.return_value = True
+        mock_get_group.return_value = TRACK_GROUP
+        mock_find_request.return_value = access_request
+        mock_get_user_by_id.return_value = {'username': 'abc123@idir'}
+
+        with pytest.raises(ValueError):
+            UserService.update_user_access('abc123@idir', {
+                'app_name': EpicAppName.EPIC_TRACK.value,
+                'group_name': 'INSTANCE_ADMIN',
+                'access_request_id': 7,
+            })
+
+        mock_update_group.assert_not_called()
+        mock_queue_email.assert_not_called()
+        assert access_request.status == status
 
     @patch('centre_api.services.user_service._queue_access_granted_email')
     @patch('centre_api.services.user_service.session_scope')

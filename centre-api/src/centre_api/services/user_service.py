@@ -154,6 +154,8 @@ class UserService:
         access_request = AccessRequestsModal.find_by_id(access_request_id)
         if not access_request:
             return None, None
+        if access_request.status != AccessRequestsStatusEnum.PENDING:
+            raise ValueError(f'Access request {access_request_id} is not pending.')
 
         auth_user_response = AuthApiService.get_user_by_id(access_request.user_auth_guid)
         requester_username = str(auth_user_response.get('username', ''))
