@@ -16,6 +16,7 @@ from http import HTTPStatus
 
 from flask import request
 from flask_restx import Namespace, Resource
+from marshmallow import ValidationError
 
 from centre_api.auth import auth
 from centre_api.enums.epic_app import EpicAppName
@@ -52,6 +53,8 @@ class CreateEaoAnalytics(Resource):
 
             return EaoAnalyticsSchema().dump(analytics), HTTPStatus.OK
 
+        except ValidationError as e:
+            return {'message': f'Invalid data: {e.messages}'}, HTTPStatus.BAD_REQUEST
         except ValueError as e:
             return {'message': f'Invalid data: {str(e)}'}, HTTPStatus.BAD_REQUEST
         except (RuntimeError, AttributeError) as e:
