@@ -23,3 +23,5 @@ pydocstyle
 FreezeGun
 lovely-pytest-docker
 Faker
+# Generates the keypair the test suite signs its tokens with
+rsa

@@ -47,7 +47,7 @@ Node 20.19 or later is required by `@module-federation/vite`; the image and CI b
 | `npm run lint` | Run ESLint |
 | `npm run preview` | Preview the production build locally |
 
-Cypress dependencies and support files exist, but `package.json` currently does not define Cypress scripts and no root Cypress config is committed.
+Component tests use Cypress (`cypress.config.mjs`), with specs named `*.cy.tsx` beside the component. Run them with `npx cypress run --component`, or `npx cypress open --component` to watch. Coverage is written to `coverage/`.
 
 ## Runtime Env
 

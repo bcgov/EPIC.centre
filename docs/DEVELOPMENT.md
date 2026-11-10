@@ -41,12 +41,12 @@ The API is available at:
 | Service | Host port | Purpose |
 | --- | --- | --- |
 | `centre-api-db` | `54332` | Main local PostgreSQL database |
-| `centre-api-db-test` | `54333` | Test PostgreSQL database |
+| `centre-api-db-test` | `54335` | Test PostgreSQL database |
 | `keycloak` | `8081` | Keycloak 12.0.2 local identity provider |
 
 Important local auth caveat: the main compose file mounts `./setup` into the Keycloak container, but `centre-api/setup` is not committed. A committed test realm exists under `centre-api/tests/docker/setup/demo-realm.json`. Either provide the expected local setup folder, use the test compose directory intentionally, or point `.env` at a reachable shared auth environment.
 
-Also check `DATABASE_TEST_PORT` before running pytest. The compose test database is exposed on host port `54333`; `sample.env` currently uses `5432`.
+Also check `DATABASE_TEST_PORT` before running pytest. The compose test database is exposed on host port `54335`; `sample.env` currently uses `5432`. pytest signs its own tokens with a keypair `TestConfig` generates each run, so it needs no test keys or Keycloak.
 
 ## Frontend Local Setup
 
@@ -80,7 +80,7 @@ make test
 make ci
 ```
 
-`make ci` runs linting and pytest locally. The GitHub API CI workflow currently runs linting and a Docker build; its pytest job exists but is commented out.
+`make ci` runs linting and pytest locally. The GitHub API CI workflow runs linting, pytest against PostgreSQL 12 with coverage uploaded to Codecov, and a Docker build.
 
 Frontend:
 
@@ -91,7 +91,7 @@ npm run build
 npm run preview
 ```
 
-The repo has Cypress dependencies and support files, but `package.json` does not currently define `cy:run` or `cy:open` scripts, and no Cypress config file is committed at the project root. The GitHub web CI workflow has a Cypress job scaffold, but it is commented out.
+Component tests use Cypress, configured in `cypress.config.mjs`, with specs named `*.cy.tsx` beside the component they test. Run them with `npx cypress run --component`, or `npx cypress open --component` to watch them. Coverage is written to `coverage/`. The GitHub web CI workflow runs them in Chrome and uploads coverage to Codecov.
 
 ## API Command Reference
 
@@ -121,7 +121,7 @@ The repo has Cypress dependencies and support files, but `package.json` does not
 | --- | --- | --- |
 | `python3.9: command not found` | Local Python 3.9 is missing | Install Python 3.9 or intentionally update the Makefile/runtime together |
 | API cannot connect to DB | Compose database is not running or `.env` port mismatch | Start compose and verify `DATABASE_PORT=54332` |
-| Tests cannot connect to DB | `DATABASE_TEST_PORT` does not match test database exposure | Use `54333` for the compose test DB or run tests against a dedicated local DB |
+| Tests cannot connect to DB | `DATABASE_TEST_PORT` does not match test database exposure | Use `54335` for the compose test DB or run tests against a dedicated local DB |
 | Keycloak import fails | Missing `centre-api/setup` folder | Provide local realm import files or use `centre-api/tests/docker` intentionally |
 | Frontend calls `/api/api/...` | `VITE_API_URL` includes `/api` | Set `VITE_API_URL` to the API host only |
 | `401 Unauthorized` | OIDC issuer/audience/config mismatch | Align frontend `VITE_OIDC_AUTHORITY`, backend `JWT_OIDC_*`, and Keycloak client config |

@@ -53,46 +53,40 @@ jobs:
         run: |
           npm run lint
 
-  # testing:
-  #   needs: setup-job
-  #   runs-on: ubuntu-22.04
+  testing:
+    needs: setup-job
+    runs-on: ubuntu-24.04
 
-  #   steps:
-  #     - uses: actions/checkout@v2
+    strategy:
+      matrix:
+        node-version: [24.x]
 
-  #     - name: Use Node.js ${{ matrix.node-version }}
-  #       uses: actions/setup-node@v1
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
+    steps:
+      - uses: actions/checkout@v6
 
-  #     - name: Install dependencies
-  #       run: |
-  #         npm install --legacy-peer-deps
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
 
-  #     - name: Test with Cypress
-  #       id: test
-  #       run: |
-  #         npx cypress run --component --headed --browser chrome
+      - name: Install dependencies
+        run: |
+          npm install --legacy-peer-deps
 
-      # - name: Sets Codecov branch name
-      #   run: |
-      #     echo "CODECOV_BRANCH=PR_${{ github.head_ref }}" >> $GITHUB_ENV
-      #   if: github.event_name == 'pull_request'
+      - name: Test with Cypress
+        id: test
+        run: |
+          npx cypress run --component --headed --browser chrome
 
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v4
-      #   with:
-      #     flags: centre-web
-      #     name: codecov-centre-web
-      #     fail_ci_if_error: true
-      #     verbose: true
-      #     override_branch: ${{ env.CODECOV_BRANCH }}
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     directory: ./centre-web/coverage
-
-      # - name: Coverage Report
-      #   run: |
-      #     npx nyc report --reporter=lcov --reporter=text-summary
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          flags: centre-web
+          name: codecov-centre-web
+          fail_ci_if_error: true
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./centre-web/coverage
 
   build-check:
     needs: setup-job

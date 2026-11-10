@@ -20,9 +20,9 @@ from flask_migrate import Migrate, upgrade
 from sqlalchemy import event, text
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from centre_api import create_app
+from centre_api import create_app, setup_jwt_manager
 from centre_api.auth import jwt as _jwt
-from centre_api.config import get_named_config
+from centre_api.config import TEST_JWT_KID, get_named_config
 from centre_api.models import db as _db
 
 
@@ -80,6 +80,30 @@ def client(app):  # pylint: disable=redefined-outer-name
 def jwt():
     """Return a session-wide jwt manager."""
     return _jwt
+
+
+@pytest.fixture(scope='session', autouse=True)
+def jwt_test_mode(app):  # pylint: disable=redefined-outer-name
+    """Verify tokens against the TestConfig keypair.
+
+    create_app skips this when FLASK_ENV is 'testing', as it is in CI.
+    """
+    setup_jwt_manager(app, _jwt)
+
+
+@pytest.fixture
+def auth_header(app):  # pylint: disable=redefined-outer-name
+    """Return a function that builds an Authorization header signed with the test keypair."""
+    def _auth_header(claims: dict) -> dict:
+        claims = dict(claims)
+        if app.config.get('JWT_OIDC_TEST_AUDIENCE'):
+            claims.setdefault('aud', app.config['JWT_OIDC_TEST_AUDIENCE'])
+        if app.config.get('JWT_OIDC_TEST_ISSUER'):
+            claims.setdefault('iss', app.config['JWT_OIDC_TEST_ISSUER'])
+        token = _jwt.create_jwt(claims, {'alg': 'RS256', 'typ': 'JWT', 'kid': TEST_JWT_KID})
+        return {'Authorization': f'Bearer {token}'}
+
+    return _auth_header
 
 
 @pytest.fixture(scope='session')

@@ -19,8 +19,8 @@ The exact namespace prefix comes from the `OPENSHIFT_REPOSITORY` GitHub secret o
 
 | Workflow | Trigger | Current behavior |
 | --- | --- | --- |
-| `api-ci.yml` | Pull requests to `develop` touching `centre-api/**` | Installs dependencies, runs pylint and flake8, builds Docker image. Pytest job is present but commented out. |
-| `web-ci.yml` | Pull requests to `develop` touching `centre-web/**`, pushes to `develop`, manual dispatch | Runs `npm run lint`; runs `npm run build --quiet || true`, so build failures do not currently fail CI. Cypress job is present but commented out. |
+| `api-ci.yml` | Pull requests to `develop` touching `centre-api/**` | Installs dependencies, runs pylint and flake8, runs pytest against PostgreSQL 12 and uploads coverage to Codecov (`centre-api` flag), builds Docker image. |
+| `web-ci.yml` | Pull requests to `develop` touching `centre-web/**`, pushes to `develop`, manual dispatch | Runs `npm run lint`; runs Cypress component tests and uploads coverage to Codecov (`centre-web` flag); runs `npm run build --quiet || true`, so build failures do not currently fail CI. |
 | `api-cd.yml` | Pushes to `develop` touching `centre-api/**`, manual dispatch | Builds API image, pushes `latest` and selected env tag, restarts `centre-api` deployment. |
 | `web-cd.yml` | Pushes to `develop` touching `centre-web/**`, manual dispatch | Builds web image, pushes `latest` and selected env tag, restarts `centre-web` deployment. |
 | `deploy.yml` | Manual dispatch with `test` or `prod` | Retags current `centre-api:latest` and `centre-web:latest` to selected env, then restarts both deployments. |
@@ -90,6 +90,7 @@ Environment-specific values files such as `values.dev.yaml`, `values.test.yaml`,
 | `OPENSHIFT_SA_NAME` | Registry login username |
 | `OPENSHIFT_IMAGE_REGISTRY` | Image registry host |
 | `OPENSHIFT_REPOSITORY` | Namespace prefix |
+| `CODECOV_TOKEN` | Codecov upload token for the repository, from the bcgov Codecov account |
 
 ## Promotion
 
@@ -145,8 +146,6 @@ The current workflows do not create dated production snapshot tags automatically
 
 ## Current Hardening Opportunities
 
-- Re-enable API pytest in `api-ci.yml`.
 - Make frontend build failures fail CI by removing `|| true`.
-- Add or complete Cypress configuration/scripts before enabling the web Cypress job.
 - Promote immutable commit or build tags instead of retagging mutable `latest` for test/prod.
 - Keep frontend and backend admin group path definitions aligned with Helm values.
