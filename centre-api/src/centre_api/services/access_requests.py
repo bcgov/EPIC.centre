@@ -8,6 +8,7 @@ from centre_api.models.access_requests import AccessRequests as AccessRequestsMo
 from centre_api.models.db import session_scope
 from centre_api.models.email_queue import EmailQueue
 from centre_api.services.auth_api_service import AuthApiService
+from centre_api.services.user_service import UserService
 from centre_api.utils.token_info import TokenInfo
 
 
@@ -62,17 +63,23 @@ class AccessRequestsService:
 
     @classmethod
     def process_access_request(cls, access_request_id, status):
-        """Update an access request for a user."""
-        access_request = AccessRequestsModal.query.get(access_request_id)
+        """Reject a pending access request; approval happens when access is granted."""
+        if status != AccessRequestsStatusEnum.REJECTED.value:
+            raise ValueError('Access requests can only be rejected here; grant access to approve one.')
+
+        access_request = AccessRequestsModal.find_by_id(access_request_id)
         if not access_request:
             return None
 
         app_name = access_request.app.name
-        has_admin_access = cls.has_admin_access_on_app(app_name)
+        has_admin_access = UserService.has_admin_access_on_app(app_name)
         if not has_admin_access:
             raise PermissionError(
                 f"User does not have permission to update access requests for app '{app_name}'."
             )
+        if access_request.status != AccessRequestsStatusEnum.PENDING:
+            raise ValueError(f'Access request {access_request_id} is not pending.')
+
         with session_scope() as session:
             access_request_response = None
             app = access_request.app
@@ -81,21 +88,6 @@ class AccessRequestsService:
             _queue_access_request_email(session, app, auth_user_response, status)
             session.commit()
         return access_request_response.to_dict()
-
-    @classmethod
-    def has_admin_access_on_app(cls, app_name: str):
-        """Check if the user had admin access on the given app."""
-        current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
-        had_dst_admin_roles = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
-
-        requires_app_admin = [
-            EpicAppClientName.EPIC_COMPLIANCE.value,
-        ]
-        if had_dst_admin_roles and app_name not in requires_app_admin:
-            return True
-
-        client_name = APP_NAME_TO_CLIENT_NAME_MAP.get(app_name)
-        return AuthApiService.is_admin_of_app(current_user, client_name)
 
     @classmethod
     def _do_update_access_request(cls, access_request, status, session):

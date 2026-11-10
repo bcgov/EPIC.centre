@@ -19,6 +19,7 @@ import requests
 from flask import current_app, g
 
 from centre_api.enums.epic_app import CLIENT_NAME_TO_APP_NAME_MAP, EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS
+from centre_api.utils.util import quote_path_segment
 
 
 class AuthApiService:
@@ -33,9 +34,9 @@ class AuthApiService:
                 'Authorization': g.authorization_header,
             }
 
-            url = f'{os.getenv("AUTH_API")}/api/users/groups/{group_name}/members'
+            url = f'{os.getenv("AUTH_API")}/api/users/groups/{quote_path_segment(group_name)}/members'
             if sub_group_name:
-                url += f'?sub_group_name={sub_group_name}'
+                url += f'?{urlencode({"sub_group_name": sub_group_name})}'
 
             timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
             response = requests.get(url, headers=headers, timeout=timeout)
@@ -77,7 +78,8 @@ class AuthApiService:
     def get_user_by_id(user_auth_guid):
         """Fetch a single user by username from the Auth API."""
         try:
-            base_url = f'{os.getenv("AUTH_API")}/api/users/guid/{user_auth_guid}?group_brief_representation=false'
+            base_url = (f'{os.getenv("AUTH_API")}/api/users/guid/{quote_path_segment(user_auth_guid)}'
+                        '?group_brief_representation=false')
 
             headers = {
                 'Content-Type': 'application/json',
@@ -97,7 +99,8 @@ class AuthApiService:
     def get_user_by_username(username):
         """Fetch a single user by username from the Auth API."""
         try:
-            base_url = f'{os.getenv("AUTH_API")}/api/users/{username}?group_brief_representation=false'
+            base_url = (f'{os.getenv("AUTH_API")}/api/users/{quote_path_segment(username)}'
+                        '?group_brief_representation=false')
 
             headers = {
                 'Content-Type': 'application/json',
@@ -117,7 +120,7 @@ class AuthApiService:
     def get_group(group_name):
         """Fetch app groups from the Auth API."""
         try:
-            base_url = f'{os.getenv("AUTH_API")}/api/groups/{group_name}?include_sub_groups=true'
+            base_url = f'{os.getenv("AUTH_API")}/api/groups/{quote_path_segment(group_name)}?include_sub_groups=true'
 
             headers = {
                 'Content-Type': 'application/json',
@@ -134,10 +137,10 @@ class AuthApiService:
             raise error
 
     @staticmethod
-    def update_user_group(username: str, group_data):
-        """Fetch a single user by username from the Auth API."""
+    def update_user_group(username: str, parent_group_name: str, group_name: str):
+        """Add a user to a subgroup of the parent group."""
         try:
-            base_url = f'{os.getenv("AUTH_API")}/api/users/{username}/groups'
+            base_url = f'{os.getenv("AUTH_API")}/api/users/{quote_path_segment(username)}/groups'
 
             headers = {
                 'Content-Type': 'application/json',
@@ -146,8 +149,8 @@ class AuthApiService:
 
             timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
             request_body = {
-                'app_name': group_data.get('parent_group_name'),
-                'group_name': group_data.get('group_name')
+                'app_name': parent_group_name,
+                'group_name': group_name
             }
             response = requests.put(base_url, headers=headers, timeout=timeout, json=request_body)
             response.raise_for_status()
@@ -161,7 +164,7 @@ class AuthApiService:
     def delete_all_user_group_mapping(username: str):
         """Delete all user group mappings."""
         try:
-            base_url = f'{os.getenv("AUTH_API")}/api/users/{username}/groups'
+            base_url = f'{os.getenv("AUTH_API")}/api/users/{quote_path_segment(username)}/groups'
 
             headers = {
                 'Content-Type': 'application/json',
@@ -191,7 +194,8 @@ class AuthApiService:
         """
         try:
             query_params = urlencode({'del_sub_group_mappings': str(del_sub_group_mappings).lower()})
-            base_url = f'{os.getenv("AUTH_API")}/api/users/{username}/groups/{group_name}?{query_params}'
+            base_url = (f'{os.getenv("AUTH_API")}/api/users/{quote_path_segment(username)}'
+                        f'/groups/{quote_path_segment(group_name)}?{query_params}')
             body = {
                 'app_name': group_name
             }
@@ -220,7 +224,7 @@ class AuthApiService:
         :return: The updated user dict
         """
         try:
-            base_url = f'{os.getenv("AUTH_API")}/api/users/{username}'
+            base_url = f'{os.getenv("AUTH_API")}/api/users/{quote_path_segment(username)}'
 
             headers = {
                 'Content-Type': 'application/json',

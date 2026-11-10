@@ -17,6 +17,15 @@
 import os
 import re
 from functools import lru_cache
+from urllib.parse import quote
+
+
+def quote_path_segment(value) -> str:
+    """URL-encode a value as one path segment, rejecting dot segments."""
+    segment = quote(str(value), safe='@')
+    if segment in ('', '.', '..'):
+        raise ValueError(f'Invalid path segment: {value!r}')
+    return segment
 
 
 @lru_cache(maxsize=1)

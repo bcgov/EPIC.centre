@@ -42,7 +42,7 @@ secure_headers = secure.Secure(
 )
 
 
-def create_app(run_mode=os.getenv('FLASK_ENV', 'development')):
+def create_app(run_mode=os.getenv('FLASK_ENV', 'production')):
     """Create flask app."""
     from centre_api.resources import API_BLUEPRINT, OPS_BLUEPRINT  # pylint: disable=import-outside-toplevel
 

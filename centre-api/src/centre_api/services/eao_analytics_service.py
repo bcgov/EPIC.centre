@@ -2,6 +2,7 @@
 
 from centre_api.models.applications import Application
 from centre_api.models.eao_analytics import EaoAnalytics
+from centre_api.utils.token_info import TokenInfo
 
 
 class EaoAnalyticsService:
@@ -21,9 +22,15 @@ class EaoAnalyticsService:
 
         Raises:
             ValueError: If required fields are missing or application not found
+            PermissionError: If user_auth_guid is not the caller
         """
         if not user_auth_guid or not app_name:
             raise ValueError('Missing required fields: user_auth_guid, app_name')
+
+        # EPIC.analytics sends preferred_username; centre-web sends sub
+        caller_ids = {TokenInfo.get_username(), TokenInfo.get_id()} - {None}
+        if user_auth_guid not in caller_ids:
+            raise PermissionError('Cannot record a login for another user.')
 
         # Look up app_id from app_name
         application = Application.query.filter_by(name=app_name).first()

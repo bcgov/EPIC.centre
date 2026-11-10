@@ -16,7 +16,9 @@ import os
 import re
 from unittest.mock import patch
 
-from centre_api.utils.util import allowedorigins
+import pytest
+
+from centre_api.utils.util import allowedorigins, quote_path_segment
 
 
 class TestAllowedOrigins:
@@ -86,3 +88,24 @@ class TestAllowedOrigins:
         assert len(result) == 2
         assert result[0] == 'https://app.com'
         assert isinstance(result[1], re.Pattern)
+
+
+class TestQuotePathSegment:
+    """Tests for the quote_path_segment function."""
+
+    def test_username_is_unchanged(self):
+        """Usernames are unchanged."""
+        assert quote_path_segment('abc123@idir') == 'abc123@idir'
+        assert quote_path_segment('first.last_1-x@bceidboth') == 'first.last_1-x@bceidboth'
+
+    def test_path_and_query_characters_are_encoded(self):
+        """Path and query characters are encoded."""
+        assert quote_path_segment('a/b') == 'a%2Fb'
+        assert quote_path_segment('a?x=1') == 'a%3Fx%3D1'
+        assert quote_path_segment('a#b') == 'a%23b'
+
+    @pytest.mark.parametrize('value', ['', '.', '..'])
+    def test_dot_and_empty_segments_are_rejected(self, value):
+        """Empty and dot segments are rejected."""
+        with pytest.raises(ValueError):
+            quote_path_segment(value)
