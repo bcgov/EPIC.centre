@@ -80,7 +80,7 @@ make test
 make ci
 ```
 
-`make ci` runs linting and pytest locally. The GitHub API CI workflow runs linting, pytest against PostgreSQL 12 with coverage uploaded to Codecov, and a Docker build.
+`make ci` runs linting and pytest locally. The GitHub API CI workflow runs linting, pytest against PostgreSQL 16 with coverage uploaded to Codecov, and a Docker build.
 
 Frontend:
 

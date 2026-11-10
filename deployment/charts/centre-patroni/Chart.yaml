@@ -20,6 +20,7 @@ keywords:
   - postgresql
   - database
 dependencies: []
+# Stale: live centre-patroni in c8b80a dev and prod runs Postgres 16, not this tag
 appVersion: "2.0.1-12.4-latest"
 deprecated: false
 annotations: {}
