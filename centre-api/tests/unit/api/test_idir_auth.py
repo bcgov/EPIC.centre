@@ -20,13 +20,27 @@ from flask import Flask
 from centre_api.auth import auth
 
 
-@pytest.mark.parametrize('login_source,allowed', [
-    ('idir', True), (' IDIR ', True), ('bceid', False), ('', False),
-    (None, False), (123, False),
+@pytest.mark.parametrize('login_source,username,allowed', [
+    ('idir', 'caller@idir', True),
+    (' IDIR ', 'caller@idir', True),
+    ('idir', 'caller', True),
+    ('bceid', 'caller@idir', False),
+    (' BCEID ', 'caller@idir', False),
+    (None, 'caller@idir', True),
+    ('', 'caller@idir', True),
+    ('  ', ' CALLER@IDIR ', True),
+    (123, 'caller@idir', True),
+    (None, 'a' * 32 + '@idir', True),
+    (None, 'caller@bceid', False),
+    (None, 'caller@idir.example', False),
+    (None, 'calleridir', False),
+    (None, '', False),
+    (None, None, False),
+    (None, 123, False),
 ])
 @pytest.mark.parametrize('role_guard', [False, True])
-def test_idir_required_with_or_without_roles(app, auth_header, login_source, allowed, role_guard):
-    """Even a token with an accepted role must carry the verified IDIR claim."""
+def test_idir_required_with_or_without_roles(app, auth_header, login_source, username, allowed, role_guard):
+    """Both decorators enforce the source claim before considering the username fallback."""
     guarded_app = Flask(__name__)
     guarded_app.config.update(app.config)
     guard = auth.require_any_role(['view'], ['epic-centre']) if role_guard else auth.require
@@ -38,7 +52,7 @@ def test_idir_required_with_or_without_roles(app, auth_header, login_source, all
 
     claims = {
         'sub': 'idir-test-user',
-        'preferred_username': 'looks-like-idir@idir',
+        'preferred_username': username,
         'resource_access': {'epic-centre': {'roles': ['view']}},
     }
     if login_source is not None:
