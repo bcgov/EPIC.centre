@@ -23,26 +23,26 @@ defaults:
 
 jobs:
   setup-job:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     if: github.repository == 'bcgov/EPIC.centre'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - run: "true"
 
   linting:
     needs: setup-job
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     strategy:
       matrix:
         node-version: [24.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
@@ -90,16 +90,16 @@ jobs:
 
   build-check:
     needs: setup-job
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     strategy:
       matrix:
         node-version: [24.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
