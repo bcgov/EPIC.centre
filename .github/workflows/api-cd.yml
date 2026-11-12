@@ -25,14 +25,27 @@ env:
 
 jobs:
   api-cd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     if: github.repository == 'bcgov/EPIC.centre'
     environment:
       name: "dev"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
+
+      # Pinned to the Gold cluster's server version, and checked before it is
+      # given the SA token. Bump both values when the cluster upgrades.
+      - name: Install OpenShift CLI
+        env:
+          OC_VERSION: "4.18.53"
+          OC_SHA256: "93fa299b699430c40685aabb22783df30838f2b956f6a57698d890dccafe41aa"
+        run: |
+          curl -sfLO "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OC_VERSION}/openshift-client-linux.tar.gz"
+          echo "${OC_SHA256}  openshift-client-linux.tar.gz" | sha256sum -c -
+          tar -xzf openshift-client-linux.tar.gz oc
+          sudo mv oc /usr/local/bin/
+          rm -f openshift-client-linux.tar.gz
 
       - name: Login Openshift
         shell: bash
