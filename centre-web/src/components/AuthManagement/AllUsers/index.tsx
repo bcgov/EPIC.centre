@@ -33,7 +33,7 @@ const ALL_VALUE = "";
 /** Normalize group path for comparison (Keycloak may return paths with leading/trailing slashes or different casing). */
 function normalizeGroupPath(path: string | null | undefined): string {
   if (path == null || path === "") return "";
-  return path.replaceAll(/(^(?:\/)+)|((?:\/)+$)/g, "").toUpperCase();
+  return path.replace(/(^(?:\/)+)|((?:\/)+$)/g, "").toUpperCase();
 }
 
 export const AllUsers = () => {
