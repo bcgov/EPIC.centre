@@ -62,8 +62,12 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   // happen there. Until the fetch resolves we use an empty map, which makes the
   // admin checks report no privileges rather than relying on hardcoded values
   // that could be stale and grant incorrect admin access.
-  const { data: fetchedAdminGroupPaths, isLoading: adminGroupPathsLoading } =
-    useGetAdminGroupPaths();
+  const {
+    data: fetchedAdminGroupPaths,
+    isLoading: adminGroupPathsLoading,
+    isError: adminGroupPathsError,
+    refetch: refetchAdminGroupPaths,
+  } = useGetAdminGroupPaths();
   const adminGroupPaths = useMemo<AdminGroupPathsMap>(
     () => fetchedAdminGroupPaths ?? {},
     [fetchedAdminGroupPaths],
@@ -114,8 +118,11 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       value={{
         user,
         isLoading: isLoading || adminGroupPathsLoading,
-        isError,
-        refetch,
+        isError: isError || adminGroupPathsError,
+        refetch: () => {
+          void refetch();
+          void refetchAdminGroupPaths();
+        },
         isAdmin,
         isDstAdmin,
         isAdminOfApp,

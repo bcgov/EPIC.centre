@@ -1,7 +1,7 @@
 """Enums for the application.
 
 EpicGroups, EpicAppClientName, EpicAdminSubGroups, and EpicAdminGroupsPath values
-are loaded from environment variables (see config.py and sample.env).
+are loaded from environment variables (see sample.env and the Helm chart values).
 """
 import os
 from collections import defaultdict
@@ -82,11 +82,11 @@ class EpicAdminGroupsPath(Enum):
 
     COMPLIANCE = _env('EPIC_ADMIN_GROUP_PATH_COMPLIANCE', 'COMPLIANCE/SUPERUSER')
     CONDITION_REPO = _env('EPIC_ADMIN_GROUP_PATH_CONDITION_REPO', 'CONDITION-REPO/INSTANCE_ADMIN')
-    SUBMIT = _env('EPIC_ADMIN_GROUP_PATH_SUBMIT', 'SUBMIT/EAO_MANAGER')
+    SUBMIT = _env('EPIC_ADMIN_GROUP_PATH_SUBMIT', 'SUBMIT/MPT_MANAGER')
     TRACK = _env('EPIC_ADMIN_GROUP_PATH_TRACK', 'TRACK/INSTANCE_ADMIN')
-    ENGAGE = _env('EPIC_ADMIN_GROUP_PATH_ENGAGE', 'ENGAGE/INSTANCE_ADMIN')
+    ENGAGE = _env('EPIC_ADMIN_GROUP_PATH_ENGAGE', 'ENGAGE/EAO_IT_ADMIN')
     CENTRE = _env('EPIC_ADMIN_GROUP_PATH_CENTRE', 'CENTRE/SUPER_USER')
-    PUBLIC = _env('EPIC_ADMIN_GROUP_PATH_PUBLIC', 'PUBLIC/ADMIN')
+    PUBLIC = _env('EPIC_ADMIN_GROUP_PATH_PUBLIC', 'PUBLIC/INSTANCE_ADMIN')
 
 
 EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS = {
@@ -104,15 +104,13 @@ EPIC_ADMIN_GROUPS_PATHS_TO_CLIENT = defaultdict(lambda: None, {
 })
 
 
+# Match notification recipients to the authoritative configured admin paths.
 GROUP_MAP = {
-    EpicGroups.COMPLIANCE.value: EpicAdminSubGroups.SUPERUSER.value,
-    EpicGroups.CONDITION_REPO.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
-    EpicGroups.SUBMIT.value: EpicAdminSubGroups.EAO_MANAGER.value,
-    EpicGroups.TRACK.value: EpicAdminSubGroups.TRACK_ADMIN.value,
-    EpicGroups.ENGAGE.value: EpicAdminSubGroups.INSTANCE_ADMIN.value,
-    EpicGroups.CENTRE.value: EpicAdminSubGroups.SUPER_USER.value,
-    EpicGroups.PUBLIC.value: EpicAdminSubGroups.ADMIN.value,
+    path.rsplit('/', 1)[0]: path.rsplit('/', 1)[1]
+    for path in EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS.values()
+    if '/' in path
 }
+
 
 APP_NAME_TO_GROUP_MAP = {
     EpicAppName.EPIC_COMPLIANCE.value: EpicGroups.COMPLIANCE.value,

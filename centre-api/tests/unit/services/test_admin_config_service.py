@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Unit tests for AdminConfigService."""
+from pathlib import Path
 from unittest.mock import patch
 
-from centre_api.enums.epic_app import EpicAppClientName
+from centre_api.enums.epic_app import GROUP_MAP, EpicAdminGroupsPath, EpicAppClientName
 from centre_api.services.admin_config_service import AdminConfigService
 
 
@@ -62,3 +63,24 @@ class TestGetAdminGroupPaths:
         result = AdminConfigService.get_admin_group_paths()
 
         assert all(not path.startswith('/') for path in result.values())
+
+    def test_admin_defaults_match_sample_and_chart(self):
+        """Local setup, deployment and notifications agree on administrator groups."""
+        root = Path(__file__).resolve().parents[4]
+        sample = (root / 'centre-api/sample.env').read_text()
+        chart = (root / 'deployment/charts/centre-api/values.yaml').read_text()
+        expected = {
+            'COMPLIANCE': 'COMPLIANCE/SUPERUSER',
+            'CONDITION_REPO': 'CONDITION-REPO/INSTANCE_ADMIN',
+            'SUBMIT': 'SUBMIT/MPT_MANAGER',
+            'TRACK': 'TRACK/INSTANCE_ADMIN',
+            'ENGAGE': 'ENGAGE/EAO_IT_ADMIN',
+            'CENTRE': 'CENTRE/SUPER_USER',
+            'PUBLIC': 'PUBLIC/INSTANCE_ADMIN',
+        }
+        for name, path in expected.items():
+            assert EpicAdminGroupsPath[name].value == path
+            assert f'EPIC_ADMIN_GROUP_PATH_{name}={path}' in sample
+            assert path in chart
+            parent, subgroup = path.rsplit('/', 1)
+            assert GROUP_MAP[parent] == subgroup
