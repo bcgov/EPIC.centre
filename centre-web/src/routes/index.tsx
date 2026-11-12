@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const {isLoading, signinRedirect } = useAuth();
+  const { isLoading } = useAuth();
 
   if (isLoading) {
     return <PageLoader />;
@@ -16,5 +16,5 @@ function Index() {
 
 
 
-  return <HomePage onSignIn={() => signinRedirect()} />;
+  return <HomePage />;
 }
