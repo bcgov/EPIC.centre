@@ -108,4 +108,4 @@ jobs:
       - name: build to check strictness
         id: build
         run: |
-          npm run build --quiet || true
+          npm run build --quiet
