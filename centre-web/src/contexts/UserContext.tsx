@@ -9,12 +9,13 @@ import {
 } from "react";
 import { useAuth } from "react-oidc-context";
 import { useGetUser } from "@/hooks/api/useUsers";
+import { useGetAdminGroupPaths } from "@/hooks/api/useAdminConfig";
 import {
   isAdminOfAnyApp,
   isAdminOfApp as checkIsAdminOfApp,
   getAdminStatusPerApp as computeAdminStatusPerApp,
-  EPIC_CLIENT_TO_ADMIN_GROUP_PATHS,
   hasAdminGroup,
+  type AdminGroupPathsMap,
 } from "@/utils/adminGroupPaths";
 import { getUserRolesFromToken } from "@/utils/axiosUtils";
 import { getResourceAccessFromToken } from "@/utils/roleUtils";
@@ -57,29 +58,40 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     enabled: !!username && auth.isAuthenticated,
   });
 
+  // Admin group paths are sourced from the backend so changes only need to
+  // happen there. Until the fetch resolves we use an empty map, which makes the
+  // admin checks report no privileges rather than relying on hardcoded values
+  // that could be stale and grant incorrect admin access.
+  const { data: fetchedAdminGroupPaths, isLoading: adminGroupPathsLoading } =
+    useGetAdminGroupPaths();
+  const adminGroupPaths = useMemo<AdminGroupPathsMap>(
+    () => fetchedAdminGroupPaths ?? {},
+    [fetchedAdminGroupPaths],
+  );
+
   // Compute admin status from user groups
   const isAdmin = useMemo(() => {
-    return isAdminOfAnyApp(user?.groups);
-  }, [user?.groups]);
+    return isAdminOfAnyApp(user?.groups, adminGroupPaths);
+  }, [user?.groups, adminGroupPaths]);
 
   const isDstAdmin = useMemo(() => {
-    const dstAdminPath =
-      EPIC_CLIENT_TO_ADMIN_GROUP_PATHS[EpicAppClientName.EPIC_CENTRE];
+    const dstAdminPath = adminGroupPaths[EpicAppClientName.EPIC_CENTRE];
+    if (!dstAdminPath) return false;
     return hasAdminGroup(user?.groups, dstAdminPath);
-  }, [user?.groups]);
+  }, [user?.groups, adminGroupPaths]);
 
   // Memoized function to check admin status for a specific app
   const isAdminOfApp = useCallback(
     (appName: EpicAppName) => {
-      return checkIsAdminOfApp(user?.groups, appName);
+      return checkIsAdminOfApp(user?.groups, appName, adminGroupPaths);
     },
-    [user?.groups],
+    [user?.groups, adminGroupPaths],
   );
 
   // Compute admin status for all apps
   const adminStatusPerApp = useMemo(() => {
-    return computeAdminStatusPerApp(user?.groups);
-  }, [user?.groups]);
+    return computeAdminStatusPerApp(user?.groups, adminGroupPaths);
+  }, [user?.groups, adminGroupPaths]);
 
   /**
    * Check if user has the ai search user role
@@ -101,7 +113,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     <UserContext.Provider
       value={{
         user,
-        isLoading,
+        isLoading: isLoading || adminGroupPathsLoading,
         isError,
         refetch,
         isAdmin,

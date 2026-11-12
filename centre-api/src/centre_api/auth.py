@@ -27,6 +27,12 @@ class Auth:  # pylint: disable=too-few-public-methods
     """Extending JwtManager to include additional functionalities."""
 
     @staticmethod
+    def is_idir(token_info):
+        """Check whether the verified login source claim identifies IDIR."""
+        login_source = token_info.get('loginSource')
+        return isinstance(login_source, str) and login_source.strip().casefold() == 'idir'
+
+    @staticmethod
     def _get_roles(client_names=None):
         """Extract effective realm and selected client roles from the current token."""
         token_info = g.jwt_oidc_token_info
@@ -54,6 +60,8 @@ class Auth:  # pylint: disable=too-few-public-methods
         def decorated(*args, **kwargs):
             g.authorization_header = request.headers.get('Authorization', None)
             g.token_info = g.jwt_oidc_token_info
+            if not cls.is_idir(g.token_info):
+                return {'message': 'IDIR authentication required'}, 403
 
             return f(*args, **kwargs)
 
@@ -69,6 +77,8 @@ class Auth:  # pylint: disable=too-few-public-methods
             def decorated(*args, **kwargs):
                 g.authorization_header = request.headers.get('Authorization', None)
                 g.token_info = g.jwt_oidc_token_info
+                if not cls.is_idir(g.token_info):
+                    return {'message': 'IDIR authentication required'}, 403
 
                 if not cls._get_roles(client_names).intersection(set(roles)):
                     return {'message': 'Access denied'}, 403
