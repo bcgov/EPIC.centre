@@ -19,6 +19,7 @@ from flask_restx import Namespace, Resource
 from marshmallow import ValidationError
 
 from centre_api.auth import auth
+from centre_api.extensions import WRITE_LIMIT, limiter
 from centre_api.services.user_application_service import UserApplicationsService
 
 from ..schemas.user_application import MAX_BOOKMARKS, BookmarkSchema, UserApplicationSchema
@@ -37,6 +38,7 @@ class UserApplicationBookmarks(Resource):
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Update bookmarks for a user application')
     @auth.require
+    @limiter.limit(WRITE_LIMIT)
     def patch():
         """Update bookmarks for a user application."""
         payload = API.payload
@@ -63,6 +65,7 @@ class UserApplicationSortOrder(Resource):
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Update bookmarks for a user application')
     @auth.require
+    @limiter.limit(WRITE_LIMIT)
     def patch():
         """Update sort order for a user application."""
         payload = API.payload

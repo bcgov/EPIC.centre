@@ -19,6 +19,7 @@ from flask_restx import Namespace, Resource
 from marshmallow import ValidationError
 
 from centre_api.auth import auth
+from centre_api.extensions import WRITE_LIMIT, limiter
 from centre_api.enums.epic_app import EpicAppName
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.schemas.eao_analytics import EaoAnalyticsCreateSchema, EaoAnalyticsSchema
@@ -36,6 +37,7 @@ class CreateEaoAnalytics(Resource):
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Create or update EAO Analytics record')
     @auth.require
+    @limiter.limit(WRITE_LIMIT)
     def post():
         """Create or update EAO Analytics record."""
         try:

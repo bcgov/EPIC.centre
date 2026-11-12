@@ -53,5 +53,6 @@ The Makefile currently uses `python3.9` when creating `venv/`.
 - Local compose exposes PostgreSQL on `54332` and test PostgreSQL on `54333`.
 - The main compose file references `./setup` for Keycloak import data, but that folder is not committed. Test fixtures live under `tests/docker/setup`.
 - OpenShift deployment runs `flask db upgrade` in an init container through `pre-hook-update-db.sh`.
+- Endpoints that send email or write to EPIC.auth are rate limited per user (`centre_api/extensions.py`). Put `@limiter.limit(...)` below `@auth.require`, or it keys on the router's address instead of the user. Counters are in memory, so each gunicorn worker counts separately and the effective limit is up to the worker count times the configured one.
 
 More detail lives in [../docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md) and [../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).

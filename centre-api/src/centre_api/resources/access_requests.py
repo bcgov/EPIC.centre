@@ -19,6 +19,7 @@ from flask import request
 from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
+from centre_api.extensions import WRITE_LIMIT, limiter
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.services.access_requests import AccessRequestsService
 
@@ -63,6 +64,7 @@ class UserAccessRequest(Resource):
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Update an access request')
     @auth.require
+    @limiter.limit(WRITE_LIMIT)
     def put(access_request_id):
         """Update access request."""
         args = request.args.to_dict()
