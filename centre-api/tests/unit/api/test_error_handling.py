@@ -50,7 +50,8 @@ def test_unknown_route_returns_404(production_client, path):
 
 def test_wrong_method_returns_405(production_client):
     """A known route with the wrong method is a 405, not a 500."""
-    response = production_client.post('/ops/healthz')
+    # A plain Flask route: flask-restx routes answer 405 without reaching the handler
+    response = production_client.post('/boom')
 
     assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED
 
