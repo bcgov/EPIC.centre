@@ -9,6 +9,7 @@ from http import HTTPStatus
 import secure
 from flask import Flask, current_app, g, request
 from flask_cors import CORS
+from werkzeug.exceptions import HTTPException
 
 from centre_api.auth import jwt
 from centre_api.config import get_named_config
@@ -98,10 +99,13 @@ def create_app(run_mode=os.getenv('FLASK_ENV', 'production')):
 
     @app.errorhandler(Exception)
     def handle_error(err):
+        # Keep 404/405 as they are; only unexpected errors become 500
+        if isinstance(err, HTTPException):
+            return err
         if run_mode != 'production':
             # To get stacktrace in local development for internal server errors
             raise err
-        current_app.logger.error(str(err))
+        current_app.logger.error('Unhandled exception: %s', err, exc_info=err)
         return 'Internal server error', HTTPStatus.INTERNAL_SERVER_ERROR
 
     # Return App for run in run.py file
