@@ -66,7 +66,10 @@ class CatalogApplication(Resource):
     @auth.require
     def post(app_id):
         """Create access request."""
-        access_request = ApplicationsService.create_access_request(app_id)
+        try:
+            access_request = ApplicationsService.create_access_request(app_id)
+        except ValueError as err:
+            return {'message': str(err)}, HTTPStatus.BAD_REQUEST
         return AccessRequestSchema().dump(access_request), HTTPStatus.OK
 
 

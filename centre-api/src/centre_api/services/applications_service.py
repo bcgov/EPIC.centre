@@ -4,6 +4,7 @@ import os
 from collections import defaultdict
 
 import requests
+from sqlalchemy.exc import IntegrityError
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
@@ -125,13 +126,21 @@ class ApplicationsService:
             for app, user_app in apps
         ]
 
+    # Apps that are never offered in the request-access catalogue
+    REQUEST_CATALOG_EXCLUDED_APPS = frozenset({
+        EpicAppName.EPIC_COMPLIANCE.value, EpicAppName.DOCUMENT_SEARCH.value, EpicAppName.INTRANET.value
+    })
+
+    @classmethod
+    def _is_requestable(cls, app) -> bool:
+        """Return True if the app is offered in the request-access catalogue."""
+        return bool(app.is_active) and app.name not in cls.REQUEST_CATALOG_EXCLUDED_APPS
+
     @classmethod
     def get_request_catalog(cls):
         """Get request access catalog."""
         apps = ApplicationModel.get_all()
-        exception_apps = {EpicAppName.EPIC_COMPLIANCE.value,
-                          EpicAppName.DOCUMENT_SEARCH.value, EpicAppName.INTRANET.value}
-        filtered_apps = [(app, user_app) for app, user_app in apps if app.name not in exception_apps and app.is_active]
+        filtered_apps = [(app, user_app) for app, user_app in apps if cls._is_requestable(app)]
 
         access_levels = cls._get_current_user_access_levels()
         accessed_apps = set(access_levels.keys())
@@ -247,27 +256,38 @@ class ApplicationsService:
         """Create an access request for the given app_id."""
         user_auth_id = TokenInfo.get_id()
         app = ApplicationModel.find_by_id(app_id)
-        if not app:
-            raise ValueError(f'Application with id {app_id} does not exist.')
+        if not app or not cls._is_requestable(app):
+            raise ValueError(f'Application with id {app_id} is not available to request.')
 
-        # Check if an access request already exists
-        existing_request = (AccessRequestsModal.query
-                            .filter_by(app_id=app_id, user_auth_guid=user_auth_id,
-                                       status=AccessRequestsStatusEnum.PENDING.value)
-                            .first())
+        existing_request = cls._find_pending_request(app_id, user_auth_id)
         if existing_request:
             return existing_request
-        with session_scope() as session:
-            # Queue the email within the same transaction
-            new_request = AccessRequestsModal(app_id=app_id, user_auth_guid=user_auth_id)
-            session.add(new_request)
-            session.flush()
-            cls._queue_access_request_submitted_email(session, app)
-            cls._queue_access_request_received_dst_email(session, app)
-            cls._queue_access_request_notification_app_admin(session, app)
-            session.commit()
+        try:
+            with session_scope() as session:
+                # Queue the email within the same transaction
+                new_request = AccessRequestsModal(app_id=app_id, user_auth_guid=user_auth_id)
+                session.add(new_request)
+                session.flush()
+                cls._queue_access_request_submitted_email(session, app)
+                cls._queue_access_request_received_dst_email(session, app)
+                cls._queue_access_request_notification_app_admin(session, app)
+                session.commit()
+        except IntegrityError:
+            # A concurrent submit won the unique pending index; its emails are already queued
+            existing_request = cls._find_pending_request(app_id, user_auth_id)
+            if existing_request:
+                return existing_request
+            raise
 
         return new_request
+
+    @staticmethod
+    def _find_pending_request(app_id: int, user_auth_id: str):
+        """Return the user's pending access request for the app, if any."""
+        return (AccessRequestsModal.query
+                .filter_by(app_id=app_id, user_auth_guid=user_auth_id,
+                           status=AccessRequestsStatusEnum.PENDING.value)
+                .first())
 
     @classmethod
     def get_app_access_levels(cls, app_name):

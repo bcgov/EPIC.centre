@@ -13,6 +13,11 @@ class AccessRequests(BaseModel):
     """Definition of the User entity."""
 
     __tablename__ = 'access_requests'
+    __table_args__ = (
+        # At most one pending request per user and app, so concurrent submits can't both insert
+        db.Index('uq_access_requests_one_pending', 'app_id', 'user_auth_guid', unique=True,
+                 postgresql_where=db.text("status = 'PENDING'")),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     app_id = db.Column(db.Integer, db.ForeignKey('applications.id'), nullable=False)
