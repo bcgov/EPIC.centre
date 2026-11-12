@@ -52,6 +52,11 @@ jobs:
         id: lint
         run: |
           npm run lint
+      - name: Audit production dependencies
+        id: audit
+        # Dev-only tools (Cypress, build plugins) aren't shipped in the image
+        run: |
+          npm audit --omit=dev --audit-level=high
 
   testing:
     needs: setup-job
