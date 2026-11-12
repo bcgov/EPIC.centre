@@ -14,7 +14,7 @@ make run
 
 API URLs:
 
-- Swagger/API: `http://localhost:5000/api`
+- Swagger/API: `http://localhost:5000/api` (only when `ENABLE_SWAGGER=true`, as in `sample.env`)
 - Health: `http://localhost:5000/ops/healthz`
 - Readiness: `http://localhost:5000/ops/readyz`
 

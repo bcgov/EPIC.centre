@@ -52,7 +52,7 @@ Operational probes are not under the API blueprint:
 - `GET /ops/healthz` checks database connectivity.
 - `GET /ops/readyz` reports readiness.
 
-Swagger/OpenAPI routes are under `/api`.
+Swagger/OpenAPI routes are under `/api` when `ENABLE_SWAGGER=true`. They are off by default, so deployed environments don't serve them.
 
 ## Frontend Pages
 
