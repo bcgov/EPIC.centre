@@ -28,9 +28,9 @@ def test_swagger_is_not_served_by_default(client, path):
     assert client.get(path).status_code == HTTPStatus.NOT_FOUND
 
 
-def test_health_check_is_still_served(client):
+def test_readiness_check_is_still_served(client):
     """Turning docs off leaves the ops endpoints in place."""
-    assert client.get('/ops/healthz').status_code == HTTPStatus.OK
+    assert client.get('/ops/readyz').status_code == HTTPStatus.OK
 
 
 @pytest.mark.parametrize('enable_docs, expected', [(True, HTTPStatus.OK), (False, HTTPStatus.NOT_FOUND)])
