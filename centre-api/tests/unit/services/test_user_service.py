@@ -24,6 +24,10 @@ from centre_api.services.user_service import UserService
 
 
 TRACK_GROUP = {'name': EpicGroups.TRACK.value, 'subGroups': [{'name': 'INSTANCE_ADMIN'}, {'name': 'USER'}]}
+TRACK_GROUP_WITH_HIDDEN = {'name': EpicGroups.TRACK.value, 'subGroups': [
+    {'name': 'USER', 'attributes': {'hide_in_centre': ['false']}},
+    {'name': 'SUPERUSER', 'attributes': {'hide_in_centre': ['true']}},
+]}
 SUBMIT_GROUP = {'name': EpicGroups.SUBMIT.value, 'subGroups': [{'name': 'EAO_MANAGER'}]}
 COMPLIANCE_GROUP = {'name': EpicGroups.COMPLIANCE.value, 'subGroups': [{'name': 'VIEWER'}]}
 NON_ADMIN = {'username': 'caller@idir', 'groups': []}
@@ -146,6 +150,37 @@ class TestUpdateUserAccess:
             })
 
         mock_update_group.assert_not_called()
+
+    @patch('centre_api.services.user_service.AuthApiService.update_user_group')
+    @patch('centre_api.services.user_service.AuthApiService.get_group')
+    @patch('centre_api.services.user_service.UserService.has_admin_access_on_app')
+    def test_hidden_group_cannot_be_granted(self, mock_has_admin, mock_get_group, mock_update_group):
+        """A subgroup marked hide_in_centre cannot be assigned through Centre."""
+        mock_has_admin.return_value = True
+        mock_get_group.return_value = TRACK_GROUP_WITH_HIDDEN
+
+        with pytest.raises(ValueError):
+            UserService.update_user_access('abc123@idir', {
+                'app_name': EpicAppName.EPIC_TRACK.value,
+                'group_name': 'SUPERUSER',
+            })
+
+        mock_update_group.assert_not_called()
+
+    @patch('centre_api.services.user_service.AuthApiService.update_user_group')
+    @patch('centre_api.services.user_service.AuthApiService.get_group')
+    @patch('centre_api.services.user_service.UserService.has_admin_access_on_app')
+    def test_visible_group_can_be_granted_alongside_hidden(self, mock_has_admin, mock_get_group, mock_update_group):
+        """Visible subgroups are still assignable when the app also has hidden ones."""
+        mock_has_admin.return_value = True
+        mock_get_group.return_value = TRACK_GROUP_WITH_HIDDEN
+
+        UserService.update_user_access('abc123@idir', {
+            'app_name': EpicAppName.EPIC_TRACK.value,
+            'group_name': 'USER',
+        })
+
+        mock_update_group.assert_called_once_with('abc123@idir', EpicGroups.TRACK.value, 'USER')
 
     @patch('centre_api.services.user_service.AuthApiService.update_user_group')
     @patch('centre_api.services.user_service.UserService.has_admin_access_on_app')

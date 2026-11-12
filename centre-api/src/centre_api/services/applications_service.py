@@ -19,6 +19,11 @@ from centre_api.utils.datetime_util import convert_utc_to_local_str
 from centre_api.utils.token_info import TokenInfo
 
 
+def is_hidden_in_centre(role_group: dict) -> bool:
+    """Return True if a Keycloak role group is marked hidden in Centre."""
+    return role_group.get('attributes', {}).get('hide_in_centre', ['false'])[0] == 'true'
+
+
 class ApplicationsService:
     """Applications service."""
 
@@ -278,7 +283,7 @@ class ApplicationsService:
                 'group_name': role_group.get('name'),
                 'group_path': role_group.get('path'),
                 'description': role_group.get('attributes', {}).get('description', [''])[0],
-                'hide_in_centre': role_group.get('attributes', {}).get('hide_in_centre', ['false'])[0] == 'true',
+                'hide_in_centre': is_hidden_in_centre(role_group),
             }
             for role_group in role_groups
         ]
