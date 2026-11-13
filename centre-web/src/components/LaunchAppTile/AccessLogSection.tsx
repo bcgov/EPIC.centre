@@ -26,7 +26,7 @@ export const AccessLogSection = ({ user }: AccessLogSectionProps) => {
         width: "80%",
         display: "flex",
         flexDirection: "column",
-        gap: "8px",
+        gap: "2px",
         alignItems: "flex-start",
       }}
     >

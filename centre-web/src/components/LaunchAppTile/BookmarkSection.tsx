@@ -26,11 +26,20 @@ const AddBookmarkButton = (props: CentreLinkProps) => {
   );
 };
 
+const MAX_BOOKMARKS = 3;
+// In theme spacing units
+const ROW_GAP = 0.5;
+
 type BookmarkSectionProps = {
   epicApp?: EpicApp;
+  // Keep room for every bookmark slot so fixed-height tiles line up
+  reserveSpace?: boolean;
 };
 
-export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
+export const BookmarkSection = ({
+  epicApp,
+  reserveSpace = false,
+}: BookmarkSectionProps) => {
   const { setOpen: setModalOpen } = useModal();
   const handleAddEditBookmarks = () => {
     if (!epicApp) return;
@@ -68,10 +77,18 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
       </Stack>
       <Box
         sx={{
-          height: "97px",
+          height: reserveSpace
+            ? (theme) =>
+                `calc(${MAX_BOOKMARKS} * ${theme.typography.body1.lineHeight} + ${theme.spacing(ROW_GAP * (MAX_BOOKMARKS - 1))})`
+            : undefined,
         }}
       >
-        <Stack direction={"column"} spacing={1}>
+        {/* flex-start keeps each link as wide as its label, not the row */}
+        <Stack
+          direction={"column"}
+          spacing={ROW_GAP}
+          alignItems={"flex-start"}
+        >
           {bookmarks.map((bookmark, index) => (
             // Labels can repeat and the list never reorders, so key by index
             <Tooltip title={bookmark.label} key={index}>
@@ -84,6 +101,7 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
                 sx={{
                   display: "flex",
                   alignItems: "center",
+                  maxWidth: "100%",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
