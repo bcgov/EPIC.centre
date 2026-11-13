@@ -5,6 +5,7 @@ import { CentreLink } from "../Shared/CentreLink";
 import { useModal } from "../Shared/Modals/modalStore";
 import { AddBookmark } from "./AddBookmark";
 import { CentreLinkProps } from "../Shared/CentreLink/type";
+import { isHttpUrl } from "@/utils/url";
 
 const AddBookmarkButton = (props: CentreLinkProps) => {
   const { sx, ...otherProps } = props;
@@ -69,11 +70,14 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
       >
         <Stack direction={"column"} spacing={1}>
           {bookmarks && bookmarks.length > 0
-            ? bookmarks.map((bookmark) => (
-                <Tooltip title={bookmark.label} key={bookmark.label}>
+            ? bookmarks.map((bookmark, index) => (
+                <Tooltip title={bookmark.label} key={index}>
                   <CentreLink
-                    key={bookmark.label}
-                    onClick={() => window.open(bookmark.url, "_blank")}
+                    {...(isHttpUrl(bookmark.url) && {
+                      href: bookmark.url,
+                      target: "_blank",
+                      rel: "noopener noreferrer",
+                    })}
                     sx={{
                       display: "flex",
                       alignItems: "center",

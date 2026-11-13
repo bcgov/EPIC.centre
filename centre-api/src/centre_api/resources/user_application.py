@@ -16,11 +16,12 @@
 from http import HTTPStatus
 
 from flask_restx import Namespace, Resource
+from marshmallow import ValidationError
 
 from centre_api.auth import auth
 from centre_api.services.user_application_service import UserApplicationsService
 
-from ..schemas.user_application import UserApplicationSchema
+from ..schemas.user_application import MAX_BOOKMARKS, BookmarkSchema, UserApplicationSchema
 from .apihelper import Api as ApiHelper
 
 
@@ -44,6 +45,12 @@ class UserApplicationBookmarks(Resource):
 
         if not app_id or bookmarks is None:
             return {'message': 'Missing required fields'}, HTTPStatus.BAD_REQUEST
+        if not isinstance(bookmarks, list) or len(bookmarks) > MAX_BOOKMARKS:
+            return {'message': f'Bookmarks must be a list of at most {MAX_BOOKMARKS}'}, HTTPStatus.BAD_REQUEST
+        try:
+            bookmarks = BookmarkSchema(many=True).load(bookmarks)
+        except ValidationError as err:
+            return {'message': 'Invalid bookmarks', 'errors': err.messages}, HTTPStatus.BAD_REQUEST
 
         user_app = UserApplicationsService.update_user_application_bookmarks(app_id, bookmarks)
         return UserApplicationSchema().dump(user_app), HTTPStatus.OK
