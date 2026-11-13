@@ -43,7 +43,7 @@ def _create_app(session, name=TEST_APP_NAME):
 
 def _caller(user_auth_guid):
     """Return token claims for a caller whose sub is user_auth_guid."""
-    return {'sub': user_auth_guid, 'preferred_username': 'analytics-test@idir'}
+    return {'sub': user_auth_guid, 'preferred_username': 'analytics-test@idir', 'loginSource': 'idir'}
 
 
 class TestEaoAnalyticsAPI:

@@ -23,7 +23,7 @@ from centre_api.enums.epic_app import EpicAppName
 from centre_api.models.eao_analytics import EaoAnalytics
 
 
-CALLER_CLAIMS = {'preferred_username': 'caller@idir', 'sub': 'caller-sub-guid'}
+CALLER_CLAIMS = {'preferred_username': 'caller@idir', 'sub': 'caller-sub-guid', 'loginSource': 'idir'}
 NON_ADMIN = {'username': 'caller@idir', 'groups': []}
 
 
