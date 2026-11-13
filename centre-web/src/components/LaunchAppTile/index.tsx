@@ -23,7 +23,7 @@ export const LaunchAppTile = ({
       sx={{
         width: "100%",
         maxWidth: "345px",
-        height: showDescription ? "369px" : "329px",
+        height: showDescription ? "355px" : "315px",
         boxShadow: BCDesignTokens.surfaceShadowMedium,
         display: "flex",
         flexDirection: "column",

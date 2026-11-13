@@ -1,4 +1,6 @@
+import { ThemeProvider } from "@mui/material";
 import { Bookmark, EpicApp } from "@/models/EpicApp";
+import { theme } from "@/styles/theme";
 import { BookmarkSection } from "./BookmarkSection";
 
 const appWithBookmarks = (bookmarks: Bookmark[]): EpicApp => ({
@@ -86,5 +88,58 @@ describe("BookmarkSection", () => {
 
     cy.contains("a", "Script").should("not.have.attr", "href");
     cy.contains("a", "Relative").should("not.have.attr", "href");
+  });
+
+  it("sizes each link to its label, capped at the section width", () => {
+    cy.viewport(400, 400);
+    cy.mount(
+      <BookmarkSection
+        epicApp={appWithBookmarks([
+          { label: "Docs", url: "https://docs.example.gov.bc.ca" },
+          {
+            label: "A very long bookmark label ".repeat(10),
+            url: "https://long.example.gov.bc.ca",
+          },
+        ])}
+      />,
+    );
+
+    cy.get("#bookmark-section").then(($section) => {
+      const sectionWidth = $section[0].getBoundingClientRect().width;
+      bookmarkLinks().then(($links) => {
+        const [short, long] = $links.toArray();
+        expect(short.getBoundingClientRect().width).to.be.lessThan(
+          sectionWidth / 2,
+        );
+        expect(long.getBoundingClientRect().width).to.be.at.most(sectionWidth);
+      });
+    });
+  });
+
+  it("only keeps room for all three bookmarks when asked to", () => {
+    // The reserved height comes from the app theme's line height
+    const sectionHeight = (bookmarks: Bookmark[], reserveSpace = false) => {
+      cy.mount(
+        <ThemeProvider theme={theme}>
+          <BookmarkSection
+            epicApp={appWithBookmarks(bookmarks)}
+            reserveSpace={reserveSpace}
+          />
+        </ThemeProvider>,
+      );
+      return cy
+        .get("#bookmark-section")
+        .then(($section) => $section[0].getBoundingClientRect().height);
+    };
+    const three = [
+      { label: "Docs", url: "https://docs.example.gov.bc.ca" },
+      { label: "Guide", url: "https://guide.example.gov.bc.ca" },
+      { label: "Reports", url: "https://reports.example.gov.bc.ca" },
+    ];
+
+    sectionHeight(three).then((full) => {
+      sectionHeight([]).should("be.lessThan", full - 50);
+      sectionHeight([], true).should("be.closeTo", full, 0.5);
+    });
   });
 });

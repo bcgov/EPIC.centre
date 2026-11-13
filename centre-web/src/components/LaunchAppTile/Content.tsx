@@ -34,7 +34,7 @@ export const Content = ({ epicApp }: ContentProps) => {
         >
           Open in new tab
         </Button>
-        <BookmarkSection epicApp={epicApp} />
+        <BookmarkSection epicApp={epicApp} reserveSpace />
         <Box
           sx={{
             padding: "8px 0 12px 0",
