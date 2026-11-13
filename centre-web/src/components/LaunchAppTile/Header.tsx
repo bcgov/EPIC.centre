@@ -80,6 +80,8 @@ export const Header = ({
         {showDescription && (
           <Typography
             variant="body2"
+            // LinesEllipsis renders a <div>, which can't sit inside the default <p>
+            component="div"
             sx={{
               width: "100%",
               minWidth: 0,
