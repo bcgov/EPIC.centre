@@ -1,6 +1,6 @@
 """Enums for the application.
 
-EpicGroups, EpicAppClientName, EpicAdminSubGroups, and EpicAdminGroupsPath values
+EpicGroups, EpicAppClientName, and EpicAdminGroupsPath values
 are loaded from environment variables (see sample.env and the Helm chart values).
 """
 import os
@@ -64,17 +64,6 @@ class EpicGroups(Enum):
     ENGAGE = _env('EPIC_GROUP_ENGAGE', 'ENGAGE')
     CENTRE = _env('EPIC_GROUP_CENTRE', 'CENTRE')
     PUBLIC = _env('EPIC_GROUP_PUBLIC', 'PUBLIC')
-
-
-class EpicAdminSubGroups(Enum):
-    """Enum representing Epic admin subgroup names (from env)."""
-
-    ADMIN = _env('EPIC_ADMIN_SUBGROUP_ADMIN', 'ADMIN')
-    EAO_MANAGER = _env('EPIC_ADMIN_SUBGROUP_EAO_MANAGER', 'EAO_MANAGER')
-    INSTANCE_ADMIN = _env('EPIC_ADMIN_SUBGROUP_INSTANCE_ADMIN', 'INSTANCE_ADMIN')
-    SUPERUSER = _env('EPIC_ADMIN_SUBGROUP_SUPERUSER', 'SUPERUSER')
-    SUPER_USER = _env('EPIC_ADMIN_SUBGROUP_SUPER_USER', 'SUPER_USER')
-    TRACK_ADMIN = 'INSTANCE_ADMIN'
 
 
 class EpicAdminGroupsPath(Enum):

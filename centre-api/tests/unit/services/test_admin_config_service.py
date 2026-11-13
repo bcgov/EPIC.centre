@@ -68,7 +68,12 @@ class TestGetAdminGroupPaths:
         """Local setup, deployment and notifications agree on administrator groups."""
         root = Path(__file__).resolve().parents[4]
         sample = (root / 'centre-api/sample.env').read_text()
-        chart = (root / 'deployment/charts/centre-api/values.yaml').read_text()
+        chart = (root / 'deployment/charts/centre-api/values.yaml').read_text().splitlines()
+        chart_keys = {
+            'COMPLIANCE': 'compliance', 'CONDITION_REPO': 'conditionRepo',
+            'SUBMIT': 'submit', 'TRACK': 'track', 'ENGAGE': 'engage',
+            'CENTRE': 'centre', 'PUBLIC': 'public',
+        }
         expected = {
             'COMPLIANCE': 'COMPLIANCE/SUPERUSER',
             'CONDITION_REPO': 'CONDITION-REPO/INSTANCE_ADMIN',
@@ -81,6 +86,6 @@ class TestGetAdminGroupPaths:
         for name, path in expected.items():
             assert EpicAdminGroupsPath[name].value == path
             assert f'EPIC_ADMIN_GROUP_PATH_{name}={path}' in sample
-            assert path in chart
+            assert f'  {chart_keys[name]}: {path}' in chart
             parent, subgroup = path.rsplit('/', 1)
             assert GROUP_MAP[parent] == subgroup

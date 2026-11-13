@@ -51,7 +51,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const {
     data: user,
     isLoading,
-    isError,
+    isLoadingError: userLoadingError,
     refetch,
   } = useGetUser({
     username: username || "",
@@ -65,7 +65,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const {
     data: fetchedAdminGroupPaths,
     isLoading: adminGroupPathsLoading,
-    isError: adminGroupPathsError,
+    isLoadingError: adminGroupPathsError,
     refetch: refetchAdminGroupPaths,
   } = useGetAdminGroupPaths();
   const adminGroupPaths = useMemo<AdminGroupPathsMap>(
@@ -118,7 +118,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       value={{
         user,
         isLoading: isLoading || adminGroupPathsLoading,
-        isError: isError || adminGroupPathsError,
+        isError: userLoadingError || adminGroupPathsError,
         refetch: () => {
           void refetch();
           void refetchAdminGroupPaths();

@@ -261,31 +261,6 @@ spec:
                 configMapKeyRef:
                   name: {{ .Chart.Name }}
                   key: EPIC_GROUP_PUBLIC
-            - name: EPIC_ADMIN_SUBGROUP_ADMIN
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ .Chart.Name }}
-                  key: EPIC_ADMIN_SUBGROUP_ADMIN
-            - name: EPIC_ADMIN_SUBGROUP_EAO_MANAGER
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ .Chart.Name }}
-                  key: EPIC_ADMIN_SUBGROUP_EAO_MANAGER
-            - name: EPIC_ADMIN_SUBGROUP_INSTANCE_ADMIN
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ .Chart.Name }}
-                  key: EPIC_ADMIN_SUBGROUP_INSTANCE_ADMIN
-            - name: EPIC_ADMIN_SUBGROUP_SUPERUSER
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ .Chart.Name }}
-                  key: EPIC_ADMIN_SUBGROUP_SUPERUSER
-            - name: EPIC_ADMIN_SUBGROUP_SUPER_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ .Chart.Name }}
-                  key: EPIC_ADMIN_SUBGROUP_SUPER_USER
             - name: EPIC_ADMIN_GROUP_PATH_COMPLIANCE
               valueFrom:
                 configMapKeyRef:

@@ -80,14 +80,6 @@ epicGroups:
   centre: CENTRE
   public: PUBLIC
 
-# Epic admin subgroup names (Keycloak group names)
-epicAdminSubgroups:
-  admin: ADMIN
-  eaoManager: EAO_MANAGER
-  instanceAdmin: INSTANCE_ADMIN
-  superuser: SUPERUSER
-  superUser: SUPER_USER
-
 # Epic admin group paths (Group/Subgroup)
 epicAdminGroupPaths:
   compliance: COMPLIANCE/SUPERUSER
