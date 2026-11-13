@@ -6,7 +6,7 @@ import {
   EPIC_CENTRE_APP_NAME,
 } from "@/hooks/api/useEaoAnalytics";
 import { OidcConfig } from "@/utils/config";
-import { Box } from "@mui/material";
+import { Alert, Box, Button } from "@mui/material";
 import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { useAuth } from "react-oidc-context";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedRoute() {
   const { isAuthenticated, signinRedirect, isLoading } = useAuth();
-  const { user, isLoading: userLoading } = useCurrentUser();
+  const { user, isLoading: userLoading, isError, refetch } = useCurrentUser();
   const { mutate: recordLogin } = useRecordLogin();
   const hasRecordedLogin = useRef(false);
 
@@ -51,6 +51,16 @@ function AuthenticatedRoute() {
 
   if (userLoading) {
     return <PageLoader />;
+  }
+
+  if (isError) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error" action={<Button onClick={refetch}>Try again</Button>}>
+          Unable to load your access settings. Please try again.
+        </Alert>
+      </Box>
+    );
   }
 
   return (

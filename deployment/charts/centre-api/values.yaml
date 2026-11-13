@@ -80,23 +80,15 @@ epicGroups:
   centre: CENTRE
   public: PUBLIC
 
-# Epic admin subgroup names (Keycloak group names)
-epicAdminSubgroups:
-  admin: ADMIN
-  eaoManager: EAO_MANAGER
-  instanceAdmin: INSTANCE_ADMIN
-  superuser: SUPERUSER
-  superUser: SUPER_USER
-
 # Epic admin group paths (Group/Subgroup)
 epicAdminGroupPaths:
   compliance: COMPLIANCE/SUPERUSER
-  conditionRepo: CONDITION-REPO/ADMIN
-  submit: SUBMIT/EAO_MANAGER
+  conditionRepo: CONDITION-REPO/INSTANCE_ADMIN
+  submit: SUBMIT/MPT_MANAGER
   track: TRACK/INSTANCE_ADMIN
-  engage: ENGAGE/INSTANCE_ADMIN
+  engage: ENGAGE/EAO_IT_ADMIN
   centre: CENTRE/SUPER_USER
-  public: PUBLIC/ADMIN
+  public: PUBLIC/INSTANCE_ADMIN
 
 # Epic app client names (Keycloak client IDs)
 epicAppClients:
