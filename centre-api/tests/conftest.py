@@ -23,6 +23,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from centre_api import create_app, setup_jwt_manager
 from centre_api.auth import jwt as _jwt
 from centre_api.config import TEST_JWT_KID, get_named_config
+from centre_api.extensions import limiter
 from centre_api.models import db as _db
 
 
@@ -80,6 +81,13 @@ def client(app):  # pylint: disable=redefined-outer-name
 def jwt():
     """Return a session-wide jwt manager."""
     return _jwt
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limits():
+    """Clear rate-limit counters so tests don't share them."""
+    if limiter.initialized:
+        limiter.reset()
 
 
 @pytest.fixture(scope='session', autouse=True)

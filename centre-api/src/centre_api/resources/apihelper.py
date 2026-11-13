@@ -25,7 +25,18 @@ from marshmallow import fields as ma_fields
 
 
 class Api(BaseApi):
-    """Monkey patch Swagger API to return HTTPS URLs."""
+    """Monkey patch Swagger API to return HTTPS URLs, and allow turning the docs off."""
+
+    def __init__(self, *args, enable_docs=True, **kwargs):
+        """Set enable_docs=False to serve neither the Swagger UI nor swagger.json."""
+        # The base constructor calls init_app without kwargs, so add_specs can only be passed there
+        self._enable_docs = enable_docs
+        super().__init__(*args, **kwargs)
+
+    def init_app(self, app, **kwargs):
+        """Register the API, leaving out swagger.json and the UI when docs are off."""
+        kwargs.setdefault('add_specs', self._enable_docs)
+        super().init_app(app, **kwargs)
 
     @property
     def specs_url(self):

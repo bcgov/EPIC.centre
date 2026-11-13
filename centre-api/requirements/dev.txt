@@ -7,7 +7,8 @@ astroid==3.2.4
 pylint-flask
 pytest
 pytest-cov
-pytest-env
+# 1.3+ adds an --envfile option that clashes with pytest-dotenv
+pytest-env==1.2.0
 pytest-dotenv
 pytest-mock
 requests
@@ -25,3 +26,6 @@ lovely-pytest-docker
 Faker
 # Generates the keypair the test suite signs its tokens with
 rsa
+
+# Dependency vulnerability audit, run in CI
+pip-audit

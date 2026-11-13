@@ -30,7 +30,14 @@ const bookmarkSchema = yup.object().shape({
       yup
         .object()
         .shape({
-          url: yup.string().url("Enter a valid URL").nullable(),
+          url: yup
+            .string()
+            .url("Enter a valid URL")
+            .matches(/^https?:\/\//i, {
+              message: "URL must start with http:// or https://",
+              excludeEmptyString: true,
+            })
+            .nullable(),
           label: yup.string().nullable(),
         })
         .test(

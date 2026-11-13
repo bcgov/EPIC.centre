@@ -22,6 +22,7 @@ export const Body = ({ epicApp }: DocumentSearchBodyProps) => {
     window.open(
       `${AppConfig.documentSearchUrl}?keywords=${encodeURIComponent(searchText)}`,
       "_blank",
+      "noopener,noreferrer",
     );
   };
 

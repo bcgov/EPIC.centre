@@ -97,6 +97,9 @@ class _Config():  # pylint: disable=too-few-public-methods
     TESTING = False
     DEBUG = False
 
+    # Per-worker counters; see centre_api/extensions.py
+    RATELIMIT_STORAGE_URI = 'memory://'
+
     # POSTGRESQL
     DB_USER = os.getenv('DATABASE_USERNAME', '')
     DB_PASSWORD = os.getenv('DATABASE_PASSWORD', '')

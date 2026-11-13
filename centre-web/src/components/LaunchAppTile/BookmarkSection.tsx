@@ -5,6 +5,7 @@ import { CentreLink } from "../Shared/CentreLink";
 import { useModal } from "../Shared/Modals/modalStore";
 import { AddBookmark } from "./AddBookmark";
 import { CentreLinkProps } from "../Shared/CentreLink/type";
+import { isHttpUrl } from "@/utils/url";
 
 const AddBookmarkButton = (props: CentreLinkProps) => {
   const { sx, ...otherProps } = props;
@@ -75,7 +76,11 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
             // Labels can repeat and the list never reorders, so key by index
             <Tooltip title={bookmark.label} key={index}>
               <CentreLink
-                onClick={() => window.open(bookmark.url, "_blank")}
+                {...(isHttpUrl(bookmark.url) && {
+                  href: bookmark.url,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                })}
                 sx={{
                   display: "flex",
                   alignItems: "center",

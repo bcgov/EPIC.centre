@@ -58,4 +58,33 @@ describe("BookmarkSection", () => {
     bookmarkLinks().should("have.length", 2);
     cy.get("@consoleError").should("not.have.been.calledWithMatch", /same key/);
   });
+
+  it("opens http(s) bookmarks in a new tab without giving it the opener", () => {
+    cy.mount(
+      <BookmarkSection
+        epicApp={appWithBookmarks([
+          { label: "Guide", url: "https://example.gov.bc.ca/guide" },
+        ])}
+      />,
+    );
+
+    cy.contains("a", "Guide")
+      .should("have.attr", "href", "https://example.gov.bc.ca/guide")
+      .and("have.attr", "target", "_blank")
+      .and("have.attr", "rel", "noopener noreferrer");
+  });
+
+  it("does not link bookmarks that aren't http(s)", () => {
+    cy.mount(
+      <BookmarkSection
+        epicApp={appWithBookmarks([
+          { label: "Script", url: "javascript:alert(1)" },
+          { label: "Relative", url: "//example.com" },
+        ])}
+      />,
+    );
+
+    cy.contains("a", "Script").should("not.have.attr", "href");
+    cy.contains("a", "Relative").should("not.have.attr", "href");
+  });
 });

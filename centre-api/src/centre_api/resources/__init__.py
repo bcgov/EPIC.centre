@@ -20,6 +20,7 @@ All services have 2 defaults sets of endpoints:
  - meta
 That are used to expose operational health information about the service, and meta information.
 """
+import os
 from http import HTTPStatus
 
 from flask import Blueprint
@@ -43,6 +44,9 @@ URL_PREFIX = '/api/'
 API_BLUEPRINT = Blueprint('API', __name__, url_prefix=URL_PREFIX)
 OPS_BLUEPRINT = Blueprint('API_OPS', __name__, url_prefix='/ops')
 
+# Swagger UI and swagger.json are off unless ENABLE_SWAGGER=true (set in sample.env for local use)
+ENABLE_SWAGGER = os.getenv('ENABLE_SWAGGER', 'false').lower() == 'true'
+
 authorizations = {
     'bearer_auth': {
         'type': 'apiKey',
@@ -57,6 +61,7 @@ API_OPS = Api(
     title='Service OPS API',
     version='1.0',
     description='The Core API for the Reports System',
+    enable_docs=ENABLE_SWAGGER,
 )
 
 API_OPS.add_namespace(OPS_API, path='/')
@@ -66,7 +71,8 @@ API = Api(
     title='CENTRE API',
     version='1.0.0',
     description='The Core API for CENTRE',
-    authorizations=authorizations
+    authorizations=authorizations,
+    enable_docs=ENABLE_SWAGGER,
 )
 
 # HANDLER = ExceptionHandler(API)

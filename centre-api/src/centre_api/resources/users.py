@@ -19,6 +19,7 @@ from flask import request
 from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
+from centre_api.extensions import SEARCH_LIMIT, WRITE_LIMIT, limiter
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.schemas.user import UserSchema
 from centre_api.services.user_service import UserService
@@ -36,6 +37,7 @@ class Users(Resource):
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all users')
     @auth.require
+    @limiter.limit(SEARCH_LIMIT)
     def get():
         """Fetch all users."""
         search_text = request.args.get('search', None)
@@ -61,6 +63,7 @@ class UserByUsername(Resource):
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Update user status')
     @auth.require
+    @limiter.limit(WRITE_LIMIT)
     def patch(username):
         """Update a user by username."""
         patch_data = request.get_json()
@@ -75,6 +78,7 @@ class User(Resource):
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all users')
     @auth.require
+    @limiter.limit(WRITE_LIMIT)
     def put(username):
         """Update a user group assignment."""
         access_data = API.payload
@@ -87,6 +91,7 @@ class User(Resource):
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Delete user group assignment')
     @auth.require
+    @limiter.limit(WRITE_LIMIT)
     def delete(username):
         """Delete user groups assignment."""
         access_data = API.payload

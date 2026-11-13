@@ -18,6 +18,7 @@ from http import HTTPStatus
 from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
+from centre_api.extensions import EMAIL_LIMIT, limiter
 from centre_api.services.applications_service import ApplicationsService
 
 from ..schemas.access_request import AccessRequestCatalogSchema, AccessRequestSchema
@@ -64,9 +65,13 @@ class CatalogApplication(Resource):
     @staticmethod
     @ApiHelper.swagger_decorators(API, endpoint_description='Fetch access request catalogs that are')
     @auth.require
+    @limiter.limit(EMAIL_LIMIT)
     def post(app_id):
         """Create access request."""
-        access_request = ApplicationsService.create_access_request(app_id)
+        try:
+            access_request = ApplicationsService.create_access_request(app_id)
+        except ValueError as err:
+            return {'message': str(err)}, HTTPStatus.BAD_REQUEST
         return AccessRequestSchema().dump(access_request), HTTPStatus.OK
 
 

@@ -24,6 +24,7 @@ from centre_api.enums.epic_app import (
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.models.db import session_scope
 from centre_api.models.email_queue import EmailQueue
+from centre_api.services.applications_service import is_hidden_in_centre
 from centre_api.services.auth_api_service import AuthApiService
 from centre_api.services.submit_api_service import SubmitApiService
 from centre_api.utils.token_info import TokenInfo
@@ -214,9 +215,12 @@ class UserService:
 
     @staticmethod
     def _validate_sub_group(parent_group_name: str, group_name: str):
-        """Ensure group_name is a subgroup of the app group."""
+        """Ensure group_name is a subgroup of the app group that Centre may assign."""
         app_group = AuthApiService.get_group(parent_group_name)
-        sub_group_names = {sub_group.get('name') for sub_group in app_group.get('subGroups', [])}
+        sub_group_names = {
+            sub_group.get('name') for sub_group in app_group.get('subGroups', [])
+            if not is_hidden_in_centre(sub_group)
+        }
         if group_name not in sub_group_names:
             raise ValueError(f'Invalid group_name "{group_name}" for app group "{parent_group_name}".')
 

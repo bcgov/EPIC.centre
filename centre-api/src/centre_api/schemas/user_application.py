@@ -3,14 +3,31 @@
 This module defines the schema for the project entity.
 """
 
-from marshmallow import Schema, fields
+from marshmallow import EXCLUDE, Schema, fields, validate
+
+
+MAX_BOOKMARKS = 3
+
+_http_url = validate.URL(schemes={'http', 'https'}, relative=False, require_tld=False)
+
+
+def _validate_bookmark_url(value):
+    """Allow an empty slot or an absolute http(s) URL."""
+    if value:
+        _http_url(value)
 
 
 class BookmarkSchema(Schema):
     """Schema for bookmark details."""
 
-    label = fields.Str(required=True)
-    url = fields.Str(required=True)
+    class Meta:
+        """Marshmallow configuration options."""
+
+        unknown = EXCLUDE
+
+    # The client always sends every slot, so empty and null values are allowed
+    label = fields.Str(required=True, allow_none=True, validate=validate.Length(max=100))
+    url = fields.Str(required=True, allow_none=True, validate=[validate.Length(max=2048), _validate_bookmark_url])
 
 
 class UserApplicationSchema(Schema):

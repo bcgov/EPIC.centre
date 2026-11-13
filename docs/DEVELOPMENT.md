@@ -28,7 +28,7 @@ make run
 
 The API is available at:
 
-- Swagger/API root: `http://localhost:5000/api`
+- Swagger/API root: `http://localhost:5000/api` (only when `ENABLE_SWAGGER=true`, as in `sample.env`)
 - Health: `http://localhost:5000/ops/healthz`
 - Readiness: `http://localhost:5000/ops/readyz`
 
