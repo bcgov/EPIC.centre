@@ -36,7 +36,10 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
     setModalOpen(<AddBookmark epicApp={epicApp} />);
   };
 
-  const bookmarks = epicApp?.user?.bookmarks || [];
+  // The form saves all three slots, so unused ones arrive blank
+  const bookmarks = (epicApp?.user?.bookmarks || []).filter(
+    (bookmark) => bookmark.label && bookmark.url,
+  );
 
   return (
     <Box id="bookmark-section" sx={{ width: "100%", padding: "12px 0 0 0" }}>
@@ -68,45 +71,41 @@ export const BookmarkSection = ({ epicApp }: BookmarkSectionProps) => {
         }}
       >
         <Stack direction={"column"} spacing={1}>
-          {bookmarks && bookmarks.length > 0
-            ? bookmarks.map((bookmark) => (
-                <Tooltip title={bookmark.label} key={bookmark.label}>
-                  <CentreLink
-                    key={bookmark.label}
-                    onClick={() => window.open(bookmark.url, "_blank")}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {bookmark.label && bookmark.label.length > 0 && (
-                      <Circle
-                        sx={{
-                          marginRight: "5px",
-                          fontSize: "7px",
-                          flexShrink: 0,
-                        }}
-                      />
-                    )}
-                    <Typography
-                      variant="body1"
-                      fontWeight={400}
-                      color={"inherit"}
-                      sx={{
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {bookmark.label}
-                    </Typography>
-                  </CentreLink>
-                </Tooltip>
-              ))
-            : null}
+          {bookmarks.map((bookmark, index) => (
+            // Labels can repeat and the list never reorders, so key by index
+            <Tooltip title={bookmark.label} key={index}>
+              <CentreLink
+                onClick={() => window.open(bookmark.url, "_blank")}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <Circle
+                  sx={{
+                    marginRight: "5px",
+                    fontSize: "7px",
+                    flexShrink: 0,
+                  }}
+                />
+                <Typography
+                  variant="body1"
+                  fontWeight={400}
+                  color={"inherit"}
+                  sx={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {bookmark.label}
+                </Typography>
+              </CentreLink>
+            </Tooltip>
+          ))}
         </Stack>
       </Box>
     </Box>
