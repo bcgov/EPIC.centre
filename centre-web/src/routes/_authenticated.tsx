@@ -1,4 +1,5 @@
 import { PageLoader } from "@/components/PageLoader";
+import { LoadError } from "@/components/Shared/LoadError";
 import SideNavBar from "@/components/SideNav/SideNavBar";
 import { useCurrentUser } from "@/contexts/UserContext";
 import {
@@ -6,7 +7,7 @@ import {
   EPIC_CENTRE_APP_NAME,
 } from "@/hooks/api/useEaoAnalytics";
 import { OidcConfig } from "@/utils/config";
-import { Alert, Box, Button } from "@mui/material";
+import { Box } from "@mui/material";
 import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { useAuth } from "react-oidc-context";
@@ -55,11 +56,10 @@ function AuthenticatedRoute() {
 
   if (isError) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error" action={<Button onClick={refetch}>Try again</Button>}>
-          Unable to load your access settings. Please try again.
-        </Alert>
-      </Box>
+      <LoadError
+        message="Unable to load your access settings. Please try again."
+        onRetry={refetch}
+      />
     );
   }
 

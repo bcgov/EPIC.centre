@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Unit tests for ApplicationsService.create_access_request."""
+"""Unit tests for ApplicationsService."""
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+import requests
 from sqlalchemy.exc import IntegrityError
 
 from centre_api.enums.epic_app import EpicAppName
@@ -106,3 +107,43 @@ class TestCreateAccessRequest:
 
         with pytest.raises(IntegrityError):
             ApplicationsService.create_access_request(7)
+
+
+TRACK_USER = {'groups': [{'path': 'TRACK/USER', 'level': 1, 'display_name': 'User'}]}
+TRACK_APP = SimpleNamespace(id=7, name=EpicAppName.EPIC_TRACK.value, title='Track', description='',
+                            is_active=True)
+
+
+@pytest.fixture
+def lookup_mocks():
+    """Patch the caller, their EPIC.auth record and the database queries."""
+    with (
+        patch(f'{SERVICE}.TokenInfo.get_id', return_value='user-guid'),
+        patch(f'{SERVICE}.TokenInfo.get_username', return_value='caller@idir'),
+        patch(f'{SERVICE}.AuthApiService.get_user_by_id', return_value=TRACK_USER) as mock_get_user,
+        patch(f'{SERVICE}.ApplicationModel.get_all', return_value=[(TRACK_APP, None)]),
+        patch(f'{SERVICE}.AccessRequestsModal.get_all_requests_by_user', return_value=[]),
+        patch(f'{SERVICE}.EaoAnalytics.get_user_app_logins_batch', return_value={}),
+        patch(f'{SERVICE}.get_app_launch_url', return_value=''),
+    ):
+        yield SimpleNamespace(get_user=mock_get_user)
+
+
+class TestAccessLevelLookups:
+    """Access-level lookups for the launchpad and request catalogue."""
+
+    @pytest.mark.parametrize('method', ['get_all', 'get_request_catalog'])
+    def test_caller_is_looked_up_once(self, lookup_mocks, method):
+        """The caller's groups are fetched once and give the access level."""
+        apps = getattr(ApplicationsService, method)()
+
+        lookup_mocks.get_user.assert_called_once_with('user-guid')
+        assert apps[0]['user']['access_level'] == 'User'
+
+    @pytest.mark.parametrize('method', ['get_all', 'get_request_catalog'])
+    def test_epic_auth_error_is_raised(self, lookup_mocks, method):
+        """An EPIC.auth failure is an error, not an empty list of apps."""
+        lookup_mocks.get_user.side_effect = requests.ConnectionError('auth is down')
+
+        with pytest.raises(requests.ConnectionError):
+            getattr(ApplicationsService, method)()

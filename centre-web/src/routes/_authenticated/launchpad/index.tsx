@@ -4,6 +4,7 @@ import { List as EpicTileList } from "@/components/LaunchAppTile/List";
 import { LaunchAppListSkeleton } from "@/components/LaunchAppTile/ListSkeleton";
 import { ViewDescriptionSwitch } from "@/components/LaunchAppTile/ViewDescriptionSwitch";
 import { CentreLink } from "@/components/Shared/CentreLink";
+import { LoadError } from "@/components/Shared/LoadError";
 import { PageContainer } from "@/components/Shared/PageGrid";
 import { AppConfig } from "@/utils/config";
 import { useGetApplications } from "@/hooks/api/useApplications";
@@ -20,7 +21,12 @@ export const Route = createFileRoute("/_authenticated/launchpad/")({
 function Launchpad() {
   const { isAISearchUser } = useCurrentUser();
 
-  const { data: applications = [], isPending } = useGetApplications();
+  const {
+    data: applications = [],
+    isPending,
+    isError,
+    refetch,
+  } = useGetApplications();
 
   const { documentSearchApp, otherApps } = useMemo(() => {
     const documentSearchApp = applications.find(
@@ -34,6 +40,15 @@ function Launchpad() {
 
   if (isPending) {
     return <LaunchAppListSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <LoadError
+        message="Unable to load your applications. Please try again."
+        onRetry={refetch}
+      />
+    );
   }
 
   return (
