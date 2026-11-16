@@ -11,15 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Unit tests for AccessRequestsService.process_access_request."""
+"""Unit tests for AccessRequestsService."""
 from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+import requests
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.epic_app import EpicAdminGroupsPath, EpicAppName
-from centre_api.services.access_requests import AccessRequestsService
+from centre_api.services.access_requests import MAX_REQUESTER_LOOKUPS, AccessRequestsService
 
 
 DST_ADMIN = {'groups': [{'path': EpicAdminGroupsPath.CENTRE.value}]}
@@ -90,3 +91,55 @@ class TestProcessAccessRequest:
             AccessRequestsService.process_access_request(1, REJECTED)
 
         assert access_request.status == AccessRequestsStatusEnum.APPROVED
+
+
+class TestEnrichWithUserDetails:
+    """Requester details on listed access requests."""
+
+    @pytest.fixture
+    def auth_mocks(self):
+        """Patch both ways of fetching requesters from EPIC.auth."""
+        with (
+            patch('centre_api.services.access_requests.AuthApiService.get_user_by_id') as mock_get_user,
+            patch('centre_api.services.access_requests.AuthApiService.get_users') as mock_get_users,
+        ):
+            mock_get_user.side_effect = lambda user_id: {'id': user_id}
+            yield SimpleNamespace(get_user=mock_get_user, get_users=mock_get_users)
+
+    def test_few_requesters_are_looked_up_one_by_one(self, auth_mocks):
+        """A few requesters are fetched one by one, not by listing every user."""
+        access_requests = [{'user_auth_guid': 'a'}, {'user_auth_guid': 'b'}, {'user_auth_guid': 'a'}]
+
+        AccessRequestsService._enrich_with_user_details(access_requests)
+
+        assert [req['user']['id'] for req in access_requests] == ['a', 'b', 'a']
+        assert auth_mocks.get_user.call_count == 2
+        auth_mocks.get_users.assert_not_called()
+
+    def test_many_requesters_list_users_once(self, auth_mocks):
+        """Past the lookup limit, one call lists the users instead."""
+        user_ids = [f'user-{i}' for i in range(MAX_REQUESTER_LOOKUPS + 1)]
+        auth_mocks.get_users.return_value = [{'id': user_id} for user_id in user_ids]
+        access_requests = [{'user_auth_guid': user_id} for user_id in user_ids]
+
+        AccessRequestsService._enrich_with_user_details(access_requests)
+
+        assert all(req['user']['id'] == req['user_auth_guid'] for req in access_requests)
+        auth_mocks.get_users.assert_called_once_with(include_groups=False)
+        auth_mocks.get_user.assert_not_called()
+
+    def test_requester_epic_auth_cannot_return_is_listed_without_details(self, auth_mocks):
+        """A requester deleted from Keycloak doesn't fail the whole list."""
+        auth_mocks.get_user.side_effect = requests.HTTPError('404 Not Found')
+        access_requests = [{'user_auth_guid': 'deleted-user'}]
+
+        AccessRequestsService._enrich_with_user_details(access_requests)
+
+        assert 'user' not in access_requests[0]
+
+    def test_no_requests_calls_nothing(self, auth_mocks):
+        """An empty list doesn't call EPIC.auth."""
+        assert not AccessRequestsService._enrich_with_user_details([])
+
+        auth_mocks.get_user.assert_not_called()
+        auth_mocks.get_users.assert_not_called()

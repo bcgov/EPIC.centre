@@ -1,6 +1,8 @@
 """Service for applications management."""
 import os
 
+import requests
+
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import APP_NAME_TO_CLIENT_NAME_MAP, EpicAppClientName
@@ -10,6 +12,10 @@ from centre_api.models.email_queue import EmailQueue
 from centre_api.services.auth_api_service import AuthApiService
 from centre_api.services.user_service import UserService
 from centre_api.utils.token_info import TokenInfo
+
+
+# Past this many requesters, list every user (EPIC.auth caps at 2000) instead of one call each
+MAX_REQUESTER_LOOKUPS = 10
 
 
 class AccessRequestsService:
@@ -28,15 +34,28 @@ class AccessRequestsService:
         return enriched_requests
 
     @classmethod
-    def _enrich_with_user_details(cls, requests):
+    def _enrich_with_user_details(cls, access_requests):
         """Enrich access requests with user details from Auth API."""
-        users = AuthApiService.get_users(include_groups=False)
-        user_map = {user['id']: user for user in users}
-        for req in requests:
+        user_ids = {req['user_auth_guid'] for req in access_requests}
+        if not user_ids:
+            return access_requests
+        if len(user_ids) <= MAX_REQUESTER_LOOKUPS:
+            user_map = {user_id: cls._find_user(user_id) for user_id in user_ids}
+        else:
+            user_map = {user['id']: user for user in AuthApiService.get_users(include_groups=False)}
+        for req in access_requests:
             user = user_map.get(req['user_auth_guid'])
             if user:
                 req['user'] = user
-        return requests
+        return access_requests
+
+    @staticmethod
+    def _find_user(user_id):
+        """Return the user, or None if EPIC.auth can't (e.g. deleted from Keycloak)."""
+        try:
+            return AuthApiService.get_user_by_id(user_id)
+        except requests.HTTPError:
+            return None
 
     @classmethod
     def get_user_access_requests(cls, user_auth_guid, args):

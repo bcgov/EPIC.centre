@@ -46,6 +46,7 @@ secure_headers = secure.Secure(
 def create_app(run_mode=os.getenv('FLASK_ENV', 'production')):
     """Create flask app."""
     from centre_api.resources import API_BLUEPRINT, OPS_BLUEPRINT  # pylint: disable=import-outside-toplevel
+    from centre_api.services.auth_api_service import AuthApiService  # pylint: disable=import-outside-toplevel
 
     # Flask app initialize
     app = Flask(__name__)
@@ -85,6 +86,11 @@ def create_app(run_mode=os.getenv('FLASK_ENV', 'production')):
     @app.before_request
     def set_origin():
         g.origin_url = request.environ.get('HTTP_ORIGIN', 'localhost')
+
+    @app.before_request
+    def forget_auth_api_responses():
+        # g outlives a request when an app context is already pushed, as in tests
+        AuthApiService.forget_responses()
 
     build_cache(app)
 
