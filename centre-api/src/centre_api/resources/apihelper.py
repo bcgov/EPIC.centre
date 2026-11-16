@@ -16,12 +16,22 @@
 to support swagger on http
 """
 from functools import wraps
+from http import HTTPStatus
 
-from flask import url_for
+from flask import request, url_for
 from flask_restx import Api as BaseApi
-from flask_restx import fields
+from flask_restx import abort, fields
 from flask_restx.apidoc import apidoc
 from marshmallow import fields as ma_fields
+
+
+def json_body(expected_type=dict):
+    """Return the JSON body, or abort with 400 if it is missing, malformed or the wrong type."""
+    body = request.get_json(silent=True)
+    if not isinstance(body, expected_type):
+        kind = 'array' if expected_type is list else 'object'
+        abort(HTTPStatus.BAD_REQUEST, f'Request body must be a JSON {kind}.')
+    return body
 
 
 class Api(BaseApi):

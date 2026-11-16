@@ -39,7 +39,10 @@ class AccessRequests(Resource):
     def get():
         """Fetch all access requests."""
         args = request.args.to_dict()
-        access_requests = AccessRequestsService.get_all(args)
+        try:
+            access_requests = AccessRequestsService.get_all(args)
+        except ValueError as e:
+            return {'message': str(e)}, HTTPStatus.BAD_REQUEST
         return access_requests, HTTPStatus.OK
 
 
@@ -53,7 +56,10 @@ class UserAccessRequests(Resource):
     def get(user_auth_guid):
         """Fetch all access requests."""
         args = request.args.to_dict()
-        access_requests = AccessRequestsService.get_user_access_requests(user_auth_guid, args)
+        try:
+            access_requests = AccessRequestsService.get_user_access_requests(user_auth_guid, args)
+        except ValueError as e:
+            return {'message': str(e)}, HTTPStatus.BAD_REQUEST
         return access_requests, HTTPStatus.OK
 
 

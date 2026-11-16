@@ -21,6 +21,7 @@ from flask_restx import Namespace, Resource
 from centre_api.auth import auth
 from centre_api.extensions import SEARCH_LIMIT, WRITE_LIMIT, limiter
 from centre_api.resources.apihelper import Api as ApiHelper
+from centre_api.resources.apihelper import json_body
 from centre_api.schemas.user import UserSchema
 from centre_api.services.user_service import UserService
 
@@ -66,7 +67,7 @@ class UserByUsername(Resource):
     @limiter.limit(WRITE_LIMIT)
     def patch(username):
         """Update a user by username."""
-        patch_data = request.get_json()
+        patch_data = json_body()
         UserService.update_user_status(username, patch_data)
         return 'User updated', HTTPStatus.OK
 
@@ -81,7 +82,7 @@ class User(Resource):
     @limiter.limit(WRITE_LIMIT)
     def put(username):
         """Update a user group assignment."""
-        access_data = API.payload
+        access_data = json_body()
         try:
             UserService.update_user_access(username, access_data)
         except ValueError as e:
@@ -94,7 +95,7 @@ class User(Resource):
     @limiter.limit(WRITE_LIMIT)
     def delete(username):
         """Delete user groups assignment."""
-        access_data = API.payload
+        access_data = json_body()
         try:
             UserService.revoke_user_access(username, access_data)
         except ValueError as e:
