@@ -33,16 +33,16 @@ function AuthenticatedRoute() {
     }
   }, [isAuthenticated, isLoading, signinRedirect]);
 
-  // Record login to centre API (eao-analytics) once per session
+  // Record login once per session, under the username so "last accessed" finds it
   useEffect(() => {
-    if (user?.id && !hasRecordedLogin.current) {
+    if (user?.username && !hasRecordedLogin.current) {
       hasRecordedLogin.current = true;
       recordLogin(
-        { user_auth_guid: user.id, app_name: EPIC_CENTRE_APP_NAME },
+        { user_auth_guid: user.username, app_name: EPIC_CENTRE_APP_NAME },
         { onError: () => {} },
       );
     }
-  }, [user?.id, recordLogin]);
+  }, [user?.username, recordLogin]);
 
   // Check the session, not isLoading: a token renewal sets isLoading, and showing
   // the loader then would remount the page (MAP-87).

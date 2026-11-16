@@ -61,7 +61,8 @@ class TestEaoAnalyticsAPI:
 
         assert response.status_code == HTTPStatus.OK
         data = response.get_json()
-        assert data['user_auth_guid'] == 'test-user-guid-123'
+        # Stored under the username, not the sub sent
+        assert data['user_auth_guid'] == 'analytics-test@idir'
         assert data['app_id'] == app.id
         assert 'last_login_time' in data
 
@@ -101,8 +102,9 @@ class TestEaoAnalyticsAPI:
         """Test updating existing analytics record."""
         app = _create_app(session)
         user_guid = 'test-user-update'
+        username = _caller(user_guid)['preferred_username']
 
-        analytics1 = EaoAnalytics.record_login(user_auth_guid=user_guid, app_id=app.id)
+        analytics1 = EaoAnalytics.record_login(user_auth_guid=username, app_id=app.id)
         session.commit()
         initial_time = analytics1.last_login_time
 
@@ -117,8 +119,8 @@ class TestEaoAnalyticsAPI:
 
         assert response.status_code == HTTPStatus.OK
         data = response.get_json()
-        assert data['user_auth_guid'] == user_guid
-        updated_analytics = EaoAnalytics.get_user_analytics(user_guid)
+        assert data['user_auth_guid'] == username
+        updated_analytics = EaoAnalytics.get_user_app_login(username, app.id)
         assert updated_analytics.last_login_time > initial_time
 
     def test_get_analytics_all(self, session):

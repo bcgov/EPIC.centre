@@ -42,14 +42,14 @@ class TestEaoAnalyticsAuthorization:
 
     @pytest.mark.parametrize('identity', ['caller@idir', 'caller-sub-guid'])
     def test_record_own_login(self, client, session, caller_token, identity):
-        """A caller can record their own login."""
+        """A caller can record their own login by username or sub, stored under the username."""
         response = client.post('/api/eao-analytics', json={
             'user_auth_guid': identity,
             'app_name': EpicAppName.EPIC_TRACK.value,
         })
 
         assert response.status_code == HTTPStatus.OK
-        assert response.get_json()['user_auth_guid'] == identity
+        assert response.get_json()['user_auth_guid'] == 'caller@idir'
 
     def test_cannot_record_login_for_another_user(self, client, session, caller_token):
         """A caller cannot record a login for someone else."""
