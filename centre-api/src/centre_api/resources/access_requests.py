@@ -19,6 +19,7 @@ from flask import request
 from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
+from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.extensions import WRITE_LIMIT, limiter
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.services.access_requests import AccessRequestsService
@@ -27,6 +28,16 @@ from centre_api.services.access_requests import AccessRequestsService
 API = Namespace('access-requests', description='Endpoints for access requests management')
 """Custom exception messages
 """
+
+STATUSES = frozenset(status.value for status in AccessRequestsStatusEnum)
+
+
+def _invalid_status_response(args):
+    """Return a 400 response if the status filter isn't a known status, else None."""
+    status = args.get('status')
+    if status and status not in STATUSES:
+        return {'message': f"Invalid status '{status}'"}, HTTPStatus.BAD_REQUEST
+    return None
 
 
 @API.route('', methods=['GET'])
@@ -39,6 +50,8 @@ class AccessRequests(Resource):
     def get():
         """Fetch all access requests."""
         args = request.args.to_dict()
+        if invalid := _invalid_status_response(args):
+            return invalid
         access_requests = AccessRequestsService.get_all(args)
         return access_requests, HTTPStatus.OK
 
@@ -53,6 +66,8 @@ class UserAccessRequests(Resource):
     def get(user_auth_guid):
         """Fetch all access requests."""
         args = request.args.to_dict()
+        if invalid := _invalid_status_response(args):
+            return invalid
         access_requests = AccessRequestsService.get_user_access_requests(user_auth_guid, args)
         return access_requests, HTTPStatus.OK
 

@@ -1,5 +1,6 @@
 import { PageLoader } from "@/components/PageLoader";
 import { List as RequestAccessTileList } from "@/components/RequestAccessTile/List";
+import { LoadError } from "@/components/Shared/LoadError";
 import { PageContainer } from "@/components/Shared/PageGrid";
 import { useGetRequestCatalogApplications } from "@/hooks/api/useApplications";
 import { useCurrentUser } from "@/contexts/UserContext";
@@ -11,12 +12,25 @@ export const Route = createFileRoute("/_authenticated/request-access/")({
 });
 
 function RequestAccess() {
-  const { data: applications = [], isPending } =
-    useGetRequestCatalogApplications();
+  const {
+    data: applications = [],
+    isPending,
+    isError,
+    refetch,
+  } = useGetRequestCatalogApplications();
   const { isAdmin } = useCurrentUser();
 
   if (isPending) {
     return <PageLoader />;
+  }
+
+  if (isError) {
+    return (
+      <LoadError
+        message="Unable to load the applications you can request. Please try again."
+        onRetry={refetch}
+      />
+    );
   }
 
   return (

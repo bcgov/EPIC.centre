@@ -18,8 +18,11 @@
 import os
 
 
-workers = int(os.environ.get('GUNICORN_PROCESSES', '1'))  # pylint: disable=invalid-name
-threads = int(os.environ.get('GUNICORN_THREADS', '1'))  # pylint: disable=invalid-name
+workers = int(os.environ.get('GUNICORN_PROCESSES', '3'))  # pylint: disable=invalid-name
+# More than one thread selects gthread, so a worker waiting on EPIC.auth still serves probes
+threads = int(os.environ.get('GUNICORN_THREADS', '4'))  # pylint: disable=invalid-name
+# Within OpenShift's 30s grace period before SIGKILL
+graceful_timeout = 25  # pylint: disable=invalid-name
 
 forwarded_allow_ips = '*'  # pylint: disable=invalid-name
 secure_scheme_headers = {'X-Forwarded-Proto': 'https'}  # pylint: disable=invalid-name

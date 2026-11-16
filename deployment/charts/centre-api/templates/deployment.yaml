@@ -338,9 +338,19 @@ spec:
             requests:
               cpu: {{ .Values.resources.cpu.request }}
               memory: {{ .Values.resources.memory.request }}
-          readinessProbe:
+          # Boot takes about a minute on the 100m CPU limit; liveness waits for this
+          startupProbe:
             httpGet:
               path: /ops/readyz
+              port: 8080
+              scheme: HTTP
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 18
+          # healthz checks the DB; liveness uses readyz, since a restart won't fix the DB
+          readinessProbe:
+            httpGet:
+              path: /ops/healthz
               port: 8080
               scheme: HTTP
             timeoutSeconds: 10
@@ -349,10 +359,10 @@ spec:
             failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /ops/healthz
+              path: /ops/readyz
               port: 8080
               scheme: HTTP
-            timeoutSeconds: 1
+            timeoutSeconds: 5
             periodSeconds: 10
             successThreshold: 1
             failureThreshold: 3

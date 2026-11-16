@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """auth admin functions."""
+import copy
 import os
 from urllib.parse import urlencode
 
@@ -19,11 +20,37 @@ import requests
 from flask import current_app, g
 
 from centre_api.enums.epic_app import CLIENT_NAME_TO_APP_NAME_MAP, EPIC_CLIENT_TO__ADMIN_GROUPS_PATHS
+from centre_api.utils.cache import cache
 from centre_api.utils.util import quote_path_segment
+
+
+# App group definitions rarely change, so they're cached across requests
+GROUP_CACHE_TIMEOUT = 300
 
 
 class AuthApiService:
     """Keycloak services."""
+
+    @staticmethod
+    def _get_json(url):
+        """GET from EPIC.auth, once per URL per request."""
+        responses = g.setdefault('auth_api_responses', {})
+        if url not in responses:
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': g.authorization_header,
+            }
+            timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
+            response = requests.get(url, headers=headers, timeout=timeout)
+            response.raise_for_status()
+            responses[url] = response.json()
+        # Callers mutate results; keep the stored copy clean
+        return copy.deepcopy(responses[url])
+
+    @staticmethod
+    def forget_responses():
+        """Drop the EPIC.auth responses stored for this request."""
+        g.pop('auth_api_responses', None)
 
     @staticmethod
     def get_group_members(group_name, sub_group_name=None):
@@ -78,19 +105,10 @@ class AuthApiService:
     def get_user_by_id(user_auth_guid):
         """Fetch a single user by username from the Auth API."""
         try:
-            base_url = (f'{os.getenv("AUTH_API")}/api/users/guid/{quote_path_segment(user_auth_guid)}'
-                        '?group_brief_representation=false')
-
-            headers = {
-                'Content-Type': 'application/json',
-                'Authorization': g.authorization_header,
-            }
-
-            timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
-            response = requests.get(base_url, headers=headers, timeout=timeout)
-            response.raise_for_status()
-
-            return response.json()
+            return AuthApiService._get_json(
+                f'{os.getenv("AUTH_API")}/api/users/guid/{quote_path_segment(user_auth_guid)}'
+                '?group_brief_representation=false'
+            )
         except requests.RequestException as error:
             current_app.logger.error(f'Error fetching user by username: {error}')
             raise error
@@ -99,42 +117,30 @@ class AuthApiService:
     def get_user_by_username(username):
         """Fetch a single user by username from the Auth API."""
         try:
-            base_url = (f'{os.getenv("AUTH_API")}/api/users/{quote_path_segment(username)}'
-                        '?group_brief_representation=false')
-
-            headers = {
-                'Content-Type': 'application/json',
-                'Authorization': g.authorization_header,
-            }
-
-            timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
-            response = requests.get(base_url, headers=headers, timeout=timeout)
-            response.raise_for_status()
-
-            return response.json()
+            return AuthApiService._get_json(
+                f'{os.getenv("AUTH_API")}/api/users/{quote_path_segment(username)}'
+                '?group_brief_representation=false'
+            )
         except requests.RequestException as error:
             current_app.logger.error(f'Error fetching user by username: {error}')
             raise error
 
     @staticmethod
     def get_group(group_name):
-        """Fetch app groups from the Auth API."""
+        """Fetch an app group and its role subgroups, cached for GROUP_CACHE_TIMEOUT seconds."""
+        cache_key = f'auth_api_group:{group_name}'
+        group = cache.get(cache_key)
+        if group is not None:
+            return group
         try:
-            base_url = f'{os.getenv("AUTH_API")}/api/groups/{quote_path_segment(group_name)}?include_sub_groups=true'
-
-            headers = {
-                'Content-Type': 'application/json',
-                'Authorization': g.authorization_header,
-            }
-
-            timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
-            response = requests.get(base_url, headers=headers, timeout=timeout)
-            response.raise_for_status()
-
-            return response.json()
+            group = AuthApiService._get_json(
+                f'{os.getenv("AUTH_API")}/api/groups/{quote_path_segment(group_name)}?include_sub_groups=true'
+            )
         except requests.RequestException as error:
             current_app.logger.error(f'Error fetching app groups: {error}')
             raise error
+        cache.set(cache_key, group, timeout=GROUP_CACHE_TIMEOUT)
+        return group
 
     @staticmethod
     def update_user_group(username: str, parent_group_name: str, group_name: str):
@@ -152,6 +158,7 @@ class AuthApiService:
                 'app_name': parent_group_name,
                 'group_name': group_name
             }
+            AuthApiService.forget_responses()
             response = requests.put(base_url, headers=headers, timeout=timeout, json=request_body)
             response.raise_for_status()
 
@@ -172,6 +179,7 @@ class AuthApiService:
             }
 
             timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
+            AuthApiService.forget_responses()
             response = requests.delete(base_url, headers=headers, timeout=timeout)
             response.raise_for_status()
 
@@ -205,6 +213,7 @@ class AuthApiService:
             }
 
             timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
+            AuthApiService.forget_responses()
             response = requests.delete(base_url, headers=headers, timeout=timeout, json=body)
             response.raise_for_status()
 
@@ -232,6 +241,7 @@ class AuthApiService:
             }
 
             timeout = current_app.config.get('CONNECT_TIMEOUT', 30)
+            AuthApiService.forget_responses()
             response = requests.patch(base_url, headers=headers, timeout=timeout, json=patch_data)
             response.raise_for_status()
 

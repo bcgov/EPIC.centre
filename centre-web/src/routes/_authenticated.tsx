@@ -1,4 +1,5 @@
 import { PageLoader } from "@/components/PageLoader";
+import { LoadError } from "@/components/Shared/LoadError";
 import SideNavBar from "@/components/SideNav/SideNavBar";
 import { useCurrentUser } from "@/contexts/UserContext";
 import {
@@ -6,7 +7,7 @@ import {
   EPIC_CENTRE_APP_NAME,
 } from "@/hooks/api/useEaoAnalytics";
 import { OidcConfig } from "@/utils/config";
-import { Alert, Box, Button } from "@mui/material";
+import { Box } from "@mui/material";
 import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { useAuth } from "react-oidc-context";
@@ -32,16 +33,16 @@ function AuthenticatedRoute() {
     }
   }, [isAuthenticated, isLoading, signinRedirect]);
 
-  // Record login to centre API (eao-analytics) once per session
+  // Record login once per session, under the username so "last accessed" finds it
   useEffect(() => {
-    if (user?.id && !hasRecordedLogin.current) {
+    if (user?.username && !hasRecordedLogin.current) {
       hasRecordedLogin.current = true;
       recordLogin(
-        { user_auth_guid: user.id, app_name: EPIC_CENTRE_APP_NAME },
+        { user_auth_guid: user.username, app_name: EPIC_CENTRE_APP_NAME },
         { onError: () => {} },
       );
     }
-  }, [user?.id, recordLogin]);
+  }, [user?.username, recordLogin]);
 
   // Check the session, not isLoading: a token renewal sets isLoading, and showing
   // the loader then would remount the page (MAP-87).
@@ -55,11 +56,10 @@ function AuthenticatedRoute() {
 
   if (isError) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error" action={<Button onClick={refetch}>Try again</Button>}>
-          Unable to load your access settings. Please try again.
-        </Alert>
-      </Box>
+      <LoadError
+        message="Unable to load your access settings. Please try again."
+        onRetry={refetch}
+      />
     );
   }
 

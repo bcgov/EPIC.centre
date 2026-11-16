@@ -24,6 +24,7 @@ from centre_api.services.user_application_service import UserApplicationsService
 
 from ..schemas.user_application import MAX_BOOKMARKS, BookmarkSchema, UserApplicationSchema
 from .apihelper import Api as ApiHelper
+from .apihelper import json_body
 
 
 API = Namespace('user-applications', description='Endpoints for user applications management')
@@ -41,7 +42,7 @@ class UserApplicationBookmarks(Resource):
     @limiter.limit(WRITE_LIMIT)
     def patch():
         """Update bookmarks for a user application."""
-        payload = API.payload
+        payload = json_body()
         app_id = payload.get('app_id')
         bookmarks = payload.get('bookmarks')
 
@@ -68,7 +69,9 @@ class UserApplicationSortOrder(Resource):
     @limiter.limit(WRITE_LIMIT)
     def patch():
         """Update sort order for a user application."""
-        payload = API.payload
+        app_ids = json_body(list)
+        if not all(isinstance(app_id, int) and not isinstance(app_id, bool) for app_id in app_ids):
+            return {'message': 'Sort order must be a list of app ids'}, HTTPStatus.BAD_REQUEST
 
-        UserApplicationsService.update_sort_order(payload)
+        UserApplicationsService.update_sort_order(app_ids)
         return 'sort order updated successfully', HTTPStatus.OK

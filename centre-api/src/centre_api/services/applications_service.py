@@ -3,7 +3,6 @@ import datetime
 import os
 from collections import defaultdict
 
-import requests
 from sqlalchemy.exc import IntegrityError
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
@@ -50,38 +49,38 @@ class ApplicationsService:
 
     @classmethod
     def _get_current_user_access_levels(cls):
-        """Get the current logged-in user's access levels (roles) for all apps from their Keycloak groups."""
-        try:
-            user_id = TokenInfo.get_id()
-            if not user_id:
-                return {}
+        """Get the current logged-in user's access levels (roles) for all apps from their Keycloak groups.
 
-            user = AuthApiService.get_user_by_id(user_id)
-            if not user or 'groups' not in user:
-                return {}
-
-            app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None})
-
-            for group in user.get('groups', []):
-                path = group.get('path', '')
-                level = group.get('level', float('-inf'))
-                display_name = group.get('display_name', '')
-                top_path = path.split('/')[0]
-                app_name = GROUP_TO_APP_NAME_MAP.get(top_path)
-
-                if app_name and level > app_roles[app_name]['level']:
-                    app_roles[app_name] = {
-                        'level': level,
-                        'role': display_name
-                    }
-
-            result = {}
-            for app_name, role_info in app_roles.items():
-                if role_info['role']:
-                    result[app_name] = role_info['role']
-            return result
-        except (requests.RequestException, AttributeError, KeyError):
+        EPIC.auth errors propagate, so the user sees an error instead of no apps.
+        """
+        user_id = TokenInfo.get_id()
+        if not user_id:
             return {}
+
+        user = AuthApiService.get_user_by_id(user_id)
+        if not user or 'groups' not in user:
+            return {}
+
+        app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None})
+
+        for group in user.get('groups', []):
+            path = group.get('path', '')
+            level = group.get('level', float('-inf'))
+            display_name = group.get('display_name', '')
+            top_path = path.split('/')[0]
+            app_name = GROUP_TO_APP_NAME_MAP.get(top_path)
+
+            if app_name and level > app_roles[app_name]['level']:
+                app_roles[app_name] = {
+                    'level': level,
+                    'role': display_name
+                }
+
+        result = {}
+        for app_name, role_info in app_roles.items():
+            if role_info['role']:
+                result[app_name] = role_info['role']
+        return result
 
     @classmethod
     def get_all(cls):
@@ -97,7 +96,6 @@ class ApplicationsService:
         apps = ApplicationModel.get_all()
         apps = [(app, user_app) for app, user_app in apps if app.name in accessed_apps and app.is_active]
 
-        user_access_levels = cls._get_current_user_access_levels()
         user_auth_username = TokenInfo.get_username()
 
         app_ids = [app.id for app, _ in apps]
@@ -115,7 +113,7 @@ class ApplicationsService:
                 'user': {
                     'user_auth_guid': user_app.user_auth_guid if user_app else None,
                     'access_level': (
-                        user_access_levels.get(app.name) or
+                        access_levels.get(app.name) or
                         (user_app.access_level if user_app else None)
                     ),
                     'last_accessed': last_accessed_map.get(app.id),
@@ -147,8 +145,6 @@ class ApplicationsService:
         access_requests = AccessRequestsModal.get_all_requests_by_user(TokenInfo.get_id(),
                                                                        status=AccessRequestsStatusEnum.PENDING.value)
 
-        user_access_levels = cls._get_current_user_access_levels()
-
         user_auth_username = TokenInfo.get_username()
         app_ids = [app.id for app, _ in filtered_apps]
         last_accessed_map = cls._get_last_accessed_batch(user_auth_username, app_ids)
@@ -164,7 +160,7 @@ class ApplicationsService:
                     'pending' if any(req.app_id == app.id for req in access_requests) else 'not_requested'),
                 'user': {
                     'user_auth_guid': user_app.user_auth_guid if user_app else None,
-                    'access_level': user_access_levels.get(app.name) or (user_app.access_level if user_app else None),
+                    'access_level': access_levels.get(app.name) or (user_app.access_level if user_app else None),
                     'last_accessed': last_accessed_map.get(app.id),
                     'sort_order': user_app.sort_order if user_app else None,
                 }

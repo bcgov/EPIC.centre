@@ -26,6 +26,19 @@ spec:
         ports:
         - containerPort: 8080
           protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          timeoutSeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          timeoutSeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
         resources:
           limits:
             cpu: {{ .Values.resources.cpu.limit }}

@@ -15,12 +15,13 @@
 
 from http import HTTPStatus
 
-from flask import g, request
+from flask import g
 from flask_restx import Namespace, Resource
 
 from centre_api.auth import auth
 from centre_api.models.user_settings import UserSettings
 from centre_api.resources.apihelper import Api as ApiHelper
+from centre_api.resources.apihelper import json_body
 from centre_api.schemas.user_settings import UserSettingsSchema
 
 
@@ -75,8 +76,9 @@ class UpdateCardPositions(Resource):
             if not username:
                 return {'message': 'Username not found in token'}, HTTPStatus.BAD_REQUEST
 
-            data = request.get_json()
-            card_positions = data.get('card_positions', {})
+            card_positions = json_body().get('card_positions', {})
+            if not isinstance(card_positions, dict):
+                return {'message': 'card_positions must be an object'}, HTTPStatus.BAD_REQUEST
 
             user_settings = UserSettings.update_card_positions(username, card_positions)
             return UserSettingsSchema().dump(user_settings), HTTPStatus.OK
@@ -101,8 +103,9 @@ class UpdateSettings(Resource):
             if not username:
                 return {'message': 'Username not found in token'}, HTTPStatus.BAD_REQUEST
 
-            data = request.get_json()
-            settings = data.get('settings', {})
+            settings = json_body().get('settings', {})
+            if not isinstance(settings, dict):
+                return {'message': 'settings must be an object'}, HTTPStatus.BAD_REQUEST
 
             user_settings = UserSettings.create_or_update_settings(username, settings=settings)
             return UserSettingsSchema().dump(user_settings), HTTPStatus.OK

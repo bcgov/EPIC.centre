@@ -40,7 +40,7 @@ auth:
     adminClientSecret:
 python:
   pythonBuffered: 1
-  connectTimeout: 60
+  connectTimeout: 30
   flaskEnv: production
 cors:
   origin: "https://dev.centre.eao.gov.bc.ca,"

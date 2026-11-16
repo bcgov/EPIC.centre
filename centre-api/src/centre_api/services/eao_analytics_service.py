@@ -27,10 +27,13 @@ class EaoAnalyticsService:
         if not user_auth_guid or not app_name:
             raise ValueError('Missing required fields: user_auth_guid, app_name')
 
-        # EPIC.analytics sends preferred_username; centre-web sends sub
-        caller_ids = {TokenInfo.get_username(), TokenInfo.get_id()} - {None}
+        # EPIC.analytics sends preferred_username; older centre-web builds send sub
+        username = TokenInfo.get_username()
+        caller_ids = {username, TokenInfo.get_id()} - {None}
         if user_auth_guid not in caller_ids:
             raise PermissionError('Cannot record a login for another user.')
+        # Store under the username, which "last accessed" looks up
+        user_auth_guid = username or user_auth_guid
 
         # Look up app_id from app_name
         application = Application.query.filter_by(name=app_name).first()
