@@ -16,6 +16,7 @@ from http import HTTPStatus
 from unittest.mock import patch
 
 import pytest
+import requests
 from flask import g
 
 from centre_api.auth import jwt
@@ -80,3 +81,13 @@ def test_unknown_status_filter_returns_400(_mock_get_user, client, path):
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert 'NOT_A_STATUS' in response.get_json()['message']
+    _mock_get_user.assert_not_called()
+
+
+@patch('centre_api.services.access_requests.AuthApiService.get_user_by_username',
+       side_effect=requests.JSONDecodeError('Expecting value', '<html>', 0))
+@pytest.mark.usefixtures('caller_token')
+def test_broken_epic_auth_response_is_not_a_400(_mock_get_user, client):
+    """An EPIC.auth response that isn't JSON is a server error, not the caller's fault."""
+    with pytest.raises(requests.JSONDecodeError):
+        client.get('/api/access-requests', query_string={'status': 'PENDING'})

@@ -51,11 +51,14 @@ class AccessRequestsService:
 
     @staticmethod
     def _find_user(user_id):
-        """Return the user, or None if EPIC.auth can't (e.g. deleted from Keycloak)."""
+        """Return the user without groups, or None if EPIC.auth can't (e.g. deleted from Keycloak)."""
         try:
-            return AuthApiService.get_user_by_id(user_id)
+            user = AuthApiService.get_user_by_id(user_id)
         except requests.HTTPError:
             return None
+        # Match the full listing, which has no groups
+        user.pop('groups', None)
+        return user
 
     @classmethod
     def get_user_access_requests(cls, user_auth_guid, args):

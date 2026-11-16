@@ -103,7 +103,7 @@ class TestEnrichWithUserDetails:
             patch('centre_api.services.access_requests.AuthApiService.get_user_by_id') as mock_get_user,
             patch('centre_api.services.access_requests.AuthApiService.get_users') as mock_get_users,
         ):
-            mock_get_user.side_effect = lambda user_id: {'id': user_id}
+            mock_get_user.side_effect = lambda user_id: {'id': user_id, 'groups': [{'path': 'TRACK/USER'}]}
             yield SimpleNamespace(get_user=mock_get_user, get_users=mock_get_users)
 
     def test_few_requesters_are_looked_up_one_by_one(self, auth_mocks):
@@ -112,8 +112,17 @@ class TestEnrichWithUserDetails:
 
         AccessRequestsService._enrich_with_user_details(access_requests)
 
-        assert [req['user']['id'] for req in access_requests] == ['a', 'b', 'a']
+        assert [req['user'] for req in access_requests] == [{'id': 'a'}, {'id': 'b'}, {'id': 'a'}]
         assert auth_mocks.get_user.call_count == 2
+        auth_mocks.get_users.assert_not_called()
+
+    def test_requesters_up_to_the_limit_are_looked_up_one_by_one(self, auth_mocks):
+        """Exactly MAX_REQUESTER_LOOKUPS requesters are still fetched one by one."""
+        access_requests = [{'user_auth_guid': f'user-{i}'} for i in range(MAX_REQUESTER_LOOKUPS)]
+
+        AccessRequestsService._enrich_with_user_details(access_requests)
+
+        assert auth_mocks.get_user.call_count == MAX_REQUESTER_LOOKUPS
         auth_mocks.get_users.assert_not_called()
 
     def test_many_requesters_list_users_once(self, auth_mocks):

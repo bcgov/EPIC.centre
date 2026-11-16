@@ -68,14 +68,20 @@ class TestResponsesWithinARequest:
 
             assert 'apps' not in AuthApiService.get_user_by_username('caller@idir')
 
-    def test_write_forgets_earlier_responses(self):
-        """A lookup after a group change asks EPIC.auth again."""
+    @pytest.mark.parametrize('write, args, http_method', [
+        ('update_user_group', ('caller@idir', 'TRACK', 'USER'), 'put'),
+        ('delete_all_user_group_mapping', ('caller@idir',), 'delete'),
+        ('delete_user_group', ('caller@idir', 'TRACK'), 'delete'),
+        ('patch_user', ('caller@idir', {'enabled': False}), 'patch'),
+    ])
+    def test_write_forgets_earlier_responses(self, write, args, http_method):
+        """A lookup after any write asks EPIC.auth again."""
         with (
             patch(f'{SERVICE}.requests.get', return_value=_response(USER)) as mock_get,
-            patch(f'{SERVICE}.requests.put'),
+            patch(f'{SERVICE}.requests.{http_method}'),
         ):
             AuthApiService.get_user_by_username('caller@idir')
-            AuthApiService.update_user_group('caller@idir', 'TRACK', 'USER')
+            getattr(AuthApiService, write)(*args)
             AuthApiService.get_user_by_username('caller@idir')
 
         assert mock_get.call_count == 2
