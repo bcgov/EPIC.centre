@@ -11,9 +11,27 @@ import ModalProvider from "./components/Shared/Modals/ModalProvider";
 import SnackBarProvider from "./components/Shared/Snackbar/SnackBarProvider";
 import { UserProvider } from "@/contexts/UserContext";
 import { LocationProvider } from "@/contexts/LocationContext";
+import { isAxiosError } from "axios";
+
+// A 4xx won't change on retry; anything else gets one more try
+const retryOnce = (failureCount: number, error: unknown) => {
+  const status = isAxiosError(error) ? error.response?.status : undefined;
+  if (status !== undefined && status >= 400 && status < 500) {
+    return false;
+  }
+  return failureCount < 1;
+};
 
 function App() {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Most queries go through EPIC.auth, so refetch on navigation, not on every tab switch
+        refetchOnWindowFocus: false,
+        retry: retryOnce,
+      },
+    },
+  });
   const router = createRouter({
     routeTree,
     context: {
