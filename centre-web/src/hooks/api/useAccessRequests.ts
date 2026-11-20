@@ -60,7 +60,7 @@ export const useUserAccessRequests = ({
   ...rest
 }: UseUserAccessRequestsParams) => {
   return useQuery({
-    queryKey: [QUERY_KEY.ACCESS_REQUESTS, user_auth_guid],
+    queryKey: [QUERY_KEY.ACCESS_REQUESTS, user_auth_guid, status],
     queryFn: () => getUserAccessRequests({ user_auth_guid, status }),
     ...rest,
   });

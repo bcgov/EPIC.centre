@@ -14,6 +14,7 @@ import { useAppConfigs } from "@/hooks/api/useAppConfigs";
 import { AppUserManagementButton } from "../AppUserManagementButton";
 import { useParams } from "@tanstack/react-router";
 import { useUserAccessRequests } from "@/hooks/api/useAccessRequests";
+import { AccessRequestStatus } from "@/models/AccessRequest";
 
 type CurrentAccessTableProps = {
   user?: CentreUser;
@@ -25,8 +26,10 @@ export const CurrentAccessTable = ({ user }: CurrentAccessTableProps) => {
   const { setOpen: setModalOpen } = useModal();
   const { data: appConfigs = [] } = useAppConfigs();
 
+  // Only a pending request can be approved from the edit dialog
   const { data: requests = [] } = useUserAccessRequests({
     user_auth_guid: user?.id || "",
+    status: AccessRequestStatus.PENDING,
     enabled: !!user?.id,
   });
 
