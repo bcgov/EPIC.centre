@@ -41,10 +41,12 @@ def mocks():
         patch(f'{SERVICE}.session_scope') as mock_session_scope,
         patch(f'{SERVICE}.ApplicationsService._queue_access_request_submitted_email'),
         patch(f'{SERVICE}.ApplicationsService._queue_access_request_received_dst_email'),
-        patch(f'{SERVICE}.ApplicationsService._queue_access_request_notification_app_admin'),
+        patch(f'{SERVICE}.ApplicationsService._queue_access_request_notification_app_admin') as mock_notify_admins,
+        patch(f'{SERVICE}.ApplicationsService.get_app_admins', return_value=[]) as mock_get_admins,
     ):
         mock_find_pending.return_value = None
-        yield SimpleNamespace(find_app=mock_find_app, find_pending=mock_find_pending, session_scope=mock_session_scope)
+        yield SimpleNamespace(find_app=mock_find_app, find_pending=mock_find_pending, session_scope=mock_session_scope,
+                              get_admins=mock_get_admins, notify_admins=mock_notify_admins)
 
 
 class TestCreateAccessRequest:
@@ -107,6 +109,26 @@ class TestCreateAccessRequest:
 
         with pytest.raises(IntegrityError):
             ApplicationsService.create_access_request(7)
+
+    def test_admins_are_looked_up_before_the_transaction(self, mocks):
+        """EPIC.auth isn't called while the new request's row is locked."""
+        mocks.find_app.return_value = _app()
+        order = []
+        mocks.get_admins.side_effect = lambda _: order.append('admins') or [{'email': 'admin@gov.bc.ca'}, {}]
+        mocks.session_scope.side_effect = lambda: order.append('transaction') or MagicMock()
+
+        ApplicationsService.create_access_request(7)
+
+        assert order == ['admins', 'transaction']
+        assert mocks.notify_admins.call_args.args[2] == ['admin@gov.bc.ca']
+
+    def test_admin_lookup_failure_still_creates_the_request(self, mocks):
+        """If EPIC.auth can't list the admins, only their email is skipped."""
+        mocks.find_app.return_value = _app()
+        mocks.get_admins.side_effect = requests.ConnectionError('auth is down')
+
+        assert ApplicationsService.create_access_request(7) is not None
+        assert mocks.notify_admins.call_args.args[2] == []
 
 
 TRACK_USER = {'groups': [{'path': 'TRACK/USER', 'level': 1, 'display_name': 'User'}]}

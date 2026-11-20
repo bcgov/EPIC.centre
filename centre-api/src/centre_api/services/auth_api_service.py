@@ -71,7 +71,7 @@ class AuthApiService:
             return response.json()
         except requests.RequestException as e:
             current_app.logger.error(f'Error fetching group members: {e}')
-            return []
+            raise e
 
     @staticmethod
     def get_users(search_text: str = None, include_groups: bool = True):
@@ -99,7 +99,7 @@ class AuthApiService:
 
         except requests.RequestException as error:
             current_app.logger.error(f'Error fetching users: {error}')
-            return []
+            raise error
 
     @staticmethod
     def get_user_by_id(user_auth_guid):
