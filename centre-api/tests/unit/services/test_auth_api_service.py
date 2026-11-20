@@ -115,3 +115,17 @@ class TestGroupCache:
             AuthApiService.get_group('TRACK')['subGroups'].clear()
 
             assert AuthApiService.get_group('TRACK') == TRACK_GROUP
+
+
+class TestListingFailures:
+    """Listings EPIC.auth fails to return."""
+
+    @pytest.mark.parametrize('method, args', [
+        ('get_users', ()),
+        ('get_group_members', ('TRACK', 'INSTANCE_ADMIN')),
+    ])
+    def test_failure_is_raised_not_an_empty_list(self, method, args):
+        """A failed listing is an error, so callers don't mistake it for no users."""
+        with patch(f'{SERVICE}.requests.get', return_value=_error_response()):
+            with pytest.raises(requests.HTTPError):
+                getattr(AuthApiService, method)(*args)

@@ -62,3 +62,23 @@ class TestCreateAccessRequestAPI:
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert AccessRequests.query.filter_by(app_id=app.id).count() == 0
+
+    @patch('centre_api.services.applications_service.ApplicationsService.get_app_admins', return_value=[])
+    def test_created_request_reports_its_status(self, _mock_get_admins, client, session, caller_token):
+        """The response carries the status value, not the enum's Python name."""
+        app = _create_app(session, is_active=True)
+
+        response = client.post(f'/api/applications/{app.id}/access_request')
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.get_json()['status'] == 'PENDING'
+
+
+class TestAccessLevelsAPI:
+    """GET /api/applications/<app_name>/access-levels."""
+
+    def test_unknown_app_returns_404(self, client, session, caller_token):
+        """An app with no role groups is not found, not a server error."""
+        response = client.get('/api/applications/not_an_app/access-levels')
+
+        assert response.status_code == HTTPStatus.NOT_FOUND

@@ -5,6 +5,7 @@ This module defines the schema for the access request entity.
 
 from marshmallow import Schema, fields
 
+from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.schemas.user_application import UserApplicationSchema
 
 
@@ -14,7 +15,7 @@ class AccessRequestSchema(Schema):
     id = fields.Int(required=True)
     app_id = fields.Int(required=True)
     user_auth_guid = fields.Str(required=True)
-    status = fields.Str(required=True)
+    status = fields.Enum(AccessRequestsStatusEnum, by_value=True, required=True)
 
 
 class AccessRequestCatalogSchema(Schema):

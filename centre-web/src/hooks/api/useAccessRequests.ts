@@ -60,7 +60,7 @@ export const useUserAccessRequests = ({
   ...rest
 }: UseUserAccessRequestsParams) => {
   return useQuery({
-    queryKey: [QUERY_KEY.ACCESS_REQUESTS, user_auth_guid],
+    queryKey: [QUERY_KEY.ACCESS_REQUESTS, user_auth_guid, status],
     queryFn: () => getUserAccessRequests({ user_auth_guid, status }),
     ...rest,
   });
@@ -89,19 +89,18 @@ export const useUpdateAccessRequest = (
   >,
 ) => {
   const queryClient = useQueryClient();
+  const { onSuccess, ...rest } = options ?? {};
 
   return useMutation<AccessRequest, unknown, UpdateAccessRequestParams>({
+    ...rest,
     mutationFn: (vars) => updateAccessRequest(vars),
     onSuccess: (data, vars, ctx) => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEY.ACCESS_REQUESTS],
       });
 
-      if (options?.onSuccess) {
-        // call user-provided onSuccess after cache invalidation
-        options.onSuccess(data, vars, ctx);
-      }
+      // call user-provided onSuccess after cache invalidation
+      onSuccess?.(data, vars, ctx);
     },
-    ...options,
   });
 };

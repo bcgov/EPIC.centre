@@ -86,6 +86,8 @@ class ApplicationAccessLevels(Resource):
     def get(app_name):
         """Fetch apps the user can request access to."""
         access_levels = ApplicationsService.get_app_access_levels(app_name)
+        if access_levels is None:
+            return {'message': f'Application {app_name} has no access levels'}, HTTPStatus.NOT_FOUND
         return access_levels, HTTPStatus.OK
 
 

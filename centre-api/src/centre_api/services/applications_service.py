@@ -3,6 +3,8 @@ import datetime
 import os
 from collections import defaultdict
 
+import requests
+from flask import current_app
 from sqlalchemy.exc import IntegrityError
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
@@ -64,8 +66,11 @@ class ApplicationsService:
         app_roles = defaultdict(lambda: {'level': float('-inf'), 'role': None})
 
         for group in user.get('groups', []):
+            level = group.get('level')
+            # EPIC.auth sends null for parent groups and groups without a numeric level
+            if level is None:
+                continue
             path = group.get('path', '')
-            level = group.get('level', float('-inf'))
             display_name = group.get('display_name', '')
             top_path = path.split('/')[0]
             app_name = GROUP_TO_APP_NAME_MAP.get(top_path)
@@ -197,14 +202,23 @@ class ApplicationsService:
         return members
 
     @classmethod
-    def _queue_access_request_notification_app_admin(cls, session, app):
-        admins = cls.get_app_admins(app.name)
-        if not admins:
+    def _get_app_admin_emails(cls, app_name: str):
+        """Return the app admins' email addresses, or none if EPIC.auth can't list them."""
+        try:
+            admins = cls.get_app_admins(app_name)
+        except requests.RequestException:
+            # The request and the DST email still go out; only the app admins' copy is skipped
+            current_app.logger.warning('Skipping the app admin notification for %s', app_name)
+            return []
+        return [admin.get('email') for admin in admins if admin.get('email')]
+
+    @classmethod
+    def _queue_access_request_notification_app_admin(cls, session, app, recipients):
+        if not recipients:
             return
         user_details = TokenInfo.get_user_data()
         now = datetime.datetime.utcnow()
         requested_at = convert_utc_to_local_str(now)
-        recipients = [admin.get('email') for admin in admins if admin.get('email')]
         auth_link = (
             f"{os.getenv('EPIC_CENTRE_WEB_URL')}/request-access/auth/users/"
             f"{user_details.get('username', '')}"
@@ -258,6 +272,8 @@ class ApplicationsService:
         existing_request = cls._find_pending_request(app_id, user_auth_id)
         if existing_request:
             return existing_request
+        # Ask EPIC.auth before the transaction, so the new row isn't locked while it answers
+        admin_emails = cls._get_app_admin_emails(app.name)
         try:
             with session_scope() as session:
                 # Queue the email within the same transaction
@@ -266,7 +282,7 @@ class ApplicationsService:
                 session.flush()
                 cls._queue_access_request_submitted_email(session, app)
                 cls._queue_access_request_received_dst_email(session, app)
-                cls._queue_access_request_notification_app_admin(session, app)
+                cls._queue_access_request_notification_app_admin(session, app, admin_emails)
                 session.commit()
         except IntegrityError:
             # A concurrent submit won the unique pending index; its emails are already queued
@@ -287,8 +303,10 @@ class ApplicationsService:
 
     @classmethod
     def get_app_access_levels(cls, app_name):
-        """Get access levels for the given app name."""
+        """Get access levels for the given app name, or None if the app has no role groups."""
         group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
+        if not group_name:
+            return None
         app_group = AuthApiService.get_group(group_name)
         role_groups = list(app_group.get('subGroups', []))
         access_levels = [
