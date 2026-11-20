@@ -147,3 +147,15 @@ class TestAccessLevelLookups:
 
         with pytest.raises(requests.ConnectionError):
             getattr(ApplicationsService, method)()
+
+    @pytest.mark.parametrize('method', ['get_all', 'get_request_catalog'])
+    def test_groups_without_a_level_are_skipped(self, lookup_mocks, method):
+        """A parent group or one with no numeric level (null from EPIC.auth) gives no role."""
+        lookup_mocks.get_user.return_value = {'groups': [
+            {'path': 'TRACK', 'level': None, 'display_name': None},
+            {'path': 'TRACK/USER', 'level': 1, 'display_name': 'User'},
+        ]}
+
+        apps = getattr(ApplicationsService, method)()
+
+        assert apps[0]['user']['access_level'] == 'User'

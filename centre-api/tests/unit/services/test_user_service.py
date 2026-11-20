@@ -85,6 +85,23 @@ class TestUserLookup:
     @patch('centre_api.services.user_service.AuthApiService.get_users')
     @patch('centre_api.services.user_service.AuthApiService.get_user_by_username')
     @patch('centre_api.services.user_service.TokenInfo.get_username')
+    def test_groups_without_a_level_are_skipped(self, mock_get_username, mock_get_user, mock_get_users):
+        """A parent group or one with no numeric level (null from EPIC.auth) gives no role."""
+        mock_get_username.return_value = 'caller@idir'
+        mock_get_user.return_value = dict(TRACK_ADMIN)
+        mock_get_users.return_value = [{'username': 'someone@idir', 'groups': [
+            {'path': 'TRACK', 'name': 'TRACK', 'level': None, 'display_name': None},
+            {'path': 'TRACK/USER', 'name': 'USER', 'level': 1, 'display_name': 'User'},
+        ]}]
+
+        users = UserService.get_users()
+
+        track = next(app for app in users[0]['apps'] if app['name'] == EpicAppName.EPIC_TRACK.value)
+        assert track['role'] == 'User'
+
+    @patch('centre_api.services.user_service.AuthApiService.get_users')
+    @patch('centre_api.services.user_service.AuthApiService.get_user_by_username')
+    @patch('centre_api.services.user_service.TokenInfo.get_username')
     def test_non_admin_cannot_list_users(self, mock_get_username, mock_get_user, mock_get_users):
         """A non-admin cannot list users."""
         mock_get_username.return_value = 'caller@idir'

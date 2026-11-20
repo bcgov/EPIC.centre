@@ -64,8 +64,11 @@ class UserService:
             current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
         current_user_is_dst_admin = AuthApiService.is_admin_of_app(current_user, EpicAppClientName.EPIC_CENTRE.value)
         for group in user.get('groups', []):
+            level = group.get('level')
+            # EPIC.auth sends null for parent groups and groups without a numeric level
+            if level is None:
+                continue
             path = group.get('path', '')
-            level = group.get('level', float('-inf'))
             display_name = group.get('display_name', '')
             top_path = path.split('/')[0]
             app_name = GROUP_TO_APP_NAME_MAP.get(top_path)
