@@ -82,6 +82,20 @@ class TestUserLookup:
 
         assert user['username'] == 'someone@idir'
 
+    @patch('centre_api.services.user_service.AuthApiService.get_user_by_username')
+    @patch('centre_api.services.user_service.TokenInfo.get_username')
+    def test_unknown_user_is_not_found(self, mock_get_username, mock_get_user):
+        """A username EPIC.auth can't find (it answers with an error) is None, so the API returns 404."""
+        mock_get_username.return_value = 'caller@idir'
+
+        def _lookup(username):
+            if username == 'caller@idir':
+                return dict(TRACK_ADMIN)
+            raise requests.HTTPError('500 Server Error')
+        mock_get_user.side_effect = _lookup
+
+        assert UserService.get_user_by_username('nobody@idir') is None
+
     @patch('centre_api.services.user_service.AuthApiService.get_users')
     @patch('centre_api.services.user_service.AuthApiService.get_user_by_username')
     @patch('centre_api.services.user_service.TokenInfo.get_username')

@@ -42,7 +42,14 @@ class UserService:
         if not is_self and not AuthApiService.is_admin(current_user):
             raise PermissionError('User does not have permission to view other users.')
 
-        user = current_user if is_self else AuthApiService.get_user_by_username(username)
+        if is_self:
+            user = current_user
+        else:
+            try:
+                user = AuthApiService.get_user_by_username(username)
+            except requests.HTTPError:
+                # EPIC.auth answers an unknown username with an error status; it just found the caller
+                return None
         return cls._enrich_user_with_apps(user, current_user)
 
     @classmethod

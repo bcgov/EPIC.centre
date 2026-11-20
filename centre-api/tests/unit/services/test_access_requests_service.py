@@ -39,14 +39,15 @@ def _access_request(app_name, status=AccessRequestsStatusEnum.PENDING):
 def mocks():
     """Patch the access request lookup, persistence and the caller's groups."""
     with (
-        patch('centre_api.services.access_requests._queue_access_request_email'),
+        patch('centre_api.services.access_requests._queue_access_request_email') as mock_queue_email,
         patch('centre_api.services.access_requests.session_scope'),
-        patch('centre_api.services.access_requests.AuthApiService.get_user_by_id', return_value={}),
+        patch('centre_api.services.access_requests.AuthApiService.get_user_by_id', return_value={}) as mock_requester,
         patch('centre_api.services.user_service.TokenInfo.get_username'),
         patch('centre_api.services.access_requests.AccessRequestsModal.find_by_id') as mock_find,
         patch('centre_api.services.user_service.AuthApiService.get_user_by_username') as mock_get_user,
     ):
-        yield SimpleNamespace(find=mock_find, get_user=mock_get_user)
+        yield SimpleNamespace(find=mock_find, get_user=mock_get_user, get_requester=mock_requester,
+                              queue_email=mock_queue_email)
 
 
 class TestProcessAccessRequest:
@@ -91,6 +92,60 @@ class TestProcessAccessRequest:
             AccessRequestsService.process_access_request(1, REJECTED)
 
         assert access_request.status == AccessRequestsStatusEnum.APPROVED
+
+    def test_rejection_emails_the_requester(self, mocks):
+        """The requester is told their request was rejected."""
+        mocks.get_user.return_value = DST_ADMIN
+        mocks.find.return_value = _access_request(EpicAppName.EPIC_TRACK.value)
+
+        AccessRequestsService.process_access_request(1, REJECTED)
+
+        mocks.queue_email.assert_called_once()
+
+    def test_request_from_deleted_requester_can_be_rejected(self, mocks):
+        """A requester EPIC.auth can't find is still rejected, with no email to send."""
+        mocks.get_user.return_value = DST_ADMIN
+        mocks.get_requester.side_effect = requests.HTTPError('500 Server Error')
+        access_request = _access_request(EpicAppName.EPIC_TRACK.value)
+        mocks.find.return_value = access_request
+
+        AccessRequestsService.process_access_request(1, REJECTED)
+
+        assert access_request.status == REJECTED
+        mocks.queue_email.assert_not_called()
+
+
+class TestUserAccessRequests:
+    """Access requests listed on a user's page."""
+
+    @pytest.fixture
+    def user_mocks(self):
+        """Patch the stored requests, the caller and the requester."""
+        with (
+            patch('centre_api.services.access_requests.AccessRequestsModal.get_all') as mock_get_all,
+            patch('centre_api.services.access_requests.TokenInfo.get_user_data',
+                  return_value={'username': 'caller@idir'}),
+            patch('centre_api.services.access_requests.AuthApiService.get_user_by_username') as mock_get_caller,
+            patch('centre_api.services.access_requests.AuthApiService.get_user_by_id') as mock_get_requester,
+        ):
+            mock_get_all.return_value = [_access_request(EpicAppName.EPIC_TRACK.value)]
+            yield SimpleNamespace(get_caller=mock_get_caller, get_requester=mock_get_requester)
+
+    def test_no_visible_requests_skip_the_requester_lookup(self, user_mocks):
+        """When the caller can't see any of the requests, EPIC.auth isn't asked for the requester."""
+        user_mocks.get_caller.return_value = {'groups': []}
+
+        assert AccessRequestsService.get_user_access_requests('guid-1', {}) == []
+        user_mocks.get_requester.assert_not_called()
+
+    def test_deleted_requester_is_listed_without_details(self, user_mocks):
+        """A requester EPIC.auth can't find doesn't fail the user's page."""
+        user_mocks.get_caller.return_value = DST_ADMIN
+        user_mocks.get_requester.side_effect = requests.HTTPError('500 Server Error')
+
+        listed = AccessRequestsService.get_user_access_requests('guid-1', {})
+
+        assert listed == [{'status': AccessRequestsStatusEnum.PENDING}]
 
 
 class TestEnrichWithUserDetails:

@@ -77,10 +77,13 @@ class AccessRequestsService:
                                                               APP_NAME_TO_CLIENT_NAME_MAP.get(req.app.name))
         ]
 
-        user = AuthApiService.get_user_by_id(user_auth_guid)
+        if not filtered_requests:
+            return []
+        user = cls._find_user(user_auth_guid)
         serialized_requests = [req.to_dict() for req in filtered_requests]
-        for req in serialized_requests:
-            req['user'] = user
+        if user is not None:
+            for req in serialized_requests:
+                req['user'] = user
         return serialized_requests
 
     @classmethod
@@ -102,14 +105,15 @@ class AccessRequestsService:
         if access_request.status != AccessRequestsStatusEnum.PENDING:
             raise ValueError(f'Access request {access_request_id} is not pending.')
 
+        # Looked up before the transaction. EPIC.auth just found the caller, so a failure here means
+        # the requester is gone from Keycloak: the request is still rejected, with no one to email.
+        requester = cls._find_user(access_request.user_auth_guid)
         with session_scope() as session:
-            access_request_response = None
-            app = access_request.app
-            auth_user_response = AuthApiService.get_user_by_id(access_request.user_auth_guid)
-            access_request_response = cls._do_update_access_request(access_request, status, session)
-            _queue_access_request_email(session, app, auth_user_response, status)
+            cls._do_update_access_request(access_request, status, session)
+            if requester is not None:
+                _queue_access_request_email(session, access_request.app, requester, status)
             session.commit()
-        return access_request_response.to_dict()
+        return access_request.to_dict()
 
     @classmethod
     def _do_update_access_request(cls, access_request, status, session):
