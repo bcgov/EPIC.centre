@@ -48,6 +48,8 @@ class UserApplicationBookmarks(Resource):
 
         if not app_id or bookmarks is None:
             return {'message': 'Missing required fields'}, HTTPStatus.BAD_REQUEST
+        if not isinstance(app_id, int) or isinstance(app_id, bool):
+            return {'message': 'app_id must be an application id'}, HTTPStatus.BAD_REQUEST
         if not isinstance(bookmarks, list) or len(bookmarks) > MAX_BOOKMARKS:
             return {'message': f'Bookmarks must be a list of at most {MAX_BOOKMARKS}'}, HTTPStatus.BAD_REQUEST
         try:
@@ -55,7 +57,10 @@ class UserApplicationBookmarks(Resource):
         except ValidationError as err:
             return {'message': 'Invalid bookmarks', 'errors': err.messages}, HTTPStatus.BAD_REQUEST
 
-        user_app = UserApplicationsService.update_user_application_bookmarks(app_id, bookmarks)
+        try:
+            user_app = UserApplicationsService.update_user_application_bookmarks(app_id, bookmarks)
+        except ValueError as err:
+            return {'message': str(err)}, HTTPStatus.BAD_REQUEST
         return UserApplicationSchema().dump(user_app), HTTPStatus.OK
 
 
@@ -72,6 +77,12 @@ class UserApplicationSortOrder(Resource):
         app_ids = json_body(list)
         if not all(isinstance(app_id, int) and not isinstance(app_id, bool) for app_id in app_ids):
             return {'message': 'Sort order must be a list of app ids'}, HTTPStatus.BAD_REQUEST
+        # One upsert can't update the same row twice
+        if len(set(app_ids)) != len(app_ids):
+            return {'message': 'Sort order must not repeat an app id'}, HTTPStatus.BAD_REQUEST
 
-        UserApplicationsService.update_sort_order(app_ids)
+        try:
+            UserApplicationsService.update_sort_order(app_ids)
+        except ValueError as err:
+            return {'message': str(err)}, HTTPStatus.BAD_REQUEST
         return 'sort order updated successfully', HTTPStatus.OK

@@ -89,3 +89,40 @@ class TestBookmarks:
         response = client.patch('/api/user-applications/bookmarks', json={'app_id': app_id, 'bookmarks': bookmarks})
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
+
+    def test_unknown_app_is_rejected(self, client, caller_token, session):
+        """Bookmarks for an app that doesn't exist are a bad request, not a database error."""
+        response = client.patch('/api/user-applications/bookmarks',
+                                json={'app_id': 999999, 'bookmarks': [EMPTY_SLOT]})
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+
+    @pytest.mark.parametrize('bad_id', ['1', 1.5, True])
+    def test_non_integer_app_id_is_rejected(self, client, caller_token, session, bad_id):
+        """app_id must be an integer."""
+        response = client.patch('/api/user-applications/bookmarks',
+                                json={'app_id': bad_id, 'bookmarks': [EMPTY_SLOT]})
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+
+
+class TestSortOrder:
+    """Validation on PATCH /api/user-applications/sort-order."""
+
+    def test_sort_order_is_saved(self, client, caller_token, app_id):
+        """A list of existing app ids is accepted."""
+        response = client.patch('/api/user-applications/sort-order', json=[app_id])
+
+        assert response.status_code == HTTPStatus.OK
+
+    def test_unknown_app_is_rejected(self, client, caller_token, app_id):
+        """An app id that doesn't exist is a bad request, not a database error."""
+        response = client.patch('/api/user-applications/sort-order', json=[app_id, 999999])
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+
+    def test_repeated_app_is_rejected(self, client, caller_token, app_id):
+        """An app listed twice is a bad request; the upsert can't update a row twice."""
+        response = client.patch('/api/user-applications/sort-order', json=[app_id, app_id])
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST

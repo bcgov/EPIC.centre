@@ -181,3 +181,14 @@ class TestAccessLevelLookups:
         apps = getattr(ApplicationsService, method)()
 
         assert apps[0]['user']['access_level'] == 'User'
+
+
+class TestAppAccessLevels:
+    """Access levels offered for an app."""
+
+    def test_app_without_role_groups_has_none(self):
+        """An unknown app name returns None without asking EPIC.auth."""
+        with patch(f'{SERVICE}.AuthApiService.get_group') as mock_get_group:
+            assert ApplicationsService.get_app_access_levels('not_an_app') is None
+
+        mock_get_group.assert_not_called()

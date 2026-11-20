@@ -303,8 +303,10 @@ class ApplicationsService:
 
     @classmethod
     def get_app_access_levels(cls, app_name):
-        """Get access levels for the given app name."""
+        """Get access levels for the given app name, or None if the app has no role groups."""
         group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
+        if not group_name:
+            return None
         app_group = AuthApiService.get_group(group_name)
         role_groups = list(app_group.get('subGroups', []))
         access_levels = [

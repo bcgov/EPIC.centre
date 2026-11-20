@@ -62,3 +62,13 @@ class TestCreateAccessRequestAPI:
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
         assert AccessRequests.query.filter_by(app_id=app.id).count() == 0
+
+
+class TestAccessLevelsAPI:
+    """GET /api/applications/<app_name>/access-levels."""
+
+    def test_unknown_app_returns_404(self, client, session, caller_token):
+        """An app with no role groups is not found, not a server error."""
+        response = client.get('/api/applications/not_an_app/access-levels')
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
