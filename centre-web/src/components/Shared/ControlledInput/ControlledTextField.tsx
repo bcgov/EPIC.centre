@@ -17,27 +17,23 @@ const ControlledTextField: FC<IFormInputProps> = ({
   inputEffects,
   maxLength,
   onChange: onInputChange,
+  inputProps,
   ...otherProps
 }) => {
   const {
     control,
-    formState: { errors, defaultValues },
+    formState: { defaultValues },
   } = useFormContext();
 
-  const error = errors?.[name];
-  const helperText = error?.message ?? " ";
   return (
     <Controller
       control={control}
       name={name}
       defaultValue={defaultValues?.[name] ?? ""}
-      render={({ field }) => (
+      // fieldState resolves nested names like "bookmarks.0.url"
+      render={({ field, fieldState: { error } }) => (
         <TextField
           {...field}
-          inputProps={{
-            maxLength: maxLength,
-            ...otherProps.inputProps,
-          }}
           onChange={(e) => {
             if (onInputChange) {
               onInputChange(e);
@@ -51,8 +47,9 @@ const ControlledTextField: FC<IFormInputProps> = ({
           FormHelperTextProps={{
             sx: { color: BCDesignTokens.typographyColorDanger },
           }}
-          helperText={String(helperText)}
+          helperText={error?.message ?? " "}
           {...otherProps}
+          inputProps={{ maxLength, ...inputProps }}
         />
       )}
     />

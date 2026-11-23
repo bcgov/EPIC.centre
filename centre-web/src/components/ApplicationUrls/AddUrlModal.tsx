@@ -1,4 +1,4 @@
-import { CreateApplicationUrlPayload, RenewalStatus } from "@/models/ApplicationUrl";
+import { RenewalStatus } from "@/models/ApplicationUrl";
 import { useCreateApplicationUrl } from "@/hooks/api/useApplicationUrls";
 import { useEffect } from "react";
 import {
@@ -12,6 +12,14 @@ import {
     Typography
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
+import { notify } from "@/components/Shared/Snackbar/snackbarStore";
+import { MAX_LENGTH } from "@/utils/constants";
+import {
+    getErrorMessage,
+    setServerFieldErrors,
+    tooLongMessage,
+} from "@/utils/errorUtils";
+import { ticketReferenceRules, urlRules } from "./fieldRules";
 
 type AddApplicationForm = {
     app_name: string;
@@ -30,18 +38,17 @@ type AddEnvironmentForm = {
     renewal_comments: string;
 };
 
-const isValidHttpUrl = (value: string) => {
-    if (!value.trim()) {
-        return true;
-    }
+const URL_FIELDS = {
+    PROD: "prod_url",
+    TEST: "test_url",
+    DEV: "dev_url",
+} as const;
 
-    try {
-        const parsed = new URL(value);
-        return parsed.protocol === "http:" || parsed.protocol === "https:";
-    } catch {
-        return false;
-    }
-};
+type StandardEnvironment = keyof typeof URL_FIELDS;
+
+// "PROD was" or "PROD and DEV were"
+const describeEnvironments = (items: { environment: string }[]) =>
+    `${items.map((item) => item.environment).join(" and ")} ${items.length > 1 ? "were" : "was"}`;
 
 export function AddUrlModal({
     open,
@@ -52,15 +59,17 @@ export function AddUrlModal({
     onClose: () => void;
     initialAppName?: string;
 }) {
-    const { mutateAsync, isPending } = useCreateApplicationUrl();
+    const { mutateAsync } = useCreateApplicationUrl();
     const isAddEnvironmentMode = !!initialAppName;
     const {
         control: applicationControl,
         handleSubmit: handleApplicationSubmit,
         reset: resetApplicationForm,
         getValues: getApplicationValues,
+        setValue: setApplicationValue,
         setError: setApplicationError,
         clearErrors: clearApplicationErrors,
+        formState: { isSubmitting: isSubmittingApplication },
     } = useForm<AddApplicationForm>({
         defaultValues: {
             app_name: "",
@@ -74,6 +83,8 @@ export function AddUrlModal({
         control: environmentControl,
         handleSubmit: handleEnvironmentSubmit,
         reset: resetEnvironmentForm,
+        setError: setEnvironmentError,
+        formState: { isSubmitting: isSubmittingEnvironment },
     } = useForm<AddEnvironmentForm>({
         defaultValues: {
             app_name: initialAppName,
@@ -84,6 +95,10 @@ export function AddUrlModal({
             renewal_comments: "",
         },
     });
+
+    const isSubmitting = isAddEnvironmentMode
+        ? isSubmittingEnvironment
+        : isSubmittingApplication;
 
     useEffect(() => {
         resetEnvironmentForm({
@@ -115,28 +130,89 @@ export function AddUrlModal({
             ticket_reference: data.ticket_reference.trim() || null,
         };
 
-        const payloads: CreateApplicationUrlPayload[] = [
-            { environment: "PROD", url: data.prod_url.trim() },
-            { environment: "TEST", url: data.test_url.trim() },
-            { environment: "DEV", url: data.dev_url.trim() },
-        ]
-            .filter((item) => item.url)
-            .map((item) => ({ ...basePayload, ...item }));
+        const payloads = (Object.keys(URL_FIELDS) as StandardEnvironment[])
+            .map((environment) => ({
+                ...basePayload,
+                environment,
+                url: data[URL_FIELDS[environment]].trim(),
+            }))
+            .filter((payload) => payload.url);
 
-        await Promise.all(payloads.map((payload) => mutateAsync(payload)));
-        resetApplicationForm();
-        onClose();
+        // One request per environment, so some can fail while others succeed
+        const results = await Promise.allSettled(
+            payloads.map((payload) => mutateAsync(payload)),
+        );
+        const added = payloads.filter((_, i) => results[i].status === "fulfilled");
+        const failed = payloads.flatMap((payload, i) => {
+            const result = results[i];
+            return result.status === "rejected"
+                ? [{ environment: payload.environment, error: result.reason }]
+                : [];
+        });
+
+        if (!failed.length) {
+            resetApplicationForm();
+            onClose();
+            return;
+        }
+
+        // Clear added URLs so a retry doesn't add them twice
+        added.forEach(({ environment }) =>
+            setApplicationValue(URL_FIELDS[environment], ""),
+        );
+
+        const notOnFields = failed.filter(
+            ({ environment, error }) =>
+                !setServerFieldErrors(error, setApplicationError, ([field]) => {
+                    if (field === "url") return URL_FIELDS[environment];
+                    if (field === "app_name" || field === "ticket_reference") return field;
+                    return undefined;
+                }),
+        );
+        const reason = notOnFields.length
+            ? getErrorMessage(notOnFields[0].error, "Please try again.")
+            : "Fix the highlighted fields and try again.";
+
+        if (added.length) {
+            notify.error(
+                `${describeEnvironments(added)} added, but ${describeEnvironments(failed)} not. ${reason}`,
+            );
+        } else if (notOnFields.length) {
+            notify.error(
+                getErrorMessage(
+                    notOnFields[0].error,
+                    "Unable to add the application. Please try again.",
+                ),
+            );
+        }
     };
 
     const onSubmitEnvironment = async (data: AddEnvironmentForm) => {
-        await mutateAsync({
-            app_name: data.app_name.trim(),
-            environment: data.environment.trim().toUpperCase(),
-            url: data.url.trim(),
-            ticket_reference: data.ticket_reference.trim() || null,
-            renewal_status: data.renewal_status,
-            renewal_comments: data.renewal_comments.trim() || null,
-        });
+        try {
+            await mutateAsync({
+                app_name: data.app_name.trim(),
+                environment: data.environment.trim().toUpperCase(),
+                url: data.url.trim(),
+                ticket_reference: data.ticket_reference.trim() || null,
+                renewal_status: data.renewal_status,
+                renewal_comments: data.renewal_comments.trim() || null,
+            });
+        } catch (error) {
+            const shownOnFields = setServerFieldErrors(
+                error,
+                setEnvironmentError,
+                ([field]) =>
+                    field === "environment" || field === "url" || field === "ticket_reference"
+                        ? field
+                        : undefined,
+            );
+            if (!shownOnFields) {
+                notify.error(
+                    getErrorMessage(error, "Unable to add the environment. Please try again."),
+                );
+            }
+            return;
+        }
         resetEnvironmentForm({
             app_name: initialAppName,
             environment: "",
@@ -174,7 +250,13 @@ export function AddUrlModal({
                                 <Controller
                                     name="environment"
                                     control={environmentControl}
-                                    rules={{ required: "Environment is required" }}
+                                    rules={{
+                                        required: "Environment is required",
+                                        maxLength: {
+                                            value: MAX_LENGTH.ENVIRONMENT,
+                                            message: tooLongMessage("Environment", MAX_LENGTH.ENVIRONMENT),
+                                        },
+                                    }}
                                     render={({ field, fieldState: { error } }) => (
                                         <TextField
                                             {...field}
@@ -189,11 +271,7 @@ export function AddUrlModal({
                                 <Controller
                                     name="url"
                                     control={environmentControl}
-                                    rules={{
-                                        required: "URL is required",
-                                        validate: (value) =>
-                                            isValidHttpUrl(value) || "Enter a valid http(s) URL",
-                                    }}
+                                    rules={{ required: "URL is required", ...urlRules }}
                                     render={({ field, fieldState: { error } }) => (
                                         <TextField
                                             {...field}
@@ -208,13 +286,15 @@ export function AddUrlModal({
                                 <Controller
                                     name="ticket_reference"
                                     control={environmentControl}
-                                    render={({ field }) => (
+                                    rules={ticketReferenceRules}
+                                    render={({ field, fieldState: { error } }) => (
                                         <TextField
                                             {...field}
                                             label="SSL Renewal Ticket # (Optional)"
                                             placeholder="e.g. INFRA-1234"
                                             fullWidth
-                                            helperText="Reference for tracking external renewal work"
+                                            error={!!error}
+                                            helperText={error?.message || "Reference for tracking external renewal work"}
                                         />
                                     )}
                                 />
@@ -227,7 +307,13 @@ export function AddUrlModal({
                                 <Controller
                                     name="app_name"
                                     control={applicationControl}
-                                    rules={{ required: "Application Name is required" }}
+                                    rules={{
+                                        required: "Application Name is required",
+                                        maxLength: {
+                                            value: MAX_LENGTH.APP_NAME,
+                                            message: tooLongMessage("Application name", MAX_LENGTH.APP_NAME),
+                                        },
+                                    }}
                                     render={({ field, fieldState: { error } }) => (
                                         <TextField
                                             {...field}
@@ -241,10 +327,7 @@ export function AddUrlModal({
                                 <Controller
                                     name="prod_url"
                                     control={applicationControl}
-                                    rules={{
-                                        validate: (value) =>
-                                            isValidHttpUrl(value) || "Enter a valid http(s) URL",
-                                    }}
+                                    rules={urlRules}
                                     render={({ field, fieldState: { error } }) => (
                                         <TextField
                                             {...field}
@@ -270,10 +353,7 @@ export function AddUrlModal({
                                 <Controller
                                     name="test_url"
                                     control={applicationControl}
-                                    rules={{
-                                        validate: (value) =>
-                                            isValidHttpUrl(value) || "Enter a valid http(s) URL",
-                                    }}
+                                    rules={urlRules}
                                     render={({ field, fieldState: { error } }) => (
                                         <TextField
                                             {...field}
@@ -299,10 +379,7 @@ export function AddUrlModal({
                                 <Controller
                                     name="dev_url"
                                     control={applicationControl}
-                                    rules={{
-                                        validate: (value) =>
-                                            isValidHttpUrl(value) || "Enter a valid http(s) URL",
-                                    }}
+                                    rules={urlRules}
                                     render={({ field, fieldState: { error } }) => (
                                         <TextField
                                             {...field}
@@ -328,13 +405,15 @@ export function AddUrlModal({
                                 <Controller
                                     name="ticket_reference"
                                     control={applicationControl}
-                                    render={({ field }) => (
+                                    rules={ticketReferenceRules}
+                                    render={({ field, fieldState: { error } }) => (
                                         <TextField
                                             {...field}
                                             label="SSL Renewal Ticket # (Optional)"
                                             placeholder="e.g. INFRA-1234"
                                             fullWidth
-                                            helperText="Applied to the initial URL set"
+                                            error={!!error}
+                                            helperText={error?.message || "Applied to the initial URL set"}
                                         />
                                     )}
                                 />
@@ -343,10 +422,10 @@ export function AddUrlModal({
                     </Stack>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={onClose} disabled={isPending}>
+                    <Button onClick={onClose} disabled={isSubmitting}>
                         Cancel
                     </Button>
-                    <Button type="submit" variant="contained" disabled={isPending}>
+                    <Button type="submit" variant="contained" disabled={isSubmitting}>
                         {isAddEnvironmentMode ? "Add Environment" : "Add Application"}
                     </Button>
                 </DialogActions>

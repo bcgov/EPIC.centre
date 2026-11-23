@@ -8,9 +8,9 @@ import {
   useGetRequestCatalogApplications,
 } from "@/hooks/api/useApplications";
 import { useState } from "react";
-import { isAxiosError } from "axios";
 import { notify } from "../Shared/Snackbar/snackbarStore";
 import { useCurrentUser } from "@/contexts/UserContext";
+import { getErrorMessage } from "@/utils/errorUtils";
 
 type RequestAccessButton = {
   appId: number;
@@ -28,10 +28,12 @@ const RequestAccessButton = ({ appId, status }: RequestAccessButton) => {
       await createAccessRequest(appId);
       await refetchRequestCatalog();
     } catch (error) {
-      const errorMessage = isAxiosError(error)
-        ? error.response?.data?.message || "Unknown error"
-        : "Unknown error";
-      notify.error(`Error creating access request: ${errorMessage}`);
+      notify.error(
+        getErrorMessage(
+          error,
+          "Unable to send your access request. Please try again.",
+        ),
+      );
     } finally {
       setLoading(false);
     }

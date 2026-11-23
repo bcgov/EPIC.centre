@@ -23,6 +23,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useState } from "react";
 import { BCDesignTokens } from "epic.theme";
 import { useUpdateSortOrder } from "@/hooks/api/useUserApplications";
+import { notify } from "../Shared/Snackbar/snackbarStore";
+import { getErrorMessage } from "@/utils/errorUtils";
 
 type ListProps = {
   items: EpicApp[];
@@ -103,10 +105,25 @@ export const List = ({ items }: ListProps) => {
       const oldIndex = sortedItems.findIndex((item) => item.id === active.id);
       const newIndex = sortedItems.findIndex((item) => item.id === over.id);
 
+      const previousItems = sortedItems;
       const newItems = arrayMove(sortedItems, oldIndex, newIndex);
 
       setSortedItems(newItems);
-      updateSortOrder(newItems.map((item) => item.id));
+      updateSortOrder(
+        newItems.map((item) => item.id),
+        {
+          onError: (error) => {
+            // Not saved, so put back the saved order
+            setSortedItems(previousItems);
+            notify.error(
+              getErrorMessage(
+                error,
+                "Unable to save the new order. Please try again.",
+              ),
+            );
+          },
+        },
+      );
     }
     setActiveId(null);
   };
