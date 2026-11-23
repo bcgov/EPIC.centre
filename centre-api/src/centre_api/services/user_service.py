@@ -177,7 +177,7 @@ class UserService:
         if not access_request:
             return None, None
         if access_request.status != AccessRequestsStatusEnum.PENDING:
-            raise ValueError(f'Access request {access_request_id} is not pending.')
+            raise ValueError('This access request has already been handled. Refresh to see its current status.')
 
         auth_user_response = AuthApiService.get_user_by_id(access_request.user_auth_guid)
         requester_username = str(auth_user_response.get('username', ''))
