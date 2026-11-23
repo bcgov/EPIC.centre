@@ -6,6 +6,7 @@ import requests
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import APP_NAME_TO_CLIENT_NAME_MAP, EpicAppClientName
+from centre_api.exceptions import BadRequestError, ResourceNotFoundError
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.models.db import session_scope
 from centre_api.models.email_queue import EmailQueue
@@ -90,11 +91,11 @@ class AccessRequestsService:
     def process_access_request(cls, access_request_id, status):
         """Reject a pending access request; approval happens when access is granted."""
         if status != AccessRequestsStatusEnum.REJECTED.value:
-            raise ValueError('Access requests can only be rejected here; grant access to approve one.')
+            raise BadRequestError('Access requests can only be rejected here; grant access to approve one.')
 
         access_request = AccessRequestsModal.find_by_id(access_request_id)
         if not access_request:
-            return None
+            raise ResourceNotFoundError('Access request not found.')
 
         app_name = access_request.app.name
         has_admin_access = UserService.has_admin_access_on_app(app_name)
@@ -103,7 +104,7 @@ class AccessRequestsService:
                 f"User does not have permission to update access requests for app '{app_name}'."
             )
         if access_request.status != AccessRequestsStatusEnum.PENDING:
-            raise ValueError('This access request has already been handled. Refresh to see its current status.')
+            raise BadRequestError('This access request has already been handled. Refresh to see its current status.')
 
         # Looked up before the transaction. EPIC.auth just found the caller, so a failure here means
         # the requester is gone from Keycloak: the request is still rejected, with no one to email.

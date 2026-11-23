@@ -11,73 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Application Specific Exceptions, to manage the business errors.
+"""Errors whose message is sent to the user as {"message": ...}.
 
-@log_error - a decorator to automatically log the exception to the logger provided
-
-BusinessException - error, status_code - Business rules error
-error - a description of the error {code / description: classname / full text}
-status_code - where possible use HTTP Error Codes
+Raise them for problems the user can act on; anything else is a logged 500 with no detail.
 """
-from werkzeug.exceptions import BadRequest, Conflict, Forbidden, NotFound, UnprocessableEntity
-from werkzeug.wrappers.response import Response
-
-
-class BusinessError(Exception):
-    """Exception that adds error code and error."""
-
-    def __init__(self, error, status_code, *args, **kwargs):
-        """Return a valid BusinessException."""
-        super().__init__(*args, **kwargs)
-        self.error = error
-        self.status_code = status_code
-
-
-class ResourceExistsError(Conflict):
-    """Exception raised when a duplicate resource exists."""
-
-    def __init__(self, message, *args, **kwargs):
-        """Return a valid ResourceExistsError."""
-        super().__init__(*args, **kwargs)
-        self.description = message
-        self.response = Response(message, status=Conflict.code)
+from werkzeug.exceptions import BadRequest, NotFound
 
 
 class BadRequestError(BadRequest):
-    """Exception raised when there are issues with the api input."""
+    """A request the user can fix: a 400."""
 
-    def __init__(self, message, *args, **kwargs):
-        """Return a valid BadRequestError."""
-        super().__init__(*args, **kwargs)
-        self.description = message
-        self.response = Response(message, status=BadRequest.code)
+    def __init__(self, message):
+        """Return a 400 with this message."""
+        super().__init__(description=message)
 
 
 class ResourceNotFoundError(NotFound):
-    """Exception raised when resource not found."""
+    """A record that doesn't exist: a 404."""
 
-    def __init__(self, message, *args, **kwargs):
-        """Return a valid ResourceExistsError."""
-        super().__init__(*args, **kwargs)
-        self.description = message
-        self.response = Response(message, status=NotFound.code)
-
-
-class PermissionDeniedError(Forbidden):
-    """Exception raised when resource not found."""
-
-    def __init__(self, message, *args, **kwargs):
-        """Return a valid ResourceExistsError."""
-        super().__init__(*args, **kwargs)
-        self.description = message
-        self.response = Response(message, status=Forbidden.code)
-
-
-class UnprocessableEntityError(UnprocessableEntity):
-    """Exception raised when resource is not processable."""
-
-    def __init__(self, message, *args, **kwargs):
-        """Return a valid UnprocessableEntityError."""
-        super().__init__(*args, **kwargs)
-        self.description = message
-        self.response = Response(message, status=UnprocessableEntity.code)
+    def __init__(self, message):
+        """Return a 404 with this message."""
+        super().__init__(description=message)

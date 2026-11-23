@@ -1,5 +1,6 @@
 """Service for applications management."""
 
+from centre_api.exceptions import BadRequestError
 from centre_api.models import Application as ApplicationModel
 from centre_api.models import UserApplication as UserApplicationModel
 from centre_api.utils.token_info import TokenInfo
@@ -10,11 +11,11 @@ class UserApplicationsService:
 
     @staticmethod
     def _check_apps_exist(app_ids):
-        """Raise ValueError unless every id is an existing application."""
+        """Raise BadRequestError unless every id is an existing application."""
         unique_ids = set(app_ids)
         found = ApplicationModel.query.filter(ApplicationModel.id.in_(unique_ids)).count()
         if found != len(unique_ids):
-            raise ValueError('Unknown application id')
+            raise BadRequestError('Unknown application id')
 
     @classmethod
     def get_or_create_user_application(cls, user_auth_guid, app_id):

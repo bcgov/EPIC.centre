@@ -83,10 +83,7 @@ class User(Resource):
     def put(username):
         """Update a user group assignment."""
         access_data = json_body()
-        try:
-            UserService.update_user_access(username, access_data)
-        except ValueError as e:
-            return {'message': str(e)}, HTTPStatus.BAD_REQUEST
+        UserService.update_user_access(username, access_data)
         return 'User group updated', HTTPStatus.OK
 
     @staticmethod
@@ -96,8 +93,5 @@ class User(Resource):
     def delete(username):
         """Delete user groups assignment."""
         access_data = json_body()
-        try:
-            UserService.revoke_user_access(username, access_data)
-        except ValueError as e:
-            return {'message': str(e)}, HTTPStatus.BAD_REQUEST
+        UserService.revoke_user_access(username, access_data)
         return 'User group revoked', HTTPStatus.OK

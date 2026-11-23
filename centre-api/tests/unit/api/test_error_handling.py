@@ -16,8 +16,11 @@ from http import HTTPStatus
 from unittest.mock import patch
 
 import pytest
+import requests
+from flask import g
 
 from centre_api import create_app
+from centre_api.auth import jwt
 
 
 @pytest.fixture
@@ -66,3 +69,18 @@ def test_unexpected_error_returns_500_and_logs_traceback(production_app, product
     assert response.get_data(as_text=True) == 'Internal server error'
     log_error.assert_called_once()
     assert isinstance(log_error.call_args.kwargs['exc_info'], RuntimeError)
+
+
+def test_epic_auth_failure_in_an_api_route_returns_a_bare_500(production_client):
+    """A non-JSON EPIC.auth response is a 500 without the parser's message."""
+    def _authenticate(*args, **kwargs):
+        g.jwt_oidc_token_info = {'preferred_username': 'caller@idir', 'sub': 'caller-guid'}
+
+    with patch.object(jwt, '_require_auth_validation', side_effect=_authenticate), \
+            patch('centre_api.services.user_service.AuthApiService.get_user_by_username',
+                  side_effect=requests.JSONDecodeError('Expecting value', '<html>', 0)):
+        response = production_client.put('/api/users/someone@idir/access',
+                                         json={'app_name': 'epic_centre', 'group_name': 'X'})
+
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    assert 'Expecting value' not in response.get_data(as_text=True)

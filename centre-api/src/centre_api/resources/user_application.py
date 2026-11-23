@@ -57,10 +57,7 @@ class UserApplicationBookmarks(Resource):
         except ValidationError as err:
             return {'message': 'Invalid bookmarks', 'errors': err.messages}, HTTPStatus.BAD_REQUEST
 
-        try:
-            user_app = UserApplicationsService.update_user_application_bookmarks(app_id, bookmarks)
-        except ValueError as err:
-            return {'message': str(err)}, HTTPStatus.BAD_REQUEST
+        user_app = UserApplicationsService.update_user_application_bookmarks(app_id, bookmarks)
         return UserApplicationSchema().dump(user_app), HTTPStatus.OK
 
 
@@ -81,8 +78,5 @@ class UserApplicationSortOrder(Resource):
         if len(set(app_ids)) != len(app_ids):
             return {'message': 'Sort order must not repeat an app id'}, HTTPStatus.BAD_REQUEST
 
-        try:
-            UserApplicationsService.update_sort_order(app_ids)
-        except ValueError as err:
-            return {'message': str(err)}, HTTPStatus.BAD_REQUEST
+        UserApplicationsService.update_sort_order(app_ids)
         return 'sort order updated successfully', HTTPStatus.OK

@@ -41,26 +41,15 @@ class CreateEaoAnalytics(Resource):
     def post():
         """Create or update EAO Analytics record."""
         try:
-            data = request.get_json()
-            schema = EaoAnalyticsCreateSchema()
-            validated_data = schema.load(data)
-
-            user_auth_guid = validated_data.get('user_auth_guid')
-            app_name = validated_data.get('app_name')
-
-            analytics = EaoAnalyticsService.record_login_by_app_name(
-                user_auth_guid=user_auth_guid,
-                app_name=app_name
-            )
-
-            return EaoAnalyticsSchema().dump(analytics), HTTPStatus.OK
-
+            validated_data = EaoAnalyticsCreateSchema().load(request.get_json())
         except ValidationError as e:
             return {'message': f'Invalid data: {e.messages}'}, HTTPStatus.BAD_REQUEST
-        except ValueError as e:
-            return {'message': f'Invalid data: {str(e)}'}, HTTPStatus.BAD_REQUEST
-        except (RuntimeError, AttributeError) as e:
-            return {'message': f'Error creating analytics record: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+        analytics = EaoAnalyticsService.record_login_by_app_name(
+            user_auth_guid=validated_data.get('user_auth_guid'),
+            app_name=validated_data.get('app_name')
+        )
+        return EaoAnalyticsSchema().dump(analytics), HTTPStatus.OK
 
 
 @API.route('', methods=['GET'])
@@ -75,16 +64,12 @@ class GetEaoAnalytics(Resource):
         if not UserService.has_admin_access_on_app(EpicAppName.EPIC_CENTRE.value):
             raise PermissionError('User does not have permission to view analytics.')
 
-        try:
-            user_auth_guid = request.args.get('user_auth_guid', type=str)
-            app_name = request.args.get('app_name', type=str)
+        user_auth_guid = request.args.get('user_auth_guid', type=str)
+        app_name = request.args.get('app_name', type=str)
 
-            analytics = EaoAnalyticsService.get_analytics(
-                user_auth_guid=user_auth_guid,
-                app_name=app_name
-            )
+        analytics = EaoAnalyticsService.get_analytics(
+            user_auth_guid=user_auth_guid,
+            app_name=app_name
+        )
 
-            return EaoAnalyticsSchema(many=True).dump(analytics), HTTPStatus.OK
-
-        except (RuntimeError, AttributeError) as e:
-            return {'message': f'Error fetching analytics: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
+        return EaoAnalyticsSchema(many=True).dump(analytics), HTTPStatus.OK

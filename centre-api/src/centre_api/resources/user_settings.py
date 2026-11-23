@@ -37,27 +37,23 @@ class GetUserSettings(Resource):
     @auth.require
     def get():
         """Get current user settings."""
-        try:
-            token_info = g.jwt_oidc_token_info
-            username = token_info.get('preferred_username') or token_info.get('username')
+        token_info = g.jwt_oidc_token_info
+        username = token_info.get('preferred_username') or token_info.get('username')
 
-            if not username:
-                return {'message': 'Username not found in token'}, HTTPStatus.BAD_REQUEST
+        if not username:
+            return {'message': 'Username not found in token'}, HTTPStatus.BAD_REQUEST
 
-            user_settings = UserSettings.find_by_username(username)
+        user_settings = UserSettings.find_by_username(username)
 
-            if not user_settings:
-                # Return default settings if none exist
-                return {
-                    'username': username,
-                    'card_positions': {},
-                    'settings': {}
-                }, HTTPStatus.OK
+        if not user_settings:
+            # Return default settings if none exist
+            return {
+                'username': username,
+                'card_positions': {},
+                'settings': {}
+            }, HTTPStatus.OK
 
-            return UserSettingsSchema().dump(user_settings), HTTPStatus.OK
-
-        except (ValueError, KeyError) as e:
-            return {'message': f'Error fetching user settings: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
+        return UserSettingsSchema().dump(user_settings), HTTPStatus.OK
 
 
 @API.route('/card-positions', methods=['PUT'])
@@ -69,22 +65,18 @@ class UpdateCardPositions(Resource):
     @auth.require
     def put():
         """Update card positions for current user."""
-        try:
-            token_info = g.jwt_oidc_token_info
-            username = token_info.get('preferred_username') or token_info.get('username')
+        token_info = g.jwt_oidc_token_info
+        username = token_info.get('preferred_username') or token_info.get('username')
 
-            if not username:
-                return {'message': 'Username not found in token'}, HTTPStatus.BAD_REQUEST
+        if not username:
+            return {'message': 'Username not found in token'}, HTTPStatus.BAD_REQUEST
 
-            card_positions = json_body().get('card_positions', {})
-            if not isinstance(card_positions, dict):
-                return {'message': 'card_positions must be an object'}, HTTPStatus.BAD_REQUEST
+        card_positions = json_body().get('card_positions', {})
+        if not isinstance(card_positions, dict):
+            return {'message': 'card_positions must be an object'}, HTTPStatus.BAD_REQUEST
 
-            user_settings = UserSettings.update_card_positions(username, card_positions)
-            return UserSettingsSchema().dump(user_settings), HTTPStatus.OK
-
-        except (ValueError, KeyError) as e:
-            return {'message': f'Error updating card positions: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
+        user_settings = UserSettings.update_card_positions(username, card_positions)
+        return UserSettingsSchema().dump(user_settings), HTTPStatus.OK
 
 
 @API.route('/settings', methods=['PUT'])
@@ -96,19 +88,15 @@ class UpdateSettings(Resource):
     @auth.require
     def put():
         """Update settings for current user."""
-        try:
-            token_info = g.jwt_oidc_token_info
-            username = token_info.get('preferred_username') or token_info.get('username')
+        token_info = g.jwt_oidc_token_info
+        username = token_info.get('preferred_username') or token_info.get('username')
 
-            if not username:
-                return {'message': 'Username not found in token'}, HTTPStatus.BAD_REQUEST
+        if not username:
+            return {'message': 'Username not found in token'}, HTTPStatus.BAD_REQUEST
 
-            settings = json_body().get('settings', {})
-            if not isinstance(settings, dict):
-                return {'message': 'settings must be an object'}, HTTPStatus.BAD_REQUEST
+        settings = json_body().get('settings', {})
+        if not isinstance(settings, dict):
+            return {'message': 'settings must be an object'}, HTTPStatus.BAD_REQUEST
 
-            user_settings = UserSettings.create_or_update_settings(username, settings=settings)
-            return UserSettingsSchema().dump(user_settings), HTTPStatus.OK
-
-        except (ValueError, KeyError) as e:
-            return {'message': f'Error updating settings: {str(e)}'}, HTTPStatus.INTERNAL_SERVER_ERROR
+        user_settings = UserSettings.create_or_update_settings(username, settings=settings)
+        return UserSettingsSchema().dump(user_settings), HTTPStatus.OK

@@ -21,6 +21,7 @@ from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import (
     APP_NAME_TO_CLIENT_NAME_MAP, APP_NAME_TO_GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppClientName, EpicAppName)
+from centre_api.exceptions import BadRequestError
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
 from centre_api.models.db import session_scope
 from centre_api.models.email_queue import EmailQueue
@@ -138,7 +139,7 @@ class UserService:
         # Don't trust the client's parent_group_name; EPIC.auth uses it as the target group
         parent_group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
         if not parent_group_name:
-            raise ValueError(f'Invalid app_name: {app_name}')
+            raise BadRequestError(f'Invalid app_name: {app_name}')
 
         group_name = access_data.get('group_name')
         cls._validate_sub_group(parent_group_name, group_name)
@@ -177,12 +178,12 @@ class UserService:
         if not access_request:
             return None, None
         if access_request.status != AccessRequestsStatusEnum.PENDING:
-            raise ValueError('This access request has already been handled. Refresh to see its current status.')
+            raise BadRequestError('This access request has already been handled. Refresh to see its current status.')
 
         auth_user_response = AuthApiService.get_user_by_id(access_request.user_auth_guid)
         requester_username = str(auth_user_response.get('username', ''))
         if access_request.app.name != app_name or requester_username.lower() != username.lower():
-            raise ValueError(f'Access request {access_request_id} does not match this access grant.')
+            raise BadRequestError(f'Access request {access_request_id} does not match this access grant.')
 
         return access_request, auth_user_response
 
@@ -202,7 +203,7 @@ class UserService:
         group_name = APP_NAME_TO_GROUP_MAP.get(app_name)
 
         if not group_name:
-            raise ValueError(f'Invalid app_name: {app_name}')
+            raise BadRequestError(f'Invalid app_name: {app_name}')
 
         # Delete from app-specific parent group + all subgroups
         response = AuthApiService.delete_user_group(
@@ -243,7 +244,7 @@ class UserService:
             if not is_hidden_in_centre(sub_group)
         }
         if group_name not in sub_group_names:
-            raise ValueError(f'Invalid group_name "{group_name}" for app group "{parent_group_name}".')
+            raise BadRequestError(f'Invalid group_name "{group_name}" for app group "{parent_group_name}".')
 
     @classmethod
     def update_user_status(cls, username: str, patch_data: dict):

@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.emai_queue_templates import EmailQueueTemplate
 from centre_api.enums.epic_app import APP_NAME_TO_GROUP_MAP, GROUP_MAP, GROUP_TO_APP_NAME_MAP, EpicAppName
+from centre_api.exceptions import BadRequestError
 from centre_api.models import Application as ApplicationModel
 from centre_api.models import EmailQueue
 from centre_api.models.access_requests import AccessRequests as AccessRequestsModal
@@ -267,7 +268,7 @@ class ApplicationsService:
         user_auth_id = TokenInfo.get_id()
         app = ApplicationModel.find_by_id(app_id)
         if not app or not cls._is_requestable(app):
-            raise ValueError(f'Application with id {app_id} is not available to request.')
+            raise BadRequestError('This application is not available to request.')
 
         existing_request = cls._find_pending_request(app_id, user_auth_id)
         if existing_request:
