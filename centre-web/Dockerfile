@@ -22,27 +22,11 @@ COPY . ./
 
 RUN npm run build
 
-# Stage 1, based on Nginx, to have only the compiled app, ready for production with Nginx
-FROM nginx:1.17 as production-stage
-RUN mkdir /app
-
-# RUN  touch /var/run/nginx.pid && \
-#     chown -R nginx:nginx /var/cache/nginx /var/run/nginx.pid
-
-# ARG user=nginx
-# RUN usermod -a -G root $user
+# Serve the compiled frontend with unprivileged NGINX.
+FROM nginx/nginx-unprivileged:1.30.7-alpine AS production-stage
 
 COPY --from=build-stage /app/dist /usr/share/nginx/html
-COPY /nginx/nginx.conf /etc/nginx/
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
-# Set ownership and permissions
-# Set scripts as executable (make files and python files do not have to be marked)
-# Make /etc/passwd writable for the root group so an entry can be created for an OpenShift assigned user account.
-# RUN chown -R $user:root /etc/nginx/ \
-#     && chmod -R ug+rw /etc/nginx/ \
-#     && chmod ug+x docker-entrypoint.sh \
-#     && chmod g+rw /etc/passwd
-
-# USER $user
-EXPOSE 8081:8081
+EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
