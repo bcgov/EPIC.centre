@@ -19,7 +19,15 @@ export default function UsersTableRow({ user }: Props) {
 
   return (
     <TableRow>
-      <CentreTableCell>{`${user.last_name ?? ""}, ${user.first_name ?? ""}`}</CentreTableCell>
+      <CentreTableCell>
+        {/* Clickable, but styled as plain text */}
+        <CentreLink
+          onClick={handleEditAccess}
+          sx={{ color: "inherit", "&:hover": { textDecoration: "none" } }}
+        >
+          {`${user.last_name ?? ""}, ${user.first_name ?? ""}`}
+        </CentreLink>
+      </CentreTableCell>
       <CentreTableCell>
         <CentreLink onClick={handleEditAccess}>View/Edit Access</CentreLink>
       </CentreTableCell>
