@@ -61,10 +61,14 @@ export const UsersTable = ({
     [users, orderBy, order],
   );
 
+  // A search or filter can shrink the list below the current page
+  const lastPage = Math.max(0, Math.ceil(sortedUsers.length / rowsPerPage) - 1);
+  const currentPage = Math.min(page, lastPage);
+
   // Paginate users client-side
   const paginatedUsers = sortedUsers.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
+    currentPage * rowsPerPage,
+    currentPage * rowsPerPage + rowsPerPage,
   );
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -101,7 +105,7 @@ export const UsersTable = ({
         component="div"
         count={sortedUsers.length}
         rowsPerPage={rowsPerPage}
-        page={page}
+        page={currentPage}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />

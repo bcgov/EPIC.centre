@@ -9,7 +9,6 @@ import { CentreUser, CentreUserListItem } from "@/models/CentreUser";
 import { QueryRequestParams } from "./types";
 
 type GetUsersParams = {
-  search?: string;
   include_groups?: boolean;
 };
 const getUsers = (params: GetUsersParams) => {
@@ -21,7 +20,7 @@ const getUsers = (params: GetUsersParams) => {
 
 export const useGetUsers = (params: GetUsersParams = {}) => {
   return useQuery({
-    queryKey: [QUERY_KEY.USERS, params.search, params.include_groups],
+    queryKey: [QUERY_KEY.USERS, params.include_groups],
     queryFn: () => getUsers(params),
   });
 };
