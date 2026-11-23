@@ -2,19 +2,19 @@ import { Box, Table, TableContainer, TablePagination } from "@mui/material";
 import UsersTableHead from "./TableHead";
 import React, { useMemo, useState } from "react";
 import { UsersTableBody } from "./TableBody";
-import { CentreUser } from "@/models/CentreUser";
+import { CentreUserListItem } from "@/models/CentreUser";
 
 import type { SortField, SortOrder } from "./TableHead";
 
-function getSortValue(user: CentreUser, orderBy: SortField): string {
+function getSortValue(user: CentreUserListItem, orderBy: SortField): string {
   return orderBy === "name"
     ? `${user.last_name ?? ""}, ${user.first_name ?? ""}`.toLowerCase()
     : user.username ?? "";
 }
 
 function descendingComparator(
-  a: CentreUser,
-  b: CentreUser,
+  a: CentreUserListItem,
+  b: CentreUserListItem,
   orderBy: SortField,
 ): number {
   const aVal = getSortValue(a, orderBy);
@@ -25,14 +25,14 @@ function descendingComparator(
 function getComparator(
   order: SortOrder,
   orderBy: SortField,
-): (a: CentreUser, b: CentreUser) => number {
+): (a: CentreUserListItem, b: CentreUserListItem) => number {
   return order === "desc"
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
 type UsersTableProps = {
-  users: Array<CentreUser>;
+  users: Array<CentreUserListItem>;
   isLoading: boolean;
   isError: boolean;
   searchText: string;
@@ -61,10 +61,14 @@ export const UsersTable = ({
     [users, orderBy, order],
   );
 
+  // A search or filter can shrink the list below the current page
+  const lastPage = Math.max(0, Math.ceil(sortedUsers.length / rowsPerPage) - 1);
+  const currentPage = Math.min(page, lastPage);
+
   // Paginate users client-side
   const paginatedUsers = sortedUsers.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
+    currentPage * rowsPerPage,
+    currentPage * rowsPerPage + rowsPerPage,
   );
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -101,7 +105,7 @@ export const UsersTable = ({
         component="div"
         count={sortedUsers.length}
         rowsPerPage={rowsPerPage}
-        page={page}
+        page={currentPage}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />

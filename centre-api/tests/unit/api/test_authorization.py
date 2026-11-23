@@ -19,12 +19,13 @@ import pytest
 from flask import g
 
 from centre_api.auth import jwt
-from centre_api.enums.epic_app import EpicAppName
+from centre_api.enums.epic_app import EpicAdminGroupsPath, EpicAppName
 from centre_api.models.eao_analytics import EaoAnalytics
 
 
 CALLER_CLAIMS = {'preferred_username': 'caller@idir', 'sub': 'caller-sub-guid', 'loginSource': 'idir'}
 NON_ADMIN = {'username': 'caller@idir', 'groups': []}
+DST_ADMIN = {'username': 'caller@idir', 'groups': [{'path': EpicAdminGroupsPath.CENTRE.value}]}
 
 
 @pytest.fixture
@@ -127,6 +128,26 @@ class TestUsersAuthorization:
         assert response.status_code == HTTPStatus.FORBIDDEN
         assert 'permission' in response.get_json()['message']
         mock_get_users.assert_not_called()
+
+    @pytest.mark.parametrize('query, include_groups', [('', False), ('?include_groups=true', True)])
+    @patch('centre_api.services.user_service.AuthApiService.get_users')
+    @patch('centre_api.services.user_service.AuthApiService.get_user_by_username', return_value=DST_ADMIN)
+    def test_user_list_has_only_list_fields(self, _mock_get_user, mock_get_users, client, caller_token,
+                                            query, include_groups):
+        """Groups are fetched only on request, and only list fields are sent."""
+        mock_get_users.return_value = [{
+            'id': 'u1', 'first_name': 'Ann', 'last_name': 'Lee', 'username': 'u1@idir',
+            'email_address': 'ann@gov.bc.ca', 'enabled': True, 'attributes': {'idir_user_guid': ['U1']},
+        }]
+
+        response = client.get(f'/api/users{query}')
+
+        assert response.status_code == HTTPStatus.OK
+        expected = {'id': 'u1', 'first_name': 'Ann', 'last_name': 'Lee', 'username': 'u1@idir'}
+        if include_groups:
+            expected.update(apps=[], group_paths=[])
+        assert response.get_json() == [expected]
+        mock_get_users.assert_called_once_with(None, include_groups)
 
     @patch('centre_api.services.user_service.AuthApiService.patch_user')
     @patch('centre_api.services.user_service.AuthApiService.get_user_by_username', return_value=NON_ADMIN)

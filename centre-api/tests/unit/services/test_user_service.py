@@ -108,10 +108,9 @@ class TestUserLookup:
             {'path': 'TRACK/USER', 'name': 'USER', 'level': 1, 'display_name': 'User'},
         ]}]
 
-        users = UserService.get_users()
+        users = UserService.get_users(include_groups=True)
 
-        track = next(app for app in users[0]['apps'] if app['name'] == EpicAppName.EPIC_TRACK.value)
-        assert track['role'] == 'User'
+        assert users[0]['apps'] == [{'name': EpicAppName.EPIC_TRACK.value, 'group_path': 'TRACK/USER'}]
 
     @patch('centre_api.services.user_service.AuthApiService.get_users')
     @patch('centre_api.services.user_service.AuthApiService.get_user_by_username')
@@ -130,14 +129,36 @@ class TestUserLookup:
     @patch('centre_api.services.user_service.AuthApiService.get_user_by_username')
     @patch('centre_api.services.user_service.TokenInfo.get_username')
     def test_app_admin_can_list_users(self, mock_get_username, mock_get_user, mock_get_users):
-        """An admin of any app can list users."""
+        """An admin of any app gets IDIR users' list fields, without groups by default."""
         mock_get_username.return_value = 'caller@idir'
         mock_get_user.return_value = dict(TRACK_ADMIN)
-        mock_get_users.return_value = [{'username': 'someone@idir', 'groups': []}]
+        mock_get_users.return_value = [
+            {'id': 'u1', 'first_name': 'Ann', 'last_name': 'Lee', 'username': 'someone@idir',
+             'email_address': 'ann@gov.bc.ca', 'enabled': True, 'attributes': {'idir_user_guid': ['U1']}},
+            {'id': 'u2', 'first_name': 'Bo', 'last_name': 'Kim', 'username': 'bo@bceidbasic'},
+        ]
 
-        users = UserService.get_users()
+        users = UserService.get_users(search_text='lee')
 
-        assert [user['username'] for user in users] == ['someone@idir']
+        assert users == [{'id': 'u1', 'first_name': 'Ann', 'last_name': 'Lee', 'username': 'someone@idir'}]
+        mock_get_users.assert_called_once_with('lee', False)
+
+    @patch('centre_api.services.user_service.AuthApiService.get_users')
+    @patch('centre_api.services.user_service.AuthApiService.get_user_by_username')
+    @patch('centre_api.services.user_service.TokenInfo.get_username')
+    def test_groups_add_only_what_the_filters_use(self, mock_get_username, mock_get_user, mock_get_users):
+        """With groups, each user also has their app roles and group paths."""
+        mock_get_username.return_value = 'caller@idir'
+        mock_get_user.return_value = dict(DST_ADMIN)
+        mock_get_users.return_value = [{'id': 'u1', 'username': 'someone@idir', 'groups': [
+            {'path': 'TRACK/USER', 'name': 'USER', 'level': 1, 'display_name': 'User', 'id': 'g1'},
+        ]}]
+
+        users = UserService.get_users(include_groups=True)
+
+        assert users[0]['apps'] == [{'name': EpicAppName.EPIC_TRACK.value, 'group_path': 'TRACK/USER'}]
+        assert users[0]['group_paths'] == ['TRACK/USER']
+        mock_get_users.assert_called_once_with(None, True)
 
 
 class TestUpdateUserAccess:

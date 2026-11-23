@@ -2,10 +2,10 @@ import React from "react";
 import UsersTableRow from "./TableRow";
 import { LinearProgress, Stack, TableBody, TableRow } from "@mui/material";
 import { CentreTableCell } from "@/components/Shared/CentreTable";
-import { CentreUser } from "@/models/CentreUser";
+import { CentreUserListItem } from "@/models/CentreUser";
 
 type TableBodyProps = {
-  users: Array<CentreUser>;
+  users: Array<CentreUserListItem>;
   isLoading: boolean;
   isError: boolean;
   rowsPerPage: number;

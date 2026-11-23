@@ -53,14 +53,25 @@ class UserService:
         return cls._enrich_user_with_apps(user, current_user)
 
     @classmethod
-    def get_users(cls, search_text: str = None, include_groups: bool = True):
-        """Retrieve users and enrich them with application access information."""
+    def get_users(cls, search_text: str = None, include_groups: bool = False):
+        """Return IDIR users with the list's fields; groups are slow in EPIC.auth, so only with include_groups."""
         current_user = AuthApiService.get_user_by_username(TokenInfo.get_username())
         if not AuthApiService.is_admin(current_user):
             raise PermissionError('User does not have permission to list users.')
 
         users = AuthApiService.get_users(search_text, include_groups)
-        return [cls._enrich_user_with_apps(user, current_user) for user in users]
+        items = []
+        for user in users:
+            if not str(user.get('username', '')).casefold().endswith('@idir'):
+                continue
+            item = {key: user.get(key) for key in ('id', 'first_name', 'last_name', 'username')}
+            if include_groups:
+                apps = cls._enrich_user_with_apps(user, current_user)['apps']
+                item['apps'] = [{'name': app['name'], 'group_path': app['group_path']}
+                                for app in apps if app['group_path']]
+                item['group_paths'] = [group.get('path') for group in user.get('groups', [])]
+            items.append(item)
+        return items
 
     @staticmethod
     def _enrich_user_with_apps(user, current_user=None):

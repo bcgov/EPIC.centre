@@ -20,6 +20,7 @@ import {
   dropdownLabelSx,
 } from "@/components/Shared/filterDropdownStyles";
 import { useGetUsers } from "@/hooks/api/useUsers";
+import { CentreUserListItem } from "@/models/CentreUser";
 import { ALL_USERS_FILTER_APP_NAMES } from "@/models/EpicApp";
 import { getAppChipTitle } from "../utils";
 import { useGeteApplicationAccessLevels } from "@/hooks/api/useApplications";
@@ -30,10 +31,21 @@ const DROPDOWN_MIN_WIDTH = 250;
 
 const ALL_VALUE = "";
 
+const MIN_AUTO_SEARCH_LENGTH = 3;
+
 /** Normalize group path for comparison (Keycloak may return paths with leading/trailing slashes or different casing). */
 function normalizeGroupPath(path: string | null | undefined): string {
   if (path == null || path === "") return "";
   return path.replace(/(^(?:\/)+)|((?:\/)+$)/g, "").toUpperCase();
+}
+
+/** search must already be lowercase. */
+function matchesSearch(user: CentreUserListItem, search: string): boolean {
+  const first = user.first_name ?? "";
+  const last = user.last_name ?? "";
+  return [first, last, `${first} ${last}`, `${last}, ${first}`, user.username].some(
+    (value) => value.toLowerCase().includes(search),
+  );
 }
 
 export const AllUsers = () => {
@@ -43,12 +55,13 @@ export const AllUsers = () => {
   const [selectedAccessLevelGroupPath, setSelectedAccessLevelGroupPath] =
     useState<string>(ALL_VALUE);
 
-  const [queryParams, setQueryParams] = useState<{ search?: string }>({});
+  const [search, setSearch] = useState("");
+  // Groups are slow in EPIC.auth, so only fetch them to filter by app
   const {
     data: users = [],
     isLoading,
     isError,
-  } = useGetUsers(queryParams);
+  } = useGetUsers({ include_groups: !!selectedAppName });
 
   const { data: rawAccessLevels = [] } = useGeteApplicationAccessLevels({
     appName: selectedAppName,
@@ -69,55 +82,46 @@ export const AllUsers = () => {
     }
   }, [selectedAppName, accessLevels]);
 
-  // When the selected app has only one access level, default to it (e.g. Cond. Repo. → Admin)
-  useEffect(() => {
-    if (!selectedAppName) {
-      return;
-    }
-    if (accessLevels.length === 1) {
-      setSelectedAccessLevelGroupPath(accessLevels[0].group_path);
-    }
-  }, [selectedAppName, accessLevels]);
-
+  // Search and filters run on the loaded list, so searching makes no request
   const filteredUsers = useMemo(() => {
-    let result = users.filter((user) => user.username.includes("@idir"));
-
-    if (selectedAppName) {
-      const normalizedSelectedPath = selectedAccessLevelGroupPath
-        ? normalizeGroupPath(selectedAccessLevelGroupPath)
-        : null;
-      result = result.filter((user) => {
-        const hasAppAccess = user.apps?.some(
-          (app) => app.name === selectedAppName && normalizeGroupPath(app.group_path),
-        );
-        if (!hasAppAccess) return false;
-        if (normalizedSelectedPath) {
-          return user.groups?.some(
-            (g) => normalizeGroupPath(g.path) === normalizedSelectedPath,
-          ) ?? false;
-        }
+    const normalizedSearch = search.trim().toLowerCase();
+    const normalizedSelectedPath = selectedAccessLevelGroupPath
+      ? normalizeGroupPath(selectedAccessLevelGroupPath)
+      : null;
+    return users.filter((user) => {
+      if (normalizedSearch && !matchesSearch(user, normalizedSearch)) {
+        return false;
+      }
+      if (!selectedAppName) {
         return true;
-      });
-    }
+      }
+      const hasAppAccess = user.apps?.some((app) => app.name === selectedAppName);
+      if (!hasAppAccess) return false;
+      if (normalizedSelectedPath) {
+        return (
+          user.group_paths?.some(
+            (path) => normalizeGroupPath(path) === normalizedSelectedPath,
+          ) ?? false
+        );
+      }
+      return true;
+    });
+  }, [users, search, selectedAppName, selectedAccessLevelGroupPath]);
 
-    return result;
-  }, [users, selectedAppName, selectedAccessLevelGroupPath]);
-
+  // Enter or the button still searches shorter names, e.g. "Li"
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchText(event.target.value);
+    const value = event.target.value;
+    setSearchText(value);
+    setSearch(value.trim().length >= MIN_AUTO_SEARCH_LENGTH ? value : "");
   };
 
   const handleSearchTrigger = () => {
-    setQueryParams({ search: searchText });
-    setSelectedAppName(ALL_VALUE);
-    setSelectedAccessLevelGroupPath(ALL_VALUE);
+    setSearch(searchText);
   };
 
   const handleClearSearch = () => {
     setSearchText("");
-    setQueryParams({ search: "" });
-    setSelectedAppName(ALL_VALUE);
-    setSelectedAccessLevelGroupPath(ALL_VALUE);
+    setSearch("");
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -246,7 +250,7 @@ export const AllUsers = () => {
           users={filteredUsers}
           isLoading={isLoading}
           isError={isError}
-          searchText={queryParams.search || ""}
+          searchText={search}
         />
       </Grid>
     </Grid>
