@@ -11,6 +11,9 @@ import { LoadingButton } from "@/components/Shared/LoadingButton";
 import { useState } from "react";
 import { useAuth } from "react-oidc-context";
 import { useCurrentUser } from "@/contexts/UserContext";
+import { LoadError } from "@/components/Shared/LoadError";
+import { notify } from "@/components/Shared/Snackbar/snackbarStore";
+import { getErrorMessage } from "@/utils/errorUtils";
 
 export const UserAccess = () => {
   const auth = useAuth();
@@ -21,6 +24,8 @@ export const UserAccess = () => {
   const {
     data: user,
     isPending,
+    isError,
+    error: loadError,
     refetch: refetchUser,
   } = useGetUser({
     username: String(username),
@@ -38,17 +43,41 @@ export const UserAccess = () => {
     if (!user) return;
 
     setIsUpdating(true);
-    await updateUser({
-      username: user.username,
-      enabled: enable,
-    });
-
-    await refetchUser();
-    setIsUpdating(false);
+    try {
+      await updateUser({
+        username: user.username,
+        enabled: enable,
+      });
+      await refetchUser();
+      notify.success(
+        enable ? "User enabled successfully." : "User disabled successfully.",
+      );
+    } catch (error) {
+      notify.error(
+        getErrorMessage(
+          error,
+          `Unable to ${enable ? "enable" : "disable"} this user. Please try again.`,
+        ),
+      );
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   if (isPending) {
     return <UserAccessSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <LoadError
+        message={getErrorMessage(
+          loadError,
+          "Unable to load this user. Please try again.",
+        )}
+        onRetry={refetchUser}
+      />
+    );
   }
 
   const canManageUserStatus = isDstAdmin && !isSelf;

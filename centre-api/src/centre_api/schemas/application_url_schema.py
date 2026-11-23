@@ -43,7 +43,7 @@ class ApplicationUrlUpdateSchema(Schema):
     )
     ssl_expiry = fields.DateTime(allow_none=True)
     ssl_error_message = fields.Str(dump_only=True)
-    ticket_reference = fields.Str(allow_none=True)
+    ticket_reference = fields.Str(validate=validate.Length(max=50), allow_none=True)
     renewal_status = fields.Str(
         validate=validate.OneOf(['NONE', 'TICKET_CREATED', 'ORDERED', 'PLANNED']),
         allow_none=True

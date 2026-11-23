@@ -1,4 +1,5 @@
 import { PageLoader } from "@/components/PageLoader";
+import { LoadError } from "@/components/Shared/LoadError";
 import { PageContainer } from "@/components/Shared/PageGrid";
 import { useCurrentUser } from "@/contexts/UserContext";
 import { useGetApplicationUrls } from "@/hooks/api/useApplicationUrls";
@@ -271,7 +272,12 @@ const sortByExpiry = (urlsA: ApplicationUrl[], urlsB: ApplicationUrl[], order: S
 
 function ApplicationUrls() {
     const { canViewApplicationUrls, canManageApplicationUrls } = useCurrentUser();
-    const { data: urls = [], isPending } = useGetApplicationUrls(canViewApplicationUrls);
+    const {
+        data: urls = [],
+        isPending,
+        isError,
+        refetch,
+    } = useGetApplicationUrls(canViewApplicationUrls);
     const [editingUrl, setEditingUrl] = useState<ApplicationUrl | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [addModalAppName, setAddModalAppName] = useState("");
@@ -477,6 +483,15 @@ function ApplicationUrls() {
 
     if (isPending) {
         return <PageLoader />;
+    }
+
+    if (isError) {
+        return (
+            <LoadError
+                message="Unable to load application URLs. Please try again."
+                onRetry={refetch}
+            />
+        );
     }
 
     return (

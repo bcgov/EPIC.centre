@@ -103,7 +103,7 @@ class AccessRequestsService:
                 f"User does not have permission to update access requests for app '{app_name}'."
             )
         if access_request.status != AccessRequestsStatusEnum.PENDING:
-            raise ValueError(f'Access request {access_request_id} is not pending.')
+            raise ValueError('This access request has already been handled. Refresh to see its current status.')
 
         # Looked up before the transaction. EPIC.auth just found the caller, so a failure here means
         # the requester is gone from Keycloak: the request is still rejected, with no one to email.

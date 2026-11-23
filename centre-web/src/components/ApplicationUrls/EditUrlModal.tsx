@@ -14,6 +14,9 @@ import {
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { useState } from "react";
+import { notify } from "@/components/Shared/Snackbar/snackbarStore";
+import { getErrorMessage, setServerFieldErrors } from "@/utils/errorUtils";
+import { ticketReferenceRules, urlRules } from "./fieldRules";
 
 export function EditUrlModal({
     open,
@@ -28,7 +31,7 @@ export function EditUrlModal({
     const { mutate: deleteUrl, isPending: isDeleting } = useDeleteApplicationUrl();
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
-    const { control, handleSubmit } = useForm<ApplicationUrl>({
+    const { control, handleSubmit, setError } = useForm<ApplicationUrl>({
         defaultValues: {
             ...url,
             renewal_status: url.renewal_status || 'NONE',
@@ -38,18 +41,37 @@ export function EditUrlModal({
     });
 
     const onSubmit = (data: ApplicationUrl) => {
-        mutate(data, {
-            onSuccess: () => {
-                onClose();
+        mutate(
+            {
+                ...data,
+                url: data.url.trim(),
+                ticket_reference: data.ticket_reference?.trim() || null,
             },
-        });
+            {
+                onSuccess: () => {
+                    onClose();
+                },
+                onError: (error) => {
+                    // Only these fields show an error
+                    const shownOnFields = setServerFieldErrors(error, setError, ([field]) =>
+                        field === "url" || field === "ticket_reference" ? field : undefined,
+                    );
+                    if (!shownOnFields) {
+                        notify.error(getErrorMessage(error, "Unable to save the URL. Please try again."));
+                    }
+                },
+            },
+        );
     };
 
     const handleDelete = () => {
         deleteUrl(url.id, {
             onSuccess: () => {
                 onClose();
-            }
+            },
+            onError: (error) => {
+                notify.error(getErrorMessage(error, "Unable to delete the URL. Please try again."));
+            },
         });
     };
 
@@ -70,7 +92,7 @@ export function EditUrlModal({
                         <Controller
                             name="url"
                             control={control}
-                            rules={{ required: "URL is required" }}
+                            rules={{ required: "URL is required", ...urlRules }}
                             render={({ field, fieldState: { error } }) => (
                                 <TextField
                                     {...field}
@@ -84,13 +106,15 @@ export function EditUrlModal({
                         <Controller
                             name="ticket_reference"
                             control={control}
-                            render={({ field }) => (
+                            rules={ticketReferenceRules}
+                            render={({ field, fieldState: { error } }) => (
                                 <TextField
                                     {...field}
                                     label="SSL Renewal Ticket # (Optional)"
                                     placeholder="e.g. INFRA-1234"
                                     fullWidth
-                                    helperText="Reference for tracking external renewal work"
+                                    error={!!error}
+                                    helperText={error?.message || "Reference for tracking external renewal work"}
                                 />
                             )}
                         />

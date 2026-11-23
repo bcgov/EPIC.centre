@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { isAxiosError } from "axios";
 import { notify } from "@/components/Shared/Snackbar/snackbarStore";
 import { useRevokeUserAccess, useUpdateUserGroup } from "@/hooks/api/useUsers";
 import {
@@ -9,6 +8,7 @@ import {
 import { AccessRequestStatus } from "@/models/AccessRequest";
 import { EPIC_APP_TO_GROUP } from "@/models/KCGroup";
 import { ACTION_TYPES } from "./constants";
+import { getErrorMessage } from "@/utils/errorUtils";
 
 type AccessLevel = {
   name: string;
@@ -31,24 +31,10 @@ export const useAccessActions = ({
 }: UseAccessActionsProps) => {
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleError = (error: unknown) => {
-    const message = isAxiosError(error)
-      ? error.response?.data?.message || "Failed to update user access."
-      : "Failed to update user access.";
-    notify.error(message);
-  };
-
-  const { mutateAsync: updateUserGroup } = useUpdateUserGroup({
-    onError: handleError,
-  });
-
-  const { mutateAsync: revokeUserAccess } = useRevokeUserAccess({
-    onError: handleError,
-  });
-
-  const { mutateAsync: updateAccessRequest } = useUpdateAccessRequest({
-    onError: handleError,
-  });
+  // executeAction reports failures
+  const { mutateAsync: updateUserGroup } = useUpdateUserGroup();
+  const { mutateAsync: revokeUserAccess } = useRevokeUserAccess();
+  const { mutateAsync: updateAccessRequest } = useUpdateAccessRequest();
 
   const { refetch: refetchAccessRequests } = useUserAccessRequests({
     user_auth_guid: userId,
@@ -133,7 +119,9 @@ export const useAccessActions = ({
       onClose();
       return true;
     } catch (error) {
-      handleError(error);
+      notify.error(
+        getErrorMessage(error, "Unable to update user access. Please try again."),
+      );
       return false;
     } finally {
       setIsUpdating(false);

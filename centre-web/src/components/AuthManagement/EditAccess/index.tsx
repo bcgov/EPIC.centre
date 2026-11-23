@@ -15,6 +15,7 @@ import { modalStyle } from "@/components/Shared/Modals/constants";
 import { getAppChipTitle } from "../utils";
 import { Unless, When } from "react-if";
 import { LoadingButton } from "@/components/Shared/LoadingButton";
+import { LoadError } from "@/components/Shared/LoadError";
 import { EditAccessModalSkeleton } from "./EditAccessSkeleton";
 import { useGetUser } from "@/hooks/api/useUsers";
 import { AccessRequest } from "@/models/AccessRequest";
@@ -47,10 +48,14 @@ export const EditAccessModal = ({
 
   const { setClose } = useModal();
 
-  const { data: accessLevels = [], isLoading: accessLevelsLoading } =
-    useGeteApplicationAccessLevels({
-      appName: app.name,
-    });
+  const {
+    data: accessLevels = [],
+    isLoading: accessLevelsLoading,
+    isError: accessLevelsError,
+    refetch: refetchAccessLevels,
+  } = useGeteApplicationAccessLevels({
+    appName: app.name,
+  });
 
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   useEffect(() => {
@@ -161,6 +166,15 @@ export const EditAccessModal = ({
         </When>
 
         <Unless condition={accessLevelsLoading}>
+          {/* Revoke and deny still work without the levels */}
+          {accessLevelsError && (
+            <Grid item xs={12}>
+              <LoadError
+                message="Unable to load the access levels for this application."
+                onRetry={refetchAccessLevels}
+              />
+            </Grid>
+          )}
           <AccessLevelSelection
             appName={app.name}
             accessLevels={accessLevels}

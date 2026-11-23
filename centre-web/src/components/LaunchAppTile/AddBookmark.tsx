@@ -18,10 +18,15 @@ import { useModal } from "../Shared/Modals/modalStore";
 import { useUpdateBookmarks } from "@/hooks/api/useUserApplications";
 import { LoadingButton } from "../Shared/LoadingButton";
 import { useGetApplications } from "@/hooks/api/useApplications";
-import { isAxiosError } from "axios";
 import { notify } from "../Shared/Snackbar/snackbarStore";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { BCDesignTokens } from "epic.theme";
+import { MAX_LENGTH } from "@/utils/constants";
+import {
+  getErrorMessage,
+  setServerFieldErrors,
+  tooLongMessage,
+} from "@/utils/errorUtils";
 
 const bookmarkSchema = yup.object().shape({
   bookmarks: yup
@@ -37,8 +42,18 @@ const bookmarkSchema = yup.object().shape({
               message: "URL must start with http:// or https://",
               excludeEmptyString: true,
             })
+            .max(
+              MAX_LENGTH.BOOKMARK_URL,
+              tooLongMessage("URL", MAX_LENGTH.BOOKMARK_URL),
+            )
             .nullable(),
-          label: yup.string().nullable(),
+          label: yup
+            .string()
+            .max(
+              MAX_LENGTH.BOOKMARK_LABEL,
+              tooLongMessage("Link name", MAX_LENGTH.BOOKMARK_LABEL),
+            )
+            .nullable(),
         })
         .test(
           "url-label-required",
@@ -89,10 +104,11 @@ const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
 
   const {
     handleSubmit,
+    setError,
     formState: { errors },
   } = methods;
 
-  const { mutateAsync: updateBookmarks, isError } = useUpdateBookmarks();
+  const { mutateAsync: updateBookmarks } = useUpdateBookmarks();
   const { refetch } = useGetApplications();
 
   const onSubmit = async (data: BookmarkSchema) => {
@@ -105,19 +121,24 @@ const BookmarkForm = ({ epicApp }: BookmarkFormProps) => {
       await refetch();
 
       notify.success("Bookmarks updated successfully");
+      setModalClose();
     } catch (error) {
-      const defaultMessage = "Failed to update bookmarks";
-      if (isError) {
-        notify.error(defaultMessage);
-      } else if (isAxiosError(error)) {
-        const errorMessage = error.response?.data?.message || defaultMessage;
-        notify.error(errorMessage);
-      } else {
-        notify.error(defaultMessage);
+      // Stay open so nothing typed is lost
+      const shownOnFields = setServerFieldErrors(
+        error,
+        setError,
+        ([index, field]) =>
+          field === "url" || field === "label"
+            ? (`bookmarks.${Number(index)}.${field}` as const)
+            : undefined,
+      );
+      if (!shownOnFields) {
+        notify.error(
+          getErrorMessage(error, "Unable to save your bookmarks. Please try again."),
+        );
       }
     } finally {
       setIsPending(false);
-      setModalClose();
     }
   };
 
