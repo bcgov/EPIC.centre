@@ -7,6 +7,15 @@ export type CentreUserApp = {
   supportsGranularRoleManagement?: boolean;
   group_path: string | null;
 };
+// apps and group_paths only come with include_groups
+export type CentreUserListItem = {
+  id: string;
+  username: string;
+  first_name: string | null;
+  last_name: string | null;
+  apps?: { name: string; group_path: string }[];
+  group_paths?: string[];
+};
 export type CentreUser = {
   id: string;
   first_name: string;

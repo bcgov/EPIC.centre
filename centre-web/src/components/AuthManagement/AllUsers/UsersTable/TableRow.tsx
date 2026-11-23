@@ -1,11 +1,11 @@
 import { CentreLink } from "@/components/Shared/CentreLink";
 import { CentreTableCell } from "@/components/Shared/CentreTable";
-import { CentreUser } from "@/models/CentreUser";
+import { CentreUserListItem } from "@/models/CentreUser";
 import { TableRow } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
 
 type Props = {
-  readonly user: CentreUser;
+  readonly user: CentreUserListItem;
 };
 export default function UsersTableRow({ user }: Props) {
   const navigate = useNavigate();

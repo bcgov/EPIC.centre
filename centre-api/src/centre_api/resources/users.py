@@ -22,7 +22,7 @@ from centre_api.auth import auth
 from centre_api.extensions import SEARCH_LIMIT, WRITE_LIMIT, limiter
 from centre_api.resources.apihelper import Api as ApiHelper
 from centre_api.resources.apihelper import json_body
-from centre_api.schemas.user import UserSchema
+from centre_api.schemas.user import UserListItemSchema, UserSchema
 from centre_api.services.user_service import UserService
 
 
@@ -36,15 +36,15 @@ class Users(Resource):
     """Resource for fetching users."""
 
     @staticmethod
-    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch all users')
+    @ApiHelper.swagger_decorators(API, endpoint_description='Fetch IDIR users for the user list')
     @auth.require
     @limiter.limit(SEARCH_LIMIT)
     def get():
-        """Fetch all users."""
+        """Fetch IDIR users; include_groups=true adds what the filters need."""
         search_text = request.args.get('search', None)
-        include_groups = request.args.get('include_groups', 'true').lower() == 'true'
+        include_groups = request.args.get('include_groups', 'false').lower() == 'true'
         users = UserService.get_users(search_text, include_groups)
-        return UserSchema(many=True).dump(users), HTTPStatus.OK
+        return UserListItemSchema(many=True).dump(users), HTTPStatus.OK
 
 
 @API.route('/username/<username>', methods=['GET', 'PATCH'])

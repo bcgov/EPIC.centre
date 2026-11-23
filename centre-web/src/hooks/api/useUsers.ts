@@ -5,15 +5,15 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import { QUERY_KEY } from "./constants";
-import { CentreUser } from "@/models/CentreUser";
+import { CentreUser, CentreUserListItem } from "@/models/CentreUser";
 import { QueryRequestParams } from "./types";
 
 type GetUsersParams = {
   search?: string;
   include_groups?: boolean;
-} & QueryRequestParams<CentreUser>;
+};
 const getUsers = (params: GetUsersParams) => {
-  return centreRequest<CentreUser[]>({
+  return centreRequest<CentreUserListItem[]>({
     url: `users`,
     params,
   });

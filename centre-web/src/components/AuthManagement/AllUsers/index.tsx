@@ -44,11 +44,12 @@ export const AllUsers = () => {
     useState<string>(ALL_VALUE);
 
   const [queryParams, setQueryParams] = useState<{ search?: string }>({});
+  // Groups are slow in EPIC.auth, so only fetch them to filter by app
   const {
     data: users = [],
     isLoading,
     isError,
-  } = useGetUsers(queryParams);
+  } = useGetUsers({ ...queryParams, include_groups: !!selectedAppName });
 
   const { data: rawAccessLevels = [] } = useGeteApplicationAccessLevels({
     appName: selectedAppName,
@@ -69,38 +70,26 @@ export const AllUsers = () => {
     }
   }, [selectedAppName, accessLevels]);
 
-  // When the selected app has only one access level, default to it (e.g. Cond. Repo. → Admin)
-  useEffect(() => {
-    if (!selectedAppName) {
-      return;
-    }
-    if (accessLevels.length === 1) {
-      setSelectedAccessLevelGroupPath(accessLevels[0].group_path);
-    }
-  }, [selectedAppName, accessLevels]);
-
+  // The API already drops non-IDIR users
   const filteredUsers = useMemo(() => {
-    let result = users.filter((user) => user.username.includes("@idir"));
-
-    if (selectedAppName) {
-      const normalizedSelectedPath = selectedAccessLevelGroupPath
-        ? normalizeGroupPath(selectedAccessLevelGroupPath)
-        : null;
-      result = result.filter((user) => {
-        const hasAppAccess = user.apps?.some(
-          (app) => app.name === selectedAppName && normalizeGroupPath(app.group_path),
-        );
-        if (!hasAppAccess) return false;
-        if (normalizedSelectedPath) {
-          return user.groups?.some(
-            (g) => normalizeGroupPath(g.path) === normalizedSelectedPath,
-          ) ?? false;
-        }
-        return true;
-      });
+    if (!selectedAppName) {
+      return users;
     }
-
-    return result;
+    const normalizedSelectedPath = selectedAccessLevelGroupPath
+      ? normalizeGroupPath(selectedAccessLevelGroupPath)
+      : null;
+    return users.filter((user) => {
+      const hasAppAccess = user.apps?.some((app) => app.name === selectedAppName);
+      if (!hasAppAccess) return false;
+      if (normalizedSelectedPath) {
+        return (
+          user.group_paths?.some(
+            (path) => normalizeGroupPath(path) === normalizedSelectedPath,
+          ) ?? false
+        );
+      }
+      return true;
+    });
   }, [users, selectedAppName, selectedAccessLevelGroupPath]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
