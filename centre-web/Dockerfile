@@ -24,7 +24,8 @@ RUN npm run build
 
 # Stage 1, based on Nginx, to have only the compiled app, ready for production with Nginx.
 # The unprivileged image runs as a non-root user and supports OpenShift's arbitrary UIDs.
-FROM nginxinc/nginx-unprivileged:1.30-alpine AS production-stage
+# Moved from nginxinc/ to nginx/ in Oct 2026; nginxinc/ stopped at 1.30.6.
+FROM nginx/nginx-unprivileged:1.30.7-alpine AS production-stage
 
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
