@@ -1,4 +1,4 @@
-import { ApplicationUrl } from "@/models/ApplicationUrl";
+import { ApplicationUrl, RenewalStatus } from "@/models/ApplicationUrl";
 import { useUpdateApplicationUrl, useDeleteApplicationUrl } from "@/hooks/api/useApplicationUrls";
 import {
     Button,
@@ -18,6 +18,13 @@ import { notify } from "@/components/Shared/Snackbar/snackbarStore";
 import { getErrorMessage, setServerFieldErrors } from "@/utils/errorUtils";
 import { ticketReferenceRules, urlRules } from "./fieldRules";
 
+type EditUrlForm = {
+    url: string;
+    ticket_reference: string;
+    renewal_status: Exclude<RenewalStatus, null>;
+    renewal_comments: string;
+};
+
 export function EditUrlModal({
     open,
     onClose,
@@ -31,21 +38,26 @@ export function EditUrlModal({
     const { mutate: deleteUrl, isPending: isDeleting } = useDeleteApplicationUrl();
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
-    const { control, handleSubmit, setError } = useForm<ApplicationUrl>({
+    const isBusy = isPending || isDeleting;
+
+    const { control, handleSubmit, setError } = useForm<EditUrlForm>({
         defaultValues: {
-            ...url,
+            url: url.url,
             renewal_status: url.renewal_status || 'NONE',
             renewal_comments: url.renewal_comments || '',
             ticket_reference: url.ticket_reference || ''
         },
     });
 
-    const onSubmit = (data: ApplicationUrl) => {
+    // Only the editable fields, so a save can't overwrite the SSL details
+    const onSubmit = (data: EditUrlForm) => {
         mutate(
             {
-                ...data,
+                id: url.id,
                 url: data.url.trim(),
-                ticket_reference: data.ticket_reference?.trim() || null,
+                ticket_reference: data.ticket_reference.trim() || null,
+                renewal_status: data.renewal_status,
+                renewal_comments: data.renewal_comments.trim() || null,
             },
             {
                 onSuccess: () => {
@@ -75,8 +87,9 @@ export function EditUrlModal({
         });
     };
 
+    // Stay open while saving: closing unmounts the modal, and the error of a failed save would be lost
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+        <Dialog open={open} onClose={isBusy ? undefined : onClose} fullWidth maxWidth="sm">
             <DialogTitle>Edit URL</DialogTitle>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <DialogContent>
@@ -158,7 +171,7 @@ export function EditUrlModal({
                             color="error"
                             variant="text"
                             onClick={() => setIsConfirmingDelete(true)}
-                            disabled={isPending || isDeleting}
+                            disabled={isBusy}
                         >
                             Delete
                         </Button>
@@ -171,7 +184,7 @@ export function EditUrlModal({
                                 color="inherit"
                                 size="small"
                                 onClick={() => setIsConfirmingDelete(false)}
-                                disabled={isPending || isDeleting}
+                                disabled={isBusy}
                             >
                                 Cancel
                             </Button>
@@ -180,7 +193,7 @@ export function EditUrlModal({
                                 variant="contained"
                                 size="small"
                                 onClick={handleDelete}
-                                disabled={isPending || isDeleting}
+                                disabled={isBusy}
                             >
                                 Confirm
                             </Button>
@@ -188,10 +201,10 @@ export function EditUrlModal({
                     )}
 
                     <Box>
-                        <Button onClick={onClose} disabled={isPending || isDeleting} sx={{ mr: 1 }}>
+                        <Button onClick={onClose} disabled={isBusy} sx={{ mr: 1 }}>
                             Cancel
                         </Button>
-                        <Button type="submit" variant="contained" disabled={isPending || isDeleting}>
+                        <Button type="submit" variant="contained" disabled={isBusy}>
                             Save
                         </Button>
                     </Box>
