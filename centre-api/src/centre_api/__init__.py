@@ -83,6 +83,10 @@ def create_app(run_mode=os.getenv('FLASK_ENV', 'production')):
     # Marshmallow initialize
     ma.init_app(app)
 
+    # CLI commands (flask ssl run)
+    from centre_api.commands import ssl_cli  # pylint: disable=import-outside-toplevel
+    app.cli.add_command(ssl_cli)
+
     @app.before_request
     def set_origin():
         g.origin_url = request.environ.get('HTTP_ORIGIN', 'localhost')

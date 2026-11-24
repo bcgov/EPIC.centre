@@ -99,3 +99,24 @@ epicAppClients:
   epicSubmit: epic-submit
   epicEngage: epic-engage
   epicCentre: epic-centre
+# Daily SSL check and renewal notices (templates/cronjob-ssl-check.yaml)
+sslCheck:
+  enabled: true
+  # UTC: 7am PST, 8am PDT
+  schedule: "0 15 * * *"
+  # Comma-separated. Empty sends nothing; set it in prod only.
+  recipients: ""
+  # e.g. "[TEST] " if test ever sends to a test inbox
+  subjectPrefix: ""
+  # Eagle Notify's POST /api/messages URL for this environment
+  eagleNotifyEndpoint: ""
+  # Secrets the job loads whole; must include KEYCLOAK_SERVICE_ACCOUNT_ID/SECRET
+  envFromSecrets:
+    - centre-api
+  resources:
+    cpu:
+      limit: 100m
+      request: 25m
+    memory:
+      limit: 256Mi
+      request: 128Mi

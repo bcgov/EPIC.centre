@@ -14,9 +14,12 @@
 
 """This exports all of the models and schemas used by the application."""
 
+from .application_url import ApplicationUrl
 from .applications import Application
 from .db import db, ma, migrate
 from .eao_analytics import EaoAnalytics
 from .email_queue import EmailQueue
+from .ssl_certificate import SslCertificate, SslCertificateStatus
+from .ssl_notification import SslNotification
 from .user_applications import UserApplication
 from .user_settings import UserSettings

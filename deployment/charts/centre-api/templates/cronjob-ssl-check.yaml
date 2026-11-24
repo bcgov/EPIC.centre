@@ -1,0 +1,69 @@
+{{- if .Values.sslCheck.enabled }}
+# Daily `flask ssl run` in the API's image, so code and schema match the API after a promotion
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{ .Chart.Name }}-ssl-check"
+  labels:
+    app: "{{ .Chart.Name }}-ssl-check"
+spec:
+  schedule: {{ .Values.sslCheck.schedule | quote }}
+  concurrencyPolicy: Forbid
+  # Still run if the cluster was busy at the scheduled time
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      # One retry for a passing Eagle Notify error; sent notices aren't resent
+      backoffLimit: 1
+      activeDeadlineSeconds: 900
+      template:
+        metadata:
+          # Not the API's label: its Service would send requests to this pod
+          labels:
+            app: "{{ .Chart.Name }}-ssl-check"
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: ssl-check
+              image: "{{ tpl .Values.image.repository . }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              workingDir: /opt/app-root
+              command: ["flask", "ssl", "run"]
+              # The API's settings, including the Keycloak service account
+              envFrom:
+                - configMapRef:
+                    name: "{{ .Chart.Name }}"
+                {{- range .Values.sslCheck.envFromSecrets }}
+                - secretRef:
+                    name: {{ . | quote }}
+                {{- end }}
+              env:
+                - name: DATABASE_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.database.secret }}
+                      key: app-db-username
+                - name: DATABASE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.database.secret }}
+                      key: app-db-password
+                - name: DATABASE_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.database.secret }}
+                      key: app-db-name
+                - name: DATABASE_HOST
+                  value: {{ .Values.database.service.name }}
+                - name: DATABASE_PORT
+                  value: "{{ .Values.database.service.port }}"
+              resources:
+                limits:
+                  cpu: {{ .Values.sslCheck.resources.cpu.limit }}
+                  memory: {{ .Values.sslCheck.resources.memory.limit }}
+                requests:
+                  cpu: {{ .Values.sslCheck.resources.cpu.request }}
+                  memory: {{ .Values.sslCheck.resources.memory.request }}
+{{- end }}

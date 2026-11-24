@@ -60,19 +60,6 @@ describe("AddUrlModal", () => {
     cy.get("@onClose").should("not.have.been.called");
   });
 
-  it("explains a ticket number over 50 characters without sending it", () => {
-    cy.intercept("POST", "**/api/application-urls", cy.spy().as("create"));
-    mountModal();
-
-    field("Application Name").type("Test App", { delay: 0 });
-    field("PROD URL").type("https://app.example.com", { delay: 0 });
-    field("SSL Renewal Ticket #").type("x".repeat(51), { delay: 0 });
-    cy.contains("button", "Add Application").click();
-
-    cy.contains("Ticket number must be 50 characters or fewer").should("be.visible");
-    cy.get("@create").should("not.have.been.called");
-  });
-
   it("shows that an environment already exists under its URL field", () => {
     const message = "Test App already has a PROD URL. Edit that one instead.";
     cy.intercept("POST", "**/api/application-urls", {

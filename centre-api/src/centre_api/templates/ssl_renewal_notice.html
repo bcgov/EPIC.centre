@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SSL certificate renewal</title>
+</head>
+<body style="margin:0; padding:0; background:#f1f5f9; font-family:Arial, Helvetica, sans-serif; color:#0f172a;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background:#ffffff; border:1px solid #e2e8f0; border-radius:8px;">
+          <tr>
+            <td style="padding:24px 24px 8px 24px;">
+              <h1 style="margin:0 0 8px 0; font-size:20px; line-height:28px;">
+                {% if items|length == 1 %}An SSL certificate needs renewal attention{% else %}{{ items|length }} SSL certificates need renewal attention{% endif %}
+              </h1>
+              <p style="margin:0; font-size:14px; line-height:20px; color:#475569;">
+                EPIC.centre checks every application URL's certificate daily. {% if items|length == 1 %}Renew it before it expires{% else %}Renew these before they expire{% endif %}, or the applications listed will show a security warning and stop loading.
+              </p>
+            </td>
+          </tr>
+          {% for item in items %}
+          <tr>
+            <td style="padding:16px 24px 0 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0; border-left:4px solid {% if item.rank[0] < 2 or item.rank[1] <= 7 %}#b91c1c{% else %}#c2410c{% endif %}; border-radius:6px;">
+                <tr>
+                  <td style="padding:12px 16px;">
+                    <p style="margin:0 0 4px 0; font-size:16px; line-height:22px; font-weight:bold;">{{ item.host }} {{ item.headline }}</p>
+                    {% if item.expires_on %}
+                    <p style="margin:0 0 4px 0; font-size:14px; line-height:20px;">Expiry date: {{ item.expires_on }}</p>
+                    {% endif %}
+                    {% if item.check_error %}
+                    <p style="margin:0 0 4px 0; font-size:14px; line-height:20px;">Last check: {{ item.check_error }}</p>
+                    {% endif %}
+                    <p style="margin:0 0 4px 0; font-size:14px; line-height:20px;">Used by: {{ item.apps|join(', ') }}</p>
+                    <p style="margin:0; font-size:14px; line-height:20px; color:#475569;">
+                      Renewal: {{ item.renewal }}{% if item.ticket_reference %} (ticket {{ item.ticket_reference }}){% endif %}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td style="padding:24px;">
+              <p style="margin:0 0 16px 0; font-size:14px; line-height:20px;">
+                Record the ticket and renewal progress on the certificate in EPIC.centre, so the next reminder shows where it stands.
+              </p>
+              <a href="{{ page_url }}" style="display:inline-block; padding:10px 18px; background:#1d4ed8; color:#ffffff; text-decoration:none; border-radius:6px; font-size:14px; font-weight:bold;">Open Application URLs &amp; SSL</a>
+            </td>
+          </tr>
+        </table>
+        <p style="margin:12px 0 0 0; font-size:12px; line-height:16px; color:#64748b;">
+          Sent by EPIC.centre. Each reminder goes out once as a certificate comes within {{ notice_days }} days of expiry.
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

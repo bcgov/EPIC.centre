@@ -2,7 +2,7 @@ import { PageLoader } from "@/components/PageLoader";
 import { LoadError } from "@/components/Shared/LoadError";
 import { PageContainer } from "@/components/Shared/PageGrid";
 import { useCurrentUser } from "@/contexts/UserContext";
-import { useGetApplicationUrls } from "@/hooks/api/useApplicationUrls";
+import { useGetApplicationUrls, useGetSslCertificates } from "@/hooks/api/useApplicationUrls";
 import { ApplicationUrl } from "@/models/ApplicationUrl";
 import { Edit, Sort as SortIcon, ArrowUpward, ArrowDownward } from "@mui/icons-material";
 import {
@@ -26,6 +26,7 @@ import {
     Checkbox,
     FormControlLabel,
     FormGroup,
+    Alert,
 } from "@mui/material";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
@@ -35,9 +36,12 @@ import { CopyToClipboardButton } from "@/components/ApplicationUrls/CopyToClipbo
 import { SSLStatusChip } from "@/components/ApplicationUrls/SSLStatusChip";
 import { AddUrlModal } from "@/components/ApplicationUrls/AddUrlModal";
 import { EditUrlModal } from "@/components/ApplicationUrls/EditUrlModal";
-import { getExpiryInfo } from "@/components/ApplicationUrls/sslUtils";
+import { CertificateRenewalModal } from "@/components/ApplicationUrls/CertificateRenewalModal";
+import { RenewalChip } from "@/components/ApplicationUrls/RenewalChip";
+import { describeLastChecked, getExpiryInfo } from "@/components/ApplicationUrls/sslUtils";
 import {
     buildCertificateIndex,
+    describeStaleness,
     CertificateGroup,
     getEnvOrder,
     getManagedCertificates,
@@ -48,10 +52,6 @@ import {
     Add,
     Search,
     Close,
-    ConfirmationNumber,
-    ShoppingCart,
-    Event,
-    Help,
     Apps,
     WarningAmber,
     ErrorOutline,
@@ -92,7 +92,7 @@ const getExpirySummaryLabel = (expiryDate: string | null): string => {
 const buildCertificateGroupTooltip = (group: CertificateGroup, inherited: boolean) => (
     <Box sx={{ maxWidth: 320 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-            {group.host}
+            {group.certificate.host}
         </Typography>
         <Typography variant="body2" sx={{ mt: 0.5 }}>
             {inherited
@@ -158,13 +158,13 @@ const sharedTooltipSlotProps = {
 
 function ApplicationUrls() {
     const { canViewApplicationUrls, canManageApplicationUrls } = useCurrentUser();
-    const {
-        data: urls = [],
-        isPending,
-        isError,
-        refetch,
-    } = useGetApplicationUrls(canViewApplicationUrls);
+    const urlsQuery = useGetApplicationUrls(canViewApplicationUrls);
+    const certificatesQuery = useGetSslCertificates(canViewApplicationUrls);
+    const urls = useMemo(() => urlsQuery.data ?? [], [urlsQuery.data]);
+    const certificates = useMemo(() => certificatesQuery.data ?? [], [certificatesQuery.data]);
     const [editingUrl, setEditingUrl] = useState<ApplicationUrl | null>(null);
+    // An id, so the dialog shows the certificate as refreshed by Check Now
+    const [renewalCertificateId, setRenewalCertificateId] = useState<number | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [addModalAppName, setAddModalAppName] = useState("");
     const [viewMode, setViewMode] = useState<ViewMode>('applications');
@@ -174,7 +174,7 @@ function ApplicationUrls() {
 
     // Filtering State
     const [searchTerm, setSearchTerm] = useState("");
-    // Unchecked environments are false; missing ones count as checked, so new ones start checked
+    // Unchecked environments are false; missing ones count as checked
     const [selectedEnvs, setSelectedEnvs] = useState<Record<string, boolean>>({});
     const [showPlatformManaged, setShowPlatformManaged] = useState(true);
 
@@ -189,7 +189,10 @@ function ApplicationUrls() {
         );
     }, [urls]);
 
-    const { certificateGroups, rowMeta } = useMemo(() => buildCertificateIndex(urls), [urls]);
+    const { certificateGroups, rowMeta } = useMemo(
+        () => buildCertificateIndex(urls, certificates),
+        [urls, certificates],
+    );
 
     const handleEdit = (url: ApplicationUrl) => {
         setEditingUrl(url);
@@ -243,14 +246,17 @@ function ApplicationUrls() {
 
     const stats = useMemo(() => {
         const appCount = new Set(urls.map((url) => url.app_name)).size;
-        const expiringCount = certificateGroups.filter((group) => group.status === "Expiring Soon").length;
-        const errorCount = certificateGroups.filter((group) => group.status === "Error" || group.status === "Expired").length;
-        const managedCount = certificateGroups.filter((group) => group.isPlatformManaged || group.status === "Managed").length;
+        const statuses = certificateGroups.map((group) => group.certificate.status);
+        const expiringCount = statuses.filter((status) => status === "Expiring Soon").length;
+        const errorCount = statuses.filter((status) => status === "Error" || status === "Expired").length;
+        const managedCount = certificateGroups.filter((group) => group.certificate.is_platform_managed).length;
 
         return { appCount, expiringCount, errorCount, managedCount };
     }, [certificateGroups, urls]);
 
     const managedCertificates = useMemo(() => getManagedCertificates(certificateGroups), [certificateGroups]);
+    const staleness = useMemo(() => describeStaleness(certificates), [certificates]);
+    const renewalCertificate = certificates.find((certificate) => certificate.id === renewalCertificateId);
 
     const { sortedApps, visibleRowIds } = useMemo(() => {
         const term = searchTerm.trim().toLowerCase();
@@ -261,7 +267,7 @@ function ApplicationUrls() {
             if (term && !url.app_name.toLowerCase().includes(term) && !url.url.toLowerCase().includes(term)) {
                 return false;
             }
-            if (!showPlatformManaged && rowMeta.get(url.id)?.group.isPlatformManaged) {
+            if (!showPlatformManaged && rowMeta.get(url.id)?.group?.certificate.is_platform_managed) {
                 return false;
             }
             return true;
@@ -303,15 +309,18 @@ function ApplicationUrls() {
         return <Navigate to="/access-denied" />;
     }
 
-    if (isPending) {
+    if (urlsQuery.isPending || certificatesQuery.isPending) {
         return <PageLoader />;
     }
 
-    if (isError) {
+    if (urlsQuery.isError || certificatesQuery.isError) {
         return (
             <LoadError
                 message="Unable to load application URLs. Please try again."
-                onRetry={refetch}
+                onRetry={() => {
+                    urlsQuery.refetch();
+                    certificatesQuery.refetch();
+                }}
             />
         );
     }
@@ -438,6 +447,9 @@ function ApplicationUrls() {
                         <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5, color: '#0f172a' }}>{stats.managedCount}</Typography>
                     </Paper>
                 </Stack>
+                {staleness && (
+                    <Alert severity="warning" sx={{ mt: 2.5 }}>{staleness}</Alert>
+                )}
             </Paper>
 
             <Paper variant="outlined" sx={{ mb: 3, borderRadius: 4, overflow: "hidden", borderColor: "rgba(15,23,42,0.06)", boxShadow: "0 4px 20px -5px rgba(15,23,42,0.02)" }}>
@@ -508,7 +520,7 @@ function ApplicationUrls() {
                             <Stack spacing={1.25}>
                                 {managedCertificates.map((group) => (
                                     <Paper
-                                        key={`root-overview-${group.key}`}
+                                        key={`root-overview-${group.certificate.id}`}
                                         variant="outlined"
                                         sx={{
                                             p: 2,
@@ -528,7 +540,7 @@ function ApplicationUrls() {
                                             <Box sx={{ minWidth: 0 }}>
                                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
                                                     <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>
-                                                        {group.host}
+                                                        {group.certificate.host}
                                                     </Typography>
                                                     {group.rows.length > 1 && (
                                                         <Tooltip title={buildCertificateGroupTooltip(group, false)} slotProps={sharedTooltipSlotProps}>
@@ -546,13 +558,29 @@ function ApplicationUrls() {
                                                         </Tooltip>
                                                     )}
                                                 </Box>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    Covers {group.appCount} app{group.appCount === 1 ? "" : "s"} across {group.rows.length} route{group.rows.length === 1 ? "" : "s"}
+                                                <Typography variant="caption" color="text.secondary" component="div">
+                                                    Covers {group.appCount} app{group.appCount === 1 ? "" : "s"} across {group.rows.length} route{group.rows.length === 1 ? "" : "s"} · {describeLastChecked(group.certificate.last_checked)}
                                                 </Typography>
+                                                {group.certificate.check_error && (
+                                                    <Typography variant="caption" color="error.main" component="div">
+                                                        {group.certificate.check_error}
+                                                    </Typography>
+                                                )}
                                             </Box>
                                             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                                                <SSLStatusChip status={group.status} />
-                                                <ExpiryDisplay expiryDate={group.rootRow.ssl_expiry} url={group.rootRow.url} />
+                                                <SSLStatusChip status={group.certificate.status} />
+                                                <ExpiryDisplay expiryDate={group.certificate.expires_at} />
+                                                <RenewalChip certificate={group.certificate} />
+                                                {canManageApplicationUrls && (
+                                                    <Button
+                                                        size="small"
+                                                        variant="outlined"
+                                                        onClick={() => setRenewalCertificateId(group.certificate.id)}
+                                                        sx={{ textTransform: "none", borderRadius: 5, fontWeight: 700 }}
+                                                    >
+                                                        Renewal
+                                                    </Button>
+                                                )}
                                                 <Button
                                                     size="small"
                                                     variant="outlined"
@@ -821,10 +849,10 @@ function ApplicationUrls() {
                                                             <Box>
                                                                 {(() => {
                                                                     const { group, inherited } = rowMeta.get(url.id)!;
-                                                                    const isPlatformManaged = group.isPlatformManaged;
-                                                                    const sharedRouteCount = group.rows.length;
-                                                                    const sharedAppCount = group.appCount;
-                                                                    const tooltipTitle = buildCertificateGroupTooltip(group, inherited);
+                                                                    const isPlatformManaged = !!group?.certificate.is_platform_managed;
+                                                                    const sharedRouteCount = group?.rows.length ?? 1;
+                                                                    const sharedAppCount = group?.appCount ?? 1;
+                                                                    const tooltipTitle = group ? buildCertificateGroupTooltip(group, inherited) : "";
 
                                                                     return (
                                                                         <Box display="flex" flexDirection="column" gap={1}>
@@ -896,7 +924,16 @@ function ApplicationUrls() {
                                                             <Box>
                                                                 {(() => {
                                                                     const { group, inherited } = rowMeta.get(url.id)!;
-                                                                    const { rootRow, isPlatformManaged } = group;
+                                                                    if (!group) {
+                                                                        return (
+                                                                            <Tooltip title="Plain http has no certificate, so traffic to this URL isn't encrypted.">
+                                                                                <Chip size="small" label="Not HTTPS" color="warning" variant="outlined" sx={{ alignSelf: "flex-start", borderRadius: '6px' }} />
+                                                                            </Tooltip>
+                                                                        );
+                                                                    }
+                                                                    const { certificate, rootRow } = group;
+                                                                    const isPlatformManaged = certificate.is_platform_managed;
+                                                                    const ownsRenewal = !inherited && !isPlatformManaged;
 
                                                                     return (
                                                                         <Box display="flex" flexDirection="column" gap={0.75}>
@@ -917,10 +954,10 @@ function ApplicationUrls() {
                                                                                             alignSelf: "flex-start",
                                                                                         }}
                                                                                     >
-                                                                                        SSL Inherited from {rootRow.app_name} {rootRow.environment} ({group.host})
+                                                                                        SSL Inherited from {rootRow.app_name} {rootRow.environment} ({certificate.host})
                                                                                     </Button>
                                                                                     <Typography variant="caption" color="text.secondary">
-                                                                                        {getExpirySummaryLabel(rootRow.ssl_expiry)}. Refer to root host for renewal tracking.
+                                                                                        {getExpirySummaryLabel(certificate.expires_at)}. Refer to root host for renewal tracking.
                                                                                     </Typography>
                                                                                 </Box>
                                                                             ) : isPlatformManaged ? (
@@ -932,13 +969,13 @@ function ApplicationUrls() {
                                                                                     sx={{ alignSelf: "flex-start", borderRadius: '6px' }}
                                                                                 />
                                                                             ) : (
-                                                                                <ExpiryDisplay expiryDate={url.ssl_expiry} url={url.url} />
+                                                                                <ExpiryDisplay expiryDate={certificate.expires_at} />
                                                                             )}
                                                                             <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
                                                                                 {isPlatformManaged ? null : (
-                                                                                    <SSLStatusChip status={inherited ? `${rootRow.ssl_status || "Unknown"} (Inherited)` : url.ssl_status} />
+                                                                                    <SSLStatusChip status={inherited ? `${certificate.status} (Inherited)` : certificate.status} />
                                                                                 )}
-                                                                                {!inherited && group.rows.length > 1 && !isPlatformManaged && (
+                                                                                {ownsRenewal && group.rows.length > 1 && (
                                                                                     <Chip
                                                                                         size="small"
                                                                                         variant="outlined"
@@ -946,59 +983,16 @@ function ApplicationUrls() {
                                                                                         sx={{ height: 24, fontSize: '0.75rem' }}
                                                                                     />
                                                                                 )}
-                                                                                {(() => {
-                                                                                    const hasStatus = url.renewal_status && url.renewal_status !== 'NONE';
-                                                                                    const hasTicket = !!url.ticket_reference;
-                                                                                    const hasComments = !!url.renewal_comments;
-
-                                                                                    if (!hasStatus && !hasTicket && !hasComments) return null;
-
-                                                                                    let icon = <ConfirmationNumber fontSize="small" />;
-                                                                                    let color: "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" = "info";
-                                                                                    let label = "Ticket";
-
-                                                                                    if (hasStatus) {
-                                                                                        switch (url.renewal_status) {
-                                                                                            case 'ORDERED':
-                                                                                                icon = <ShoppingCart fontSize="small" />;
-                                                                                                color = "warning";
-                                                                                                label = "Ordered";
-                                                                                                break;
-                                                                                            case 'PLANNED':
-                                                                                                icon = <Event fontSize="small" />;
-                                                                                                color = "success";
-                                                                                                label = "Planned";
-                                                                                                break;
-                                                                                            case 'TICKET_CREATED':
-                                                                                            default:
-                                                                                                icon = <ConfirmationNumber fontSize="small" />;
-                                                                                                color = "info";
-                                                                                                label = "Ticket";
-                                                                                                break;
-                                                                                        }
-                                                                                    } else if (hasComments) {
-                                                                                        icon = <Help fontSize="small" />;
-                                                                                        color = "default";
-                                                                                        label = "Note";
-                                                                                    }
-
-                                                                                    if (hasTicket) {
-                                                                                        label = `${label}: ${url.ticket_reference}`;
-                                                                                    }
-
-                                                                                    return (
-                                                                                        <Tooltip title={url.renewal_comments || "No comments"}>
-                                                                                            <Chip
-                                                                                                icon={icon}
-                                                                                                label={label}
-                                                                                                size="small"
-                                                                                                variant="outlined"
-                                                                                                color={color}
-                                                                                                sx={{ height: 24, fontSize: '0.75rem' }}
-                                                                                            />
-                                                                                        </Tooltip>
-                                                                                    );
-                                                                                })()}
+                                                                                {ownsRenewal && <RenewalChip certificate={certificate} />}
+                                                                                {ownsRenewal && canManageApplicationUrls && (
+                                                                                    <Button
+                                                                                        size="small"
+                                                                                        onClick={() => setRenewalCertificateId(certificate.id)}
+                                                                                        sx={{ textTransform: "none", fontWeight: 700, minWidth: 0, px: 1 }}
+                                                                                    >
+                                                                                        Renewal
+                                                                                    </Button>
+                                                                                )}
                                                                             </Box>
                                                                         </Box>
                                                                     );
@@ -1036,6 +1030,13 @@ function ApplicationUrls() {
                     </>
                 )}
             </Paper>
+
+            {canManageApplicationUrls && renewalCertificate && (
+                <CertificateRenewalModal
+                    certificate={renewalCertificate}
+                    onClose={() => setRenewalCertificateId(null)}
+                />
+            )}
 
             {canManageApplicationUrls && editingUrl && (
                 <EditUrlModal open={!!editingUrl} onClose={handleClose} url={editingUrl} />

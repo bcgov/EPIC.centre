@@ -1,12 +1,13 @@
 """Application URL resources."""
-from urllib.parse import urlsplit
-
 from flask import g, request
 from flask_restx import Namespace, Resource
 from marshmallow import ValidationError
+from sqlalchemy.exc import IntegrityError
 
 from centre_api.auth import auth
+from centre_api.models import SslCertificate
 from centre_api.models.application_url import ApplicationUrl
+from centre_api.models.db import db
 from centre_api.schemas.application_url_schema import ApplicationUrlSchema, ApplicationUrlUpdateSchema
 
 
@@ -20,16 +21,15 @@ create_schema = ApplicationUrlSchema()
 update_schema = ApplicationUrlUpdateSchema()
 
 
-def _current_username():
+def current_username():
     """Return the caller's username for created_by/updated_by."""
     username = g.token_info.get('preferred_username') or g.token_info.get('username')
     return username[:50] if isinstance(username, str) else None
 
 
-def _origin(url):
-    """Return the scheme and host of a URL, which decide its certificate."""
-    parts = urlsplit(url)
-    return parts.scheme.lower(), parts.netloc.lower()
+def _duplicate_environment(app_name, environment):
+    message = f'{app_name} already has a {environment} URL. Edit that one instead.'
+    return {'message': message, 'errors': {'environment': [message]}}, 409
 
 
 @API.route('')
@@ -56,21 +56,22 @@ class ApplicationUrls(Resource):
         # Keep the existing spelling so the app's URLs stay in one group
         app_name = same_app[0].app_name if same_app else data['app_name']
         if any(row.environment.upper() == data['environment'] for row in same_app):
-            message = f"{app_name} already has a {data['environment']} URL. Edit that one instead."
-            return {'message': message, 'errors': {'environment': [message]}}, 409
+            return _duplicate_environment(app_name, data['environment'])
 
         new_url = ApplicationUrl(
             app_name=app_name,
             environment=data['environment'],
             url=data['url'],
-            ssl_status='Unknown',  # Default until checked
-            ticket_reference=data.get('ticket_reference'),
-            renewal_status=data.get('renewal_status') or 'NONE',
-            renewal_comments=data.get('renewal_comments'),
+            certificate=SslCertificate.find_or_create_for_url(data['url']),
             is_active=True,
-            created_by=_current_username(),
+            created_by=current_username(),
         )
-        new_url.save()
+        try:
+            new_url.save()
+        except IntegrityError:
+            # Another request added this environment since the check above
+            db.session.rollback()
+            return _duplicate_environment(app_name, data['environment'])
 
         return new_url.to_dict(), 201
 
@@ -82,24 +83,19 @@ class ApplicationUrlResource(Resource):
     @staticmethod
     @auth.require_any_role([EDIT_APP_URL_ROLE], client_names=[EPIC_CENTRE_CLIENT])
     def put(url_id):
-        """Update an existing application URL."""
+        """Change an application URL, moving it to its new host's certificate if the host changed."""
         app_url = ApplicationUrl.find_active_by_id(url_id)
         if not app_url:
             return {'message': 'URL not found'}, 404
 
         try:
-            data = update_schema.load(request.get_json(), partial=True)
+            data = update_schema.load(request.get_json())
         except ValidationError as err:
             return {'message': 'Validation failed', 'errors': err.messages}, 400
 
-        # A different host has a different certificate
-        if 'url' in data and _origin(data['url']) != _origin(app_url.url):
-            app_url.clear_certificate_details()
-
-        for key, value in data.items():
-            setattr(app_url, key, value)
-
-        app_url.updated_by = _current_username()
+        app_url.url = data['url']
+        app_url.certificate = SslCertificate.find_or_create_for_url(data['url'])
+        app_url.updated_by = current_username()
         app_url.save()
         return app_url.to_dict(), 200
 
@@ -112,6 +108,6 @@ class ApplicationUrlResource(Resource):
             return {'message': 'URL not found'}, 404
 
         app_url.is_active = False
-        app_url.updated_by = _current_username()
+        app_url.updated_by = current_username()
         app_url.save()
         return '', 204
