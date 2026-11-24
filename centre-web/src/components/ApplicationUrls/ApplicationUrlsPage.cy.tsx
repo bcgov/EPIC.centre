@@ -105,10 +105,30 @@ describe("Application URLs page", () => {
       expect([...names].map((el) => el.innerText)).to.deep.equal(["EPIC Centre", "EPIC Track", "EPIC Engage", "Old App"]),
     );
     cy.contains("Expiring Soon").parents(".MuiPaper-root").first().should("contain", "1");
+    // Problem cards only show when their count is above 0
+    cy.contains("Needs Attention").should("not.exist");
     cy.contains("p", "Managed by OpenShift Platform").parent().parent().should("contain", "1");
     cy.contains("Not HTTPS").should("be.visible");
     cy.contains("SSL Inherited from EPIC Centre PROD (system.eao.gov.bc.ca)").should("be.visible");
     cy.get('[role="alert"]').should("not.exist");
+  });
+
+  it("shows one calm card naming the next expiry when every certificate is valid", () => {
+    const valid = { ...SYSTEM, status: "Valid" as const };
+    mountPage({ certificates: [valid, ENGAGE, PLATFORM] });
+
+    cy.contains("All 2 valid").should("be.visible");
+    cy.contains(`Next: system.eao.gov.bc.ca · ${dayjs(valid.expires_at).format("MMM D")} · in 48 days`).should("be.visible");
+    cy.contains("Expiring Soon").should("not.exist");
+    cy.contains("Needs Attention").should("not.exist");
+  });
+
+  it("doesn't call certificates valid before they're checked", () => {
+    const unchecked = { status: "Unknown" as const, expires_at: null, last_checked: null };
+    mountPage({ certificates: [{ ...SYSTEM, ...unchecked }, { ...ENGAGE, ...unchecked }, PLATFORM] });
+
+    cy.contains("2 not checked yet").should("be.visible");
+    cy.contains(/All \d+ valid/).should("not.exist");
   });
 
   it("lists only the certificates staff renew", () => {

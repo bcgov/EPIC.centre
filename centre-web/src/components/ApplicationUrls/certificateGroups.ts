@@ -115,6 +115,37 @@ export const getManagedCertificates = (certificateGroups: CertificateGroup[]) =>
             a.certificate.host.localeCompare(b.certificate.host)
         );
 
+export type CertificateHealth =
+    | { state: "issues"; expiring: number; attention: number }
+    | { state: "valid"; count: number; next: SslCertificate }
+    | { state: "unchecked"; count: number }
+    | { state: "stale" }
+    | { state: "none" };
+
+/** The summary for the page's stat cards, counting only the certificates staff renew. */
+export const summarizeCertificateHealth = (
+    certificateGroups: CertificateGroup[],
+    isStale: boolean,
+): CertificateHealth => {
+    const managed = certificateGroups
+        .map((group) => group.certificate)
+        .filter((certificate) => !certificate.is_platform_managed);
+    const expiring = managed.filter((certificate) => certificate.status === "Expiring Soon").length;
+    const attention = managed.filter((certificate) =>
+        certificate.status === "Expired" || certificate.status === "Error"
+    ).length;
+
+    if (expiring || attention) return { state: "issues", expiring, attention };
+    if (!managed.length) return { state: "none" };
+    // "All valid" only when every certificate has been checked, and recently
+    const unchecked = managed.filter((certificate) => certificate.status === "Unknown").length;
+    if (unchecked) return { state: "unchecked", count: unchecked };
+    if (isStale) return { state: "stale" };
+
+    const next = [...managed].sort((a, b) => getExpiryTime(a.expires_at) - getExpiryTime(b.expires_at))[0];
+    return { state: "valid", count: managed.length, next };
+};
+
 export const compareUrgency = (a: Urgency, b: Urgency): number => a.priority - b.priority || a.expiry - b.expiry;
 
 /** The app's most urgent certificate, ignoring platform-renewed ones. */

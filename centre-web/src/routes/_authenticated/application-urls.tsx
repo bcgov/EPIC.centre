@@ -38,10 +38,13 @@ import { AddUrlModal } from "@/components/ApplicationUrls/AddUrlModal";
 import { EditUrlModal } from "@/components/ApplicationUrls/EditUrlModal";
 import { CertificateRenewalModal } from "@/components/ApplicationUrls/CertificateRenewalModal";
 import { RenewalChip } from "@/components/ApplicationUrls/RenewalChip";
+import { StatCard } from "@/components/ApplicationUrls/StatCard";
+import { CertificateHealthCards } from "@/components/ApplicationUrls/CertificateHealthCards";
 import { describeLastChecked, getExpiryInfo } from "@/components/ApplicationUrls/sslUtils";
 import {
     buildCertificateIndex,
     describeStaleness,
+    summarizeCertificateHealth,
     CertificateGroup,
     getEnvOrder,
     getManagedCertificates,
@@ -53,10 +56,7 @@ import {
     Search,
     Close,
     Apps,
-    WarningAmber,
-    ErrorOutline,
     TravelExplore,
-    InfoOutlined,
     AccountTree,
     South,
     Info,
@@ -244,18 +244,17 @@ function ApplicationUrls() {
         setIsAddModalOpen(true);
     };
 
-    const stats = useMemo(() => {
-        const appCount = new Set(urls.map((url) => url.app_name)).size;
-        const statuses = certificateGroups.map((group) => group.certificate.status);
-        const expiringCount = statuses.filter((status) => status === "Expiring Soon").length;
-        const errorCount = statuses.filter((status) => status === "Error" || status === "Expired").length;
-        const managedCount = certificateGroups.filter((group) => group.certificate.is_platform_managed).length;
-
-        return { appCount, expiringCount, errorCount, managedCount };
-    }, [certificateGroups, urls]);
+    const stats = useMemo(() => ({
+        appCount: new Set(urls.map((url) => url.app_name)).size,
+        platformCount: certificateGroups.filter((group) => group.certificate.is_platform_managed).length,
+    }), [certificateGroups, urls]);
 
     const managedCertificates = useMemo(() => getManagedCertificates(certificateGroups), [certificateGroups]);
     const staleness = useMemo(() => describeStaleness(certificates), [certificates]);
+    const health = useMemo(
+        () => summarizeCertificateHealth(certificateGroups, staleness !== null),
+        [certificateGroups, staleness],
+    );
     const renewalCertificate = certificates.find((certificate) => certificate.id === renewalCertificateId);
 
     const { sortedApps, visibleRowIds } = useMemo(() => {
@@ -374,78 +373,21 @@ function ApplicationUrls() {
                 </Box>
 
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ mt: 2.5 }}>
-                    <Paper 
-                        variant="outlined" 
-                        sx={{ 
-                            px: 2, py: 1.5, borderRadius: 3, minWidth: 170, 
-                            bgcolor: '#eff6ff', borderColor: '#bfdbfe',
-                            transition: 'all 0.2s ease',
-                            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(29, 78, 216, 0.08)' }
-                        }}
-                    >
-                        <Box display="flex" alignItems="center" gap={1}>
-                            <Apps sx={{ fontSize: 20, color: '#1d4ed8' }} />
-                            <Typography variant="body2" sx={{ color: '#1e3a8a', fontWeight: 600 }}>Applications</Typography>
-                            <Tooltip title="Total unique applications listed below. Each application section groups its environments together, even when SSL is shared with other apps on the same host.">
-                                <InfoOutlined sx={{ fontSize: 16, color: '#3b82f6' }} />
-                            </Tooltip>
-                        </Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5, color: '#1e3a8a' }}>{stats.appCount}</Typography>
-                    </Paper>
-                    <Paper 
-                        variant="outlined" 
-                        sx={{ 
-                            px: 2, py: 1.5, borderRadius: 3, minWidth: 170,
-                            bgcolor: '#fff7ed', borderColor: '#fed7aa',
-                            transition: 'all 0.2s ease',
-                            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(194, 65, 12, 0.08)' }
-                        }}
-                    >
-                        <Box display="flex" alignItems="center" gap={1}>
-                            <WarningAmber sx={{ fontSize: 20, color: '#c2410c' }} />
-                            <Typography variant="body2" sx={{ color: '#7c2d12', fontWeight: 600 }}>Expiring Soon</Typography>
-                            <Tooltip title="Certificate groups expiring within 30 days. Shared host certificates are counted once, even if several application routes use them.">
-                                <InfoOutlined sx={{ fontSize: 16, color: '#f97316' }} />
-                            </Tooltip>
-                        </Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5, color: '#7c2d12' }}>{stats.expiringCount}</Typography>
-                    </Paper>
-                    <Paper 
-                        variant="outlined" 
-                        sx={{ 
-                            px: 2, py: 1.5, borderRadius: 3, minWidth: 170,
-                            bgcolor: '#fef2f2', borderColor: '#fecaca',
-                            transition: 'all 0.2s ease',
-                            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(185, 28, 28, 0.08)' }
-                        }}
-                    >
-                        <Box display="flex" alignItems="center" gap={1}>
-                            <ErrorOutline sx={{ fontSize: 20, color: '#b91c1c' }} />
-                            <Typography variant="body2" sx={{ color: '#7f1d1d', fontWeight: 600 }}>Needs Attention</Typography>
-                            <Tooltip title="Certificate groups that are expired or returned an SSL error. Shared host certificates are counted once to avoid duplicate renewal noise.">
-                                <InfoOutlined sx={{ fontSize: 16, color: '#ef4444' }} />
-                            </Tooltip>
-                        </Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5, color: '#7f1d1d' }}>{stats.errorCount}</Typography>
-                    </Paper>
-                    <Paper 
-                        variant="outlined" 
-                        sx={{ 
-                            px: 2, py: 1.5, borderRadius: 3, minWidth: 170,
-                            bgcolor: '#f8fafc', borderColor: '#e2e8f0',
-                            transition: 'all 0.2s ease',
-                            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(71, 85, 105, 0.08)' }
-                        }}
-                    >
-                        <Box display="flex" alignItems="center" gap={1}>
-                            <TravelExplore sx={{ fontSize: 20, color: '#475569' }} />
-                            <Typography variant="body2" sx={{ color: '#0f172a', fontWeight: 600 }}>Managed by OpenShift Platform</Typography>
-                            <Tooltip title="Certificate groups managed by the OpenShift platform (e.g. devops.gov.bc.ca). We track these for visibility, but our staff does not renew them.">
-                                <InfoOutlined sx={{ fontSize: 16, color: '#64748b' }} />
-                            </Tooltip>
-                        </Box>
-                        <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.5, color: '#0f172a' }}>{stats.managedCount}</Typography>
-                    </Paper>
+                    <StatCard
+                        tone="blue"
+                        icon={Apps}
+                        label="Applications"
+                        tooltip="Total unique applications listed below. Each application section groups its environments together, even when SSL is shared with other apps on the same host."
+                        value={stats.appCount}
+                    />
+                    <CertificateHealthCards health={health} />
+                    <StatCard
+                        tone="slate"
+                        icon={TravelExplore}
+                        label="Managed by OpenShift Platform"
+                        tooltip="Certificates managed by the OpenShift platform (e.g. devops.gov.bc.ca). We track these for visibility, but our staff does not renew them."
+                        value={stats.platformCount}
+                    />
                 </Stack>
                 {staleness && (
                     <Alert severity="warning" sx={{ mt: 2.5 }}>{staleness}</Alert>
