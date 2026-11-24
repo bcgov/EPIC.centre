@@ -55,3 +55,7 @@ data:
   EPIC_APP_CLIENT_EPIC_SUBMIT: "{{ .Values.epicAppClients.epicSubmit }}"
   EPIC_APP_CLIENT_EPIC_ENGAGE: "{{ .Values.epicAppClients.epicEngage }}"
   EPIC_APP_CLIENT_EPIC_CENTRE: "{{ .Values.epicAppClients.epicCentre }}"
+  # SSL renewal notices; see sslCheck in values.yaml
+  EAGLE_NOTIFY_EMAIL_ENDPOINT: "{{ .Values.sslCheck.eagleNotifyEndpoint }}"
+  SSL_NOTIFICATION_RECIPIENTS: "{{ .Values.sslCheck.recipients }}"
+  SSL_NOTIFICATION_SUBJECT_PREFIX: "{{ .Values.sslCheck.subjectPrefix }}"
