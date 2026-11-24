@@ -5,6 +5,7 @@ import {
   describeStaleness,
   getManagedCertificates,
   groupAndSortApps,
+  summarizeCertificateHealth,
 } from "./certificateGroups";
 import { getExpiryInfo } from "./sslUtils";
 
@@ -166,6 +167,47 @@ describe("app sorting", () => {
     const urls = [url("constructor", "PROD", "http://constructor.example.com", null)];
 
     expect(sortedNames(urls, [], "name")).to.deep.equal(["constructor"]);
+  });
+});
+
+describe("certificate health", () => {
+  const health = (certificates: SslCertificate[], isStale = false) =>
+    summarizeCertificateHealth(
+      buildCertificateIndex(
+        certificates.map((cert, i) => url(`App ${i}`, "PROD", `https://${cert.host}`, cert.id)),
+        certificates,
+      ).certificateGroups,
+      isStale,
+    );
+
+  it("is all valid, naming the next expiry, when every certificate is fine", () => {
+    const soonest = certificate(20, "soonest.example.com", { expires_at: dayjs().add(48, "day").toISOString() });
+
+    expect(health([SUBMIT, soonest])).to.deep.equal({ state: "valid", count: 2, next: soonest });
+  });
+
+  it("counts problems, and only on certificates staff renew", () => {
+    const expiring = certificate(21, "expiring.example.com", { status: "Expiring Soon" });
+    const expired = certificate(22, "expired.example.com", { status: "Expired" });
+    const broken = certificate(23, "broken.example.com", { status: "Error" });
+    const platformExpired = certificate(24, "y.apps.gold.devops.gov.bc.ca", { status: "Expired", is_platform_managed: true });
+
+    expect(health([expiring, expired, broken, platformExpired])).to.deep.equal({ state: "issues", expiring: 1, attention: 2 });
+    expect(health([SUBMIT, platformExpired]).state).to.equal("valid");
+  });
+
+  it("flags an expired certificate even when nothing is expiring soon", () => {
+    const expired = certificate(26, "expired-only.example.com", { status: "Expired" });
+
+    expect(health([SUBMIT, expired])).to.deep.equal({ state: "issues", expiring: 0, attention: 1 });
+  });
+
+  it("is never all valid before every certificate is checked, or once checks stop", () => {
+    const unchecked = certificate(25, "new.example.com", { status: "Unknown", expires_at: null, last_checked: null });
+
+    expect(health([SUBMIT, unchecked])).to.deep.equal({ state: "unchecked", count: 1 });
+    expect(health([SUBMIT], true)).to.deep.equal({ state: "stale" });
+    expect(health([PLATFORM])).to.deep.equal({ state: "none" });
   });
 });
 
