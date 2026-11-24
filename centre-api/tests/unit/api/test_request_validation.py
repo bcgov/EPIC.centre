@@ -91,3 +91,12 @@ def test_broken_epic_auth_response_is_not_a_400(_mock_get_user, client):
     """An EPIC.auth response that isn't JSON is a server error, not the caller's fault."""
     with pytest.raises(requests.JSONDecodeError):
         client.get('/api/access-requests', query_string={'status': 'PENDING'})
+
+
+@patch('centre_api.services.user_service.AuthApiService.get_user_by_username',
+       side_effect=requests.JSONDecodeError('Expecting value', '<html>', 0))
+@pytest.mark.usefixtures('caller_token')
+def test_broken_epic_auth_response_on_update_is_not_a_400(_mock_get_user, client):
+    """A non-JSON EPIC.auth response while updating access isn't a 400."""
+    with pytest.raises(requests.JSONDecodeError):
+        client.put('/api/users/someone@idir/access', json={'app_name': 'epic_centre', 'group_name': 'X'})

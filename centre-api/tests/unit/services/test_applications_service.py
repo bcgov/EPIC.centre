@@ -20,6 +20,7 @@ import requests
 from sqlalchemy.exc import IntegrityError
 
 from centre_api.enums.epic_app import EpicAppName
+from centre_api.exceptions import BadRequestError
 from centre_api.services.applications_service import ApplicationsService
 
 
@@ -56,7 +57,7 @@ class TestCreateAccessRequest:
         """An app id that doesn't exist is rejected."""
         mocks.find_app.return_value = None
 
-        with pytest.raises(ValueError):
+        with pytest.raises(BadRequestError):
             ApplicationsService.create_access_request(999)
 
         mocks.session_scope.assert_not_called()
@@ -65,7 +66,7 @@ class TestCreateAccessRequest:
         """An inactive app cannot be requested."""
         mocks.find_app.return_value = _app(is_active=False)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(BadRequestError):
             ApplicationsService.create_access_request(7)
 
         mocks.session_scope.assert_not_called()
@@ -75,7 +76,7 @@ class TestCreateAccessRequest:
         """Apps excluded from the request catalogue cannot be requested by id."""
         mocks.find_app.return_value = _app(name=app_name)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(BadRequestError):
             ApplicationsService.create_access_request(7)
 
         mocks.session_scope.assert_not_called()

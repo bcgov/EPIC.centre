@@ -100,6 +100,9 @@ class _Config():  # pylint: disable=too-few-public-methods
     # Per-worker counters; see centre_api/extensions.py
     RATELIMIT_STORAGE_URI = 'memory://'
 
+    # Stop flask-restx appending other routes to 404 messages
+    RESTX_ERROR_404_HELP = False
+
     # POSTGRESQL
     DB_USER = os.getenv('DATABASE_USERNAME', '')
     DB_PASSWORD = os.getenv('DATABASE_PASSWORD', '')

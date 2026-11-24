@@ -68,10 +68,7 @@ class CatalogApplication(Resource):
     @limiter.limit(EMAIL_LIMIT)
     def post(app_id):
         """Create access request."""
-        try:
-            access_request = ApplicationsService.create_access_request(app_id)
-        except ValueError as err:
-            return {'message': str(err)}, HTTPStatus.BAD_REQUEST
+        access_request = ApplicationsService.create_access_request(app_id)
         return AccessRequestSchema().dump(access_request), HTTPStatus.OK
 
 

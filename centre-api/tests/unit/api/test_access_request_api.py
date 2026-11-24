@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""API tests for creating access requests."""
+"""API tests for creating and rejecting access requests."""
 from http import HTTPStatus
 from unittest.mock import patch
 
@@ -72,6 +72,17 @@ class TestCreateAccessRequestAPI:
 
         assert response.status_code == HTTPStatus.OK
         assert response.get_json()['status'] == 'PENDING'
+
+
+class TestRejectAccessRequestAPI:
+    """PUT /api/access-requests/<id>."""
+
+    def test_unknown_request_returns_404(self, client, session, caller_token):
+        """Rejecting a missing request is a 404 with a plain message, not a 200."""
+        response = client.put('/api/access-requests/999999', query_string={'status': 'REJECTED'})
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
+        assert response.get_json() == {'message': 'Access request not found.'}
 
 
 class TestAccessLevelsAPI:

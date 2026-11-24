@@ -20,6 +20,7 @@ import requests
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.epic_app import EpicAdminGroupsPath, EpicAppClientName, EpicAppName, EpicGroups
+from centre_api.exceptions import BadRequestError
 from centre_api.services.user_service import UserService
 
 
@@ -194,7 +195,7 @@ class TestUpdateUserAccess:
         mock_has_admin.return_value = True
         mock_get_group.return_value = TRACK_GROUP
 
-        with pytest.raises(ValueError):
+        with pytest.raises(BadRequestError):
             UserService.update_user_access('abc123@idir', {
                 'app_name': EpicAppName.EPIC_TRACK.value,
                 'parent_group_name': EpicGroups.CENTRE.value,
@@ -211,7 +212,7 @@ class TestUpdateUserAccess:
         mock_has_admin.return_value = True
         mock_get_group.return_value = TRACK_GROUP_WITH_HIDDEN
 
-        with pytest.raises(ValueError):
+        with pytest.raises(BadRequestError):
             UserService.update_user_access('abc123@idir', {
                 'app_name': EpicAppName.EPIC_TRACK.value,
                 'group_name': 'SUPERUSER',
@@ -240,7 +241,7 @@ class TestUpdateUserAccess:
         """An app_name with no mapped group is rejected."""
         mock_has_admin.return_value = True
 
-        with pytest.raises(ValueError):
+        with pytest.raises(BadRequestError):
             UserService.update_user_access('abc123@idir', {
                 'app_name': 'not_an_app',
                 'parent_group_name': EpicGroups.CENTRE.value,
@@ -298,7 +299,7 @@ class TestUpdateUserAccess:
         mock_find_request.return_value = _access_request(EpicAppName.EPIC_COMPLIANCE.value)
         mock_get_user_by_id.return_value = {'username': 'abc123@idir'}
 
-        with pytest.raises(ValueError):
+        with pytest.raises(BadRequestError):
             UserService.update_user_access('abc123@idir', {
                 'app_name': EpicAppName.EPIC_TRACK.value,
                 'group_name': 'INSTANCE_ADMIN',
@@ -321,7 +322,7 @@ class TestUpdateUserAccess:
         mock_find_request.return_value = _access_request(EpicAppName.EPIC_TRACK.value)
         mock_get_user_by_id.return_value = {'username': 'requester@idir'}
 
-        with pytest.raises(ValueError):
+        with pytest.raises(BadRequestError):
             UserService.update_user_access('abc123@idir', {
                 'app_name': EpicAppName.EPIC_TRACK.value,
                 'group_name': 'INSTANCE_ADMIN',
@@ -352,7 +353,7 @@ class TestUpdateUserAccess:
         mock_find_request.return_value = access_request
         mock_get_user_by_id.return_value = {'username': 'abc123@idir'}
 
-        with pytest.raises(ValueError):
+        with pytest.raises(BadRequestError):
             UserService.update_user_access('abc123@idir', {
                 'app_name': EpicAppName.EPIC_TRACK.value,
                 'group_name': 'INSTANCE_ADMIN',

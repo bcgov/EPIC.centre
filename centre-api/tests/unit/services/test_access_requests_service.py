@@ -20,6 +20,7 @@ import requests
 
 from centre_api.enums.access_request_status import AccessRequestsStatusEnum
 from centre_api.enums.epic_app import EpicAdminGroupsPath, EpicAppName
+from centre_api.exceptions import BadRequestError
 from centre_api.services.access_requests import MAX_REQUESTER_LOOKUPS, AccessRequestsService
 
 
@@ -77,7 +78,7 @@ class TestProcessAccessRequest:
     @pytest.mark.parametrize('status', ['APPROVED', 'PENDING', 'CANCELLED', None])
     def test_only_rejection_is_allowed(self, mocks, status):
         """Approving or other status changes are refused."""
-        with pytest.raises(ValueError):
+        with pytest.raises(BadRequestError):
             AccessRequestsService.process_access_request(1, status)
 
         mocks.find.assert_not_called()
@@ -88,7 +89,7 @@ class TestProcessAccessRequest:
         access_request = _access_request(EpicAppName.EPIC_TRACK.value, status=AccessRequestsStatusEnum.APPROVED)
         mocks.find.return_value = access_request
 
-        with pytest.raises(ValueError):
+        with pytest.raises(BadRequestError):
             AccessRequestsService.process_access_request(1, REJECTED)
 
         assert access_request.status == AccessRequestsStatusEnum.APPROVED

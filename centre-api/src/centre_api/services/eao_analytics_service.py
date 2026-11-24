@@ -1,5 +1,6 @@
 """Service for EAO Analytics management."""
 
+from centre_api.exceptions import BadRequestError
 from centre_api.models.applications import Application
 from centre_api.models.eao_analytics import EaoAnalytics
 from centre_api.utils.token_info import TokenInfo
@@ -21,11 +22,11 @@ class EaoAnalyticsService:
             EaoAnalytics: The created or updated analytics record
 
         Raises:
-            ValueError: If required fields are missing or application not found
+            BadRequestError: If required fields are missing or application not found
             PermissionError: If user_auth_guid is not the caller
         """
         if not user_auth_guid or not app_name:
-            raise ValueError('Missing required fields: user_auth_guid, app_name')
+            raise BadRequestError('Missing required fields: user_auth_guid, app_name')
 
         # EPIC.analytics sends preferred_username; older centre-web builds send sub
         username = TokenInfo.get_username()
@@ -38,7 +39,7 @@ class EaoAnalyticsService:
         # Look up app_id from app_name
         application = Application.query.filter_by(name=app_name).first()
         if not application:
-            raise ValueError(f'Application with name "{app_name}" not found')
+            raise BadRequestError(f'Application with name "{app_name}" not found')
 
         app_id = application.id
 

@@ -84,8 +84,5 @@ class UserAccessRequest(Resource):
         """Update access request."""
         args = request.args.to_dict()
         status = args.get('status')
-        try:
-            access_requests = AccessRequestsService.process_access_request(access_request_id, status)
-        except ValueError as e:
-            return {'message': str(e)}, HTTPStatus.BAD_REQUEST
+        access_requests = AccessRequestsService.process_access_request(access_request_id, status)
         return access_requests, HTTPStatus.OK
