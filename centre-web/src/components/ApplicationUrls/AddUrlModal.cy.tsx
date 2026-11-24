@@ -73,6 +73,40 @@ describe("AddUrlModal", () => {
     cy.get("@create").should("not.have.been.called");
   });
 
+  it("shows that an environment already exists under its URL field", () => {
+    const message = "Test App already has a PROD URL. Edit that one instead.";
+    cy.intercept("POST", "**/api/application-urls", {
+      statusCode: 409,
+      body: { message, errors: { environment: [message] } },
+    });
+    mountModal();
+
+    field("Application Name").type("Test App", { delay: 0 });
+    field("PROD URL").type("https://app.example.com", { delay: 0 });
+    cy.contains("button", "Add Application").click();
+
+    field("PROD URL").parents(".MuiFormControl-root").should("contain", message);
+    cy.get("@onClose").should("not.have.been.called");
+  });
+
+  it("stays open while saving", () => {
+    cy.intercept("POST", "**/api/application-urls", {
+      statusCode: 201,
+      body: { id: 1 },
+      delay: 500,
+    }).as("create");
+    mountModal("Test App");
+
+    field("Environment").type("DEMO", { delay: 0 });
+    field(/^URL$/).type("https://demo.example.com", { delay: 0 });
+    cy.contains("button", "Add Environment").click();
+    cy.get('[role="dialog"]').trigger("keydown", { key: "Escape" });
+    cy.get("@onClose").should("not.have.been.called");
+
+    cy.wait("@create");
+    cy.get("@onClose").should("have.been.calledOnce");
+  });
+
   it("shows the API's URL error under the URL field", () => {
     cy.intercept("POST", "**/api/application-urls", {
       statusCode: 400,

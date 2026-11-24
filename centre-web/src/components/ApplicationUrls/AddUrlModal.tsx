@@ -164,7 +164,8 @@ export function AddUrlModal({
         const notOnFields = failed.filter(
             ({ environment, error }) =>
                 !setServerFieldErrors(error, setApplicationError, ([field]) => {
-                    if (field === "url") return URL_FIELDS[environment];
+                    // e.g. "already has a PROD URL" goes under PROD URL
+                    if (field === "url" || field === "environment") return URL_FIELDS[environment];
                     if (field === "app_name" || field === "ticket_reference") return field;
                     return undefined;
                 }),
@@ -224,8 +225,9 @@ export function AddUrlModal({
         onClose();
     };
 
+    // Stay open while saving, so a failure is shown next to the input it's about
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+        <Dialog open={open} onClose={isSubmitting ? undefined : onClose} fullWidth maxWidth="sm">
             <DialogTitle>{isAddEnvironmentMode ? "Add Environment" : "Add Application"}</DialogTitle>
             <form onSubmit={isAddEnvironmentMode ? handleEnvironmentSubmit(onSubmitEnvironment) : handleApplicationSubmit(onSubmitApplication)}>
                 <DialogContent>

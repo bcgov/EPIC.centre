@@ -28,3 +28,12 @@ export interface CreateApplicationUrlPayload {
     renewal_status?: RenewalStatus;
     renewal_comments?: string | null;
 }
+
+/** The fields an editor can change; the API sets the SSL details. */
+export interface UpdateApplicationUrlPayload {
+    id: number;
+    url: string;
+    ticket_reference: string | null;
+    renewal_status: RenewalStatus;
+    renewal_comments: string | null;
+}

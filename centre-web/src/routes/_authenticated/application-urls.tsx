@@ -28,14 +28,22 @@ import {
     FormGroup,
 } from "@mui/material";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
-import dayjs from "dayjs";
+import { useState, useMemo, useEffect } from "react";
 import { EnvironmentChip } from "@/components/ApplicationUrls/EnvironmentChip";
 import { ExpiryDisplay } from "@/components/ApplicationUrls/ExpiryDisplay";
 import { CopyToClipboardButton } from "@/components/ApplicationUrls/CopyToClipboardButton";
 import { SSLStatusChip } from "@/components/ApplicationUrls/SSLStatusChip";
 import { AddUrlModal } from "@/components/ApplicationUrls/AddUrlModal";
 import { EditUrlModal } from "@/components/ApplicationUrls/EditUrlModal";
+import { getExpiryInfo } from "@/components/ApplicationUrls/sslUtils";
+import {
+    buildCertificateIndex,
+    CertificateGroup,
+    getEnvOrder,
+    getManagedCertificates,
+    groupAndSortApps,
+} from "@/components/ApplicationUrls/certificateGroups";
+import { isHttpUrl } from "@/utils/url";
 import {
     Add,
     Search,
@@ -70,125 +78,21 @@ export const Route = createFileRoute("/_authenticated/application-urls")({
 type SortOption = 'expiry' | 'name';
 type SortOrder = 'asc' | 'desc';
 type ViewMode = 'certificates' | 'applications';
-type CertificateGroup = {
-    key: string;
-    origin: string;
-    host: string;
-    rows: ApplicationUrl[];
-    appCount: number;
-};
 
-// Constants
-const FAR_FUTURE_TIMESTAMP = Number.MAX_SAFE_INTEGER;
-const ENV_ORDER: Record<string, number> = { PROD: 1, TEST: 2, DEV: 3 };
-
-const parseUrlInfo = (value: string) => {
-    try {
-        const parsed = new URL(value);
-        return {
-            origin: parsed.origin,
-            host: parsed.host,
-            pathname: parsed.pathname || "/",
-        };
-    } catch {
-        return null;
-    }
-};
-
-const getCertificateGroupKey = (url: ApplicationUrl): string => {
-    const parsed = parseUrlInfo(url.url);
-    return parsed?.origin.toLowerCase() || url.url.toLowerCase();
-};
-
-const isPlatformManagedUrl = (url: ApplicationUrl): boolean => {
-    const parsed = parseUrlInfo(url.url);
-    return (parsed?.host || url.url).includes("devops.gov.bc.ca");
-};
-
-const isInheritedSslRoute = (url: ApplicationUrl): boolean => {
-    const parsed = parseUrlInfo(url.url);
-    if (!parsed) {
-        return false;
-    }
-
-    return parsed.pathname !== "/" && parsed.pathname !== "";
-};
-
-const getCertificateGroupDisplay = (group: CertificateGroup): string => group.host || group.origin;
-
-const getCertificateGroupRootRow = (group: CertificateGroup): ApplicationUrl => {
-    return [...group.rows].sort((a, b) => {
-        const aInherited = isInheritedSslRoute(a) ? 1 : 0;
-        const bInherited = isInheritedSslRoute(b) ? 1 : 0;
-
-        if (aInherited !== bInherited) {
-            return aInherited - bInherited;
-        }
-
-        const aEnv = ENV_ORDER[a.environment] || 99;
-        const bEnv = ENV_ORDER[b.environment] || 99;
-        if (aEnv !== bEnv) {
-            return aEnv - bEnv;
-        }
-
-        return a.app_name.localeCompare(b.app_name);
-    })[0];
-};
+const rowElementId = (id: number) => `app-url-row-${id}`;
 
 const getExpirySummaryLabel = (expiryDate: string | null): string => {
-    if (!expiryDate) {
-        return "Expiry on root host";
-    }
-
-    const expiry = dayjs(expiryDate);
-    if (!expiry.isValid()) {
-        return "Expiry on root host";
-    }
-
-    const now = dayjs();
-    const daysUntilExpiry = expiry.diff(now, "day");
-
-    if (daysUntilExpiry < 0) {
-        return "Expired on root host";
-    }
-
-    if (daysUntilExpiry === 0) {
-        return "Expires today on root host";
-    }
-
-    if (daysUntilExpiry <= 30) {
-        return `In ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} on root host`;
-    }
-
-    const monthsUntilExpiry = Math.round(daysUntilExpiry / 30);
-    return `In ~${monthsUntilExpiry} month${monthsUntilExpiry === 1 ? "" : "s"} on root host`;
-};
-
-const getStatusPriority = (status: string | null): number => {
-    switch (status) {
-        case "Expired":
-        case "Error":
-            return 0;
-        case "Expiring Soon":
-            return 1;
-        case "Valid":
-            return 2;
-        case "Managed":
-            return 3;
-        default:
-            return 4;
-    }
-};
-
-const getCertificateGroupStatus = (group: CertificateGroup): string | null => {
-    return [...group.rows]
-        .sort((a, b) => getStatusPriority(a.ssl_status) - getStatusPriority(b.ssl_status))[0]?.ssl_status || null;
+    const info = getExpiryInfo(expiryDate);
+    if (!info) return "Expiry on root host";
+    if (info.expired) return "Expired on root host";
+    if (info.daysLeft === 0) return "Expires today on root host";
+    return `${info.text} on root host`;
 };
 
 const buildCertificateGroupTooltip = (group: CertificateGroup, inherited: boolean) => (
     <Box sx={{ maxWidth: 320 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-            {getCertificateGroupDisplay(group)}
+            {group.host}
         </Typography>
         <Typography variant="body2" sx={{ mt: 0.5 }}>
             {inherited
@@ -252,24 +156,6 @@ const sharedTooltipSlotProps = {
     },
 };
 
-// Helper functions
-const getMinExpiry = (urls: ApplicationUrl[]): number => {
-    const timestamps = urls
-        .filter(u => u.ssl_expiry)
-        .map(u => new Date(u.ssl_expiry!).getTime());
-    return timestamps.length > 0 ? Math.min(...timestamps) : FAR_FUTURE_TIMESTAMP;
-};
-
-const sortByName = (nameA: string, nameB: string, order: SortOrder): number => {
-    return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
-};
-
-const sortByExpiry = (urlsA: ApplicationUrl[], urlsB: ApplicationUrl[], order: SortOrder): number => {
-    const minExpiryA = getMinExpiry(urlsA);
-    const minExpiryB = getMinExpiry(urlsB);
-    return order === 'asc' ? minExpiryA - minExpiryB : minExpiryB - minExpiryA;
-};
-
 function ApplicationUrls() {
     const { canViewApplicationUrls, canManageApplicationUrls } = useCurrentUser();
     const {
@@ -282,14 +168,14 @@ function ApplicationUrls() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [addModalAppName, setAddModalAppName] = useState("");
     const [viewMode, setViewMode] = useState<ViewMode>('applications');
+    // Row to scroll to once it has rendered, then briefly highlight
+    const [scrollTargetId, setScrollTargetId] = useState<number | null>(null);
+    const [highlightedRowId, setHighlightedRowId] = useState<number | null>(null);
 
     // Filtering State
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedEnvs, setSelectedEnvs] = useState<Record<string, boolean>>({
-        PROD: true,
-        TEST: true,
-        DEV: true
-    });
+    // Unchecked environments are false; missing ones count as checked, so new ones start checked
+    const [selectedEnvs, setSelectedEnvs] = useState<Record<string, boolean>>({});
     const [showPlatformManaged, setShowPlatformManaged] = useState(true);
 
     // Sorting State
@@ -298,43 +184,12 @@ function ApplicationUrls() {
     const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
 
     const allEnvironments = useMemo(() => {
-        return [...new Set(urls.map((url) => url.environment))].sort((a, b) => {
-            const orderA = ENV_ORDER[a] || 99;
-            const orderB = ENV_ORDER[b] || 99;
-
-            if (orderA !== orderB) {
-                return orderA - orderB;
-            }
-
-            return a.localeCompare(b);
-        });
+        return [...new Set(urls.map((url) => url.environment))].sort((a, b) =>
+            getEnvOrder(a) - getEnvOrder(b) || a.localeCompare(b)
+        );
     }, [urls]);
 
-    const certificateGroups = useMemo(() => {
-        const groups = new Map<string, CertificateGroup>();
-
-        urls.forEach((url) => {
-            const parsed = parseUrlInfo(url.url);
-            const key = getCertificateGroupKey(url);
-            const existing = groups.get(key);
-
-            if (existing) {
-                existing.rows.push(url);
-                existing.appCount = new Set(existing.rows.map((row) => row.app_name)).size;
-                return;
-            }
-
-            groups.set(key, {
-                key,
-                origin: parsed?.origin || url.url,
-                host: parsed?.host || url.url,
-                rows: [url],
-                appCount: 1,
-            });
-        });
-
-        return groups;
-    }, [urls]);
+    const { certificateGroups, rowMeta } = useMemo(() => buildCertificateIndex(urls), [urls]);
 
     const handleEdit = (url: ApplicationUrl) => {
         setEditingUrl(url);
@@ -371,111 +226,78 @@ function ApplicationUrls() {
     const handleEnvToggle = (env: string) => {
         setSelectedEnvs(prev => ({
             ...prev,
-            [env]: !prev[env]
+            [env]: prev[env] === false,
         }));
     };
 
-    const handleJumpToApplicationView = (rootRowId: number) => {
-        setViewMode('applications');
-        window.requestAnimationFrame(() => {
-            window.requestAnimationFrame(() => {
-                const target = document.getElementById(`ssl-root-row-${rootRowId}`);
-                target?.scrollIntoView({ behavior: "smooth", block: "center" });
-            });
-        });
+    const clearFilters = () => {
+        setSearchTerm("");
+        setSelectedEnvs({});
+        setShowPlatformManaged(true);
+    };
+
+    const openAddApplication = () => {
+        setAddModalAppName("");
+        setIsAddModalOpen(true);
     };
 
     const stats = useMemo(() => {
         const appCount = new Set(urls.map((url) => url.app_name)).size;
-        const groups = [...certificateGroups.values()];
-        const expiringCount = groups.filter((group) => getCertificateGroupStatus(group) === "Expiring Soon").length;
-        const errorCount = groups.filter((group) => {
-            const status = getCertificateGroupStatus(group);
-            return status === "Error" || status === "Expired";
-        }).length;
-        const managedCount = urls.filter((url) => isPlatformManagedUrl(url) || url.ssl_status === "Managed").length;
+        const expiringCount = certificateGroups.filter((group) => group.status === "Expiring Soon").length;
+        const errorCount = certificateGroups.filter((group) => group.status === "Error" || group.status === "Expired").length;
+        const managedCount = certificateGroups.filter((group) => group.isPlatformManaged || group.status === "Managed").length;
 
         return { appCount, expiringCount, errorCount, managedCount };
     }, [certificateGroups, urls]);
 
-    const rootCertificateRows = useMemo(() => {
-        return [...certificateGroups.values()]
-            .map((group) => ({
-                group,
-                rootRow: getCertificateGroupRootRow(group),
-                status: getCertificateGroupStatus(group),
-            }))
-            .filter(({ rootRow, status }) => !isInheritedSslRoute(rootRow) && status !== "Managed")
-            .sort((a, b) => {
-                const statusCompare = getStatusPriority(a.status) - getStatusPriority(b.status);
-                if (statusCompare !== 0) {
-                    return statusCompare;
-                }
+    const managedCertificates = useMemo(() => getManagedCertificates(certificateGroups), [certificateGroups]);
 
-                const expiryA = a.rootRow.ssl_expiry ? new Date(a.rootRow.ssl_expiry).getTime() : FAR_FUTURE_TIMESTAMP;
-                const expiryB = b.rootRow.ssl_expiry ? new Date(b.rootRow.ssl_expiry).getTime() : FAR_FUTURE_TIMESTAMP;
-                return expiryA - expiryB;
-            });
-    }, [certificateGroups]);
-
-    // Grouping and Filtering Logic
-    const groupedApps = useMemo(() => {
-        const groups: Record<string, ApplicationUrl[]> = {};
-
-        // Filter URLs first
-        const filteredUrls = urls.filter(url => {
-            // 1. Filter by environment
-            if (!selectedEnvs[url.environment] && selectedEnvs[url.environment] !== undefined) {
+    const { sortedApps, visibleRowIds } = useMemo(() => {
+        const term = searchTerm.trim().toLowerCase();
+        const filteredUrls = urls.filter((url) => {
+            if (selectedEnvs[url.environment] === false) {
                 return false;
             }
-
-            // 2. Filter by search term
-            if (searchTerm && !url.app_name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-                !url.url.toLowerCase().includes(searchTerm.toLowerCase())) {
+            if (term && !url.app_name.toLowerCase().includes(term) && !url.url.toLowerCase().includes(term)) {
                 return false;
             }
-
-            // 3. Filter platform managed
-            if (!showPlatformManaged && isPlatformManagedUrl(url)) {
+            if (!showPlatformManaged && rowMeta.get(url.id)?.group.isPlatformManaged) {
                 return false;
             }
-
             return true;
         });
 
-        // Group filtered URLs
-        filteredUrls.forEach((url) => {
-            if (!groups[url.app_name]) {
-                groups[url.app_name] = [];
-            }
-            groups[url.app_name].push(url);
-        });
-
-        // Sort Environments WITHIN groups (PROD -> TEST -> DEV)
-        Object.keys(groups).forEach(app => {
-            groups[app].sort((a, b) => {
-                const orderA = ENV_ORDER[a.environment] || 99;
-                const orderB = ENV_ORDER[b.environment] || 99;
-                return orderA - orderB;
-            });
-        });
-
-        return groups;
-    }, [urls, searchTerm, selectedEnvs, showPlatformManaged]);
-
-    // Sorting comparator for app groups
-    const sortGroups = useMemo(() => {
-        return (a: [string, ApplicationUrl[]], b: [string, ApplicationUrl[]]) => {
-            const [nameA, urlsA] = a;
-            const [nameB, urlsB] = b;
-
-            if (sortBy === 'name') {
-                return sortByName(nameA, nameB, sortOrder);
-            }
-
-            return sortByExpiry(urlsA, urlsB, sortOrder);
+        return {
+            sortedApps: groupAndSortApps(filteredUrls, rowMeta, sortBy, sortOrder),
+            visibleRowIds: new Set(filteredUrls.map((url) => url.id)),
         };
-    }, [sortBy, sortOrder]);
+    }, [urls, rowMeta, searchTerm, selectedEnvs, showPlatformManaged, sortBy, sortOrder]);
+
+    const revealRow = (rowId: number) => {
+        // Otherwise a filtered-out row leaves nothing to scroll to
+        if (!visibleRowIds.has(rowId)) {
+            clearFilters();
+        }
+        setViewMode('applications');
+        setScrollTargetId(rowId);
+    };
+
+    useEffect(() => {
+        if (scrollTargetId === null) {
+            return;
+        }
+        document.getElementById(rowElementId(scrollTargetId))?.scrollIntoView({ behavior: "smooth", block: "center" });
+        setHighlightedRowId(scrollTargetId);
+        setScrollTargetId(null);
+    }, [scrollTargetId]);
+
+    useEffect(() => {
+        if (highlightedRowId === null) {
+            return;
+        }
+        const timer = window.setTimeout(() => setHighlightedRowId(null), 2000);
+        return () => window.clearTimeout(timer);
+    }, [highlightedRowId]);
 
     if (!canViewApplicationUrls) {
         return <Navigate to="/access-denied" />;
@@ -528,10 +350,7 @@ function ApplicationUrls() {
                         <Button
                             variant="contained"
                             startIcon={<Apps />}
-                            onClick={() => {
-                                setAddModalAppName("");
-                                setIsAddModalOpen(true);
-                            }}
+                            onClick={openAddApplication}
                             sx={{
                                 px: 2.5,
                                 py: 1.1,
@@ -644,7 +463,7 @@ function ApplicationUrls() {
                         value="certificates"
                         icon={<VerifiedUser fontSize="small" />}
                         iconPosition="start"
-                        label={`Certificates We Manage (${rootCertificateRows.length})`}
+                        label={`Certificates We Manage (${managedCertificates.length})`}
                         sx={{ textTransform: "none", fontWeight: 700 }}
                     />
                 </Tabs>
@@ -676,7 +495,7 @@ function ApplicationUrls() {
                             </Typography>
                         </Box>
 
-                        {rootCertificateRows.length === 0 ? (
+                        {managedCertificates.length === 0 ? (
                             <Paper variant="outlined" sx={{ p: 4, borderRadius: 2.5, textAlign: "center" }}>
                                 <Typography variant="h6" color="text.secondary" gutterBottom>
                                     No root certificates need tracking right now
@@ -687,7 +506,7 @@ function ApplicationUrls() {
                             </Paper>
                         ) : (
                             <Stack spacing={1.25}>
-                                {rootCertificateRows.map(({ group, rootRow, status }) => (
+                                {managedCertificates.map((group) => (
                                     <Paper
                                         key={`root-overview-${group.key}`}
                                         variant="outlined"
@@ -709,7 +528,7 @@ function ApplicationUrls() {
                                             <Box sx={{ minWidth: 0 }}>
                                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
                                                     <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>
-                                                        {getCertificateGroupDisplay(group)}
+                                                        {group.host}
                                                     </Typography>
                                                     {group.rows.length > 1 && (
                                                         <Tooltip title={buildCertificateGroupTooltip(group, false)} slotProps={sharedTooltipSlotProps}>
@@ -732,12 +551,12 @@ function ApplicationUrls() {
                                                 </Typography>
                                             </Box>
                                             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                                                <SSLStatusChip status={status} />
-                                                <ExpiryDisplay expiryDate={rootRow.ssl_expiry} url={rootRow.url} />
+                                                <SSLStatusChip status={group.status} />
+                                                <ExpiryDisplay expiryDate={group.rootRow.ssl_expiry} url={group.rootRow.url} />
                                                 <Button
                                                     size="small"
                                                     variant="outlined"
-                                                    onClick={() => handleJumpToApplicationView(rootRow.id)}
+                                                    onClick={() => revealRow(group.rootRow.id)}
                                                     sx={{ textTransform: "none", borderRadius: 5, fontWeight: 700, borderColor: 'rgba(15,23,42,0.12)', color: '#475569', '&:hover': { bgcolor: 'rgba(15,23,42,0.04)', borderColor: 'rgba(15,23,42,0.2)' } }}
                                                 >
                                                     View Routes
@@ -835,18 +654,22 @@ function ApplicationUrls() {
                             </Button>
                         </Box>
 
-                        {Object.keys(groupedApps).length === 0 ? (
+                        {sortedApps.length === 0 ? (
                             <Box sx={{ py: 8, textAlign: "center" }}>
                                 <Typography variant="h6" color="text.secondary" gutterBottom>
-                                    {searchTerm || Object.values(selectedEnvs).some(v => !v)
+                                    {urls.length
                                         ? "No application URLs match your filters"
                                         : "No application URLs configured"}
                                 </Typography>
-                                {canManageApplicationUrls && !searchTerm && Object.values(selectedEnvs).every(v => v) && (
+                                {urls.length > 0 ? (
+                                    <Button variant="outlined" onClick={clearFilters} sx={{ mt: 2 }}>
+                                        Clear Filters
+                                    </Button>
+                                ) : canManageApplicationUrls && (
                                     <Button
                                         variant="outlined"
                                         startIcon={<Add />}
-                                        onClick={() => setIsAddModalOpen(true)}
+                                        onClick={openAddApplication}
                                         sx={{ mt: 2 }}
                                     >
                                         Add Your First Application
@@ -855,7 +678,7 @@ function ApplicationUrls() {
                             </Box>
                         ) : (
                             <Stack spacing={2} sx={{ p: 2 }}>
-                                {Object.entries(groupedApps).sort(sortGroups).map(([appName, appUrls]) => (
+                                {sortedApps.map(({ appName, appUrls }) => (
                                     (() => {
                                         const AppIcon = getAppIcon(appName);
                                         return (
@@ -966,13 +789,7 @@ function ApplicationUrls() {
                                                 {appUrls.map((url) => (
                                                     <Paper
                                                         key={url.id}
-                                                        id={
-                                                            (() => {
-                                                                const certificateGroup = certificateGroups.get(getCertificateGroupKey(url));
-                                                                const rootRow = certificateGroup ? getCertificateGroupRootRow(certificateGroup) : url;
-                                                                return rootRow.id === url.id ? `ssl-root-row-${url.id}` : undefined;
-                                                            })()
-                                                        }
+                                                        id={rowElementId(url.id)}
                                                         variant="outlined"
                                                         sx={{
                                                             p: 1.5,
@@ -985,7 +802,12 @@ function ApplicationUrls() {
                                                                 transform: 'translateY(-1px)',
                                                                 boxShadow: "0 4px 12px -2px rgba(15,23,42,0.06)",
                                                                 borderColor: "rgba(15,23,42,0.12)",
-                                                            }
+                                                            },
+                                                            // Marks the row "View Routes" or "SSL Inherited from" scrolled to
+                                                            ...(highlightedRowId === url.id && {
+                                                                borderColor: "primary.main",
+                                                                boxShadow: "0 0 0 3px rgba(29,78,216,0.2)",
+                                                            }),
                                                         }}
                                                     >
                                                         <Box
@@ -998,20 +820,11 @@ function ApplicationUrls() {
                                                         >
                                                             <Box>
                                                                 {(() => {
-                                                                    const certificateGroup = certificateGroups.get(getCertificateGroupKey(url));
-                                                                    const isPlatformManaged = isPlatformManagedUrl(url);
-                                                                    const inherited = !isPlatformManaged && isInheritedSslRoute(url);
-                                                                    const sharedRouteCount = certificateGroup?.rows.length || 1;
-                                                                    const sharedAppCount = certificateGroup?.appCount || 1;
-                                                                    const fallbackGroup = {
-                                                                        key: url.url,
-                                                                        origin: url.url,
-                                                                        host: url.url,
-                                                                        rows: [url],
-                                                                        appCount: 1,
-                                                                    };
-                                                                    const resolvedGroup = certificateGroup || fallbackGroup;
-                                                                    const tooltipTitle = buildCertificateGroupTooltip(resolvedGroup, inherited);
+                                                                    const { group, inherited } = rowMeta.get(url.id)!;
+                                                                    const isPlatformManaged = group.isPlatformManaged;
+                                                                    const sharedRouteCount = group.rows.length;
+                                                                    const sharedAppCount = group.appCount;
+                                                                    const tooltipTitle = buildCertificateGroupTooltip(group, inherited);
 
                                                                     return (
                                                                         <Box display="flex" flexDirection="column" gap={1}>
@@ -1020,7 +833,8 @@ function ApplicationUrls() {
                                                                                 <Typography
                                                                                     variant="body2"
                                                                                     component="a"
-                                                                                    href={url.url}
+                                                                                    // Never link a non-web scheme such as javascript:
+                                                                                    href={isHttpUrl(url.url) ? url.url : undefined}
                                                                                     target="_blank"
                                                                                     rel="noopener noreferrer"
                                                                                     sx={{
@@ -1081,16 +895,8 @@ function ApplicationUrls() {
 
                                                             <Box>
                                                                 {(() => {
-                                                                    const certificateGroup = certificateGroups.get(getCertificateGroupKey(url));
-                                                                    const isPlatformManaged = isPlatformManagedUrl(url);
-                                                                    const inherited = !isPlatformManaged && isInheritedSslRoute(url);
-                                                                    const rootRow = certificateGroup ? getCertificateGroupRootRow(certificateGroup) : url;
-                                                                    const rootLabel = certificateGroup ? getCertificateGroupDisplay(certificateGroup) : url.url;
-
-                                                                    const scrollToRoot = () => {
-                                                                        const rootElement = document.getElementById(`ssl-root-row-${rootRow.id}`);
-                                                                        rootElement?.scrollIntoView({ behavior: "smooth", block: "center" });
-                                                                    };
+                                                                    const { group, inherited } = rowMeta.get(url.id)!;
+                                                                    const { rootRow, isPlatformManaged } = group;
 
                                                                     return (
                                                                         <Box display="flex" flexDirection="column" gap={0.75}>
@@ -1101,7 +907,7 @@ function ApplicationUrls() {
                                                                                         size="small"
                                                                                         color="info"
                                                                                         startIcon={<South fontSize="small" />}
-                                                                                        onClick={scrollToRoot}
+                                                                                        onClick={() => revealRow(rootRow.id)}
                                                                                         sx={{
                                                                                             justifyContent: "flex-start",
                                                                                             px: 0,
@@ -1111,7 +917,7 @@ function ApplicationUrls() {
                                                                                             alignSelf: "flex-start",
                                                                                         }}
                                                                                     >
-                                                                                        SSL Inherited from {rootRow.app_name} {rootRow.environment} ({rootLabel})
+                                                                                        SSL Inherited from {rootRow.app_name} {rootRow.environment} ({group.host})
                                                                                     </Button>
                                                                                     <Typography variant="caption" color="text.secondary">
                                                                                         {getExpirySummaryLabel(rootRow.ssl_expiry)}. Refer to root host for renewal tracking.
@@ -1130,13 +936,13 @@ function ApplicationUrls() {
                                                                             )}
                                                                             <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
                                                                                 {isPlatformManaged ? null : (
-                                                                                    <SSLStatusChip status={inherited ? `${url.ssl_status || "Unknown"} (Inherited)` : url.ssl_status} />
+                                                                                    <SSLStatusChip status={inherited ? `${rootRow.ssl_status || "Unknown"} (Inherited)` : url.ssl_status} />
                                                                                 )}
-                                                                                {!inherited && certificateGroup && certificateGroup.rows.length > 1 && !isPlatformManaged && (
+                                                                                {!inherited && group.rows.length > 1 && !isPlatformManaged && (
                                                                                     <Chip
                                                                                         size="small"
                                                                                         variant="outlined"
-                                                                                        label={`Covers ${certificateGroup.rows.length} route${certificateGroup.rows.length > 1 ? "s" : ""}`}
+                                                                                        label={`Covers ${group.rows.length} routes`}
                                                                                         sx={{ height: 24, fontSize: '0.75rem' }}
                                                                                     />
                                                                                 )}

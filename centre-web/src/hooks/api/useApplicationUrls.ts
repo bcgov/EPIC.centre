@@ -1,7 +1,11 @@
 import { centreRequest } from "@/utils/axiosUtils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEY } from "./constants";
-import { ApplicationUrl, CreateApplicationUrlPayload } from "@/models/ApplicationUrl";
+import {
+    ApplicationUrl,
+    CreateApplicationUrlPayload,
+    UpdateApplicationUrlPayload,
+} from "@/models/ApplicationUrl";
 
 const getApplicationUrls = () => {
     return centreRequest<ApplicationUrl[]>({
@@ -17,11 +21,11 @@ export const useGetApplicationUrls = (enabled = true) => {
     });
 };
 
-const updateApplicationUrl = (applicationUrl: ApplicationUrl) => {
+const updateApplicationUrl = ({ id, ...changes }: UpdateApplicationUrlPayload) => {
     return centreRequest<ApplicationUrl>({
-        url: `application-urls/${applicationUrl.id}`,
+        url: `application-urls/${id}`,
         method: "PUT",
-        data: applicationUrl
+        data: changes
     });
 };
 
@@ -38,7 +42,7 @@ export const useCreateApplicationUrl = () => {
     return useMutation({
         mutationFn: createApplicationUrl,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEY.APPLICATION_URLS] });
+            return queryClient.invalidateQueries({ queryKey: [QUERY_KEY.APPLICATION_URLS] });
         }
     });
 };
