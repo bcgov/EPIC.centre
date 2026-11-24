@@ -2,9 +2,17 @@
 
 Manages the application/environment URLs and their SSL status.
 """
-from datetime import datetime
+from datetime import datetime, timezone
+
+from sqlalchemy import func
+
 from .base_model import BaseModel
 from .db import db
+
+
+def _utc_isoformat(value):
+    """Mark the naive UTC timestamps as UTC, or browsers read them as local time."""
+    return value.replace(tzinfo=timezone.utc).isoformat() if value else None
 
 
 class ApplicationUrl(BaseModel):
@@ -36,17 +44,37 @@ class ApplicationUrl(BaseModel):
             'app_name': self.app_name,
             'environment': self.environment,
             'url': self.url,
-            'ssl_expiry': self.ssl_expiry.isoformat() if self.ssl_expiry else None,
+            'ssl_expiry': _utc_isoformat(self.ssl_expiry),
             'ssl_status': self.ssl_status,
             'ssl_error_message': self.ssl_error_message,
             'ticket_reference': self.ticket_reference,
             'renewal_status': self.renewal_status,
             'renewal_comments': self.renewal_comments,
-            'last_checked': self.last_checked.isoformat() if self.last_checked else None,
+            'last_checked': _utc_isoformat(self.last_checked),
             'is_active': self.is_active
         }
 
+    def clear_certificate_details(self):
+        """Forget the SSL details, e.g. when the URL moves to another host."""
+        self.ssl_status = 'Unknown'
+        self.ssl_expiry = None
+        self.ssl_error_message = None
+        self.last_checked = None
+
     @classmethod
     def find_all_active(cls):
-        """Return all active application URLs."""
-        return cls.query.filter_by(is_active=True).all()
+        """Return all active application URLs in a stable order."""
+        return cls.query.filter(cls.is_active.is_(True)).order_by(cls.app_name, cls.environment, cls.id).all()
+
+    @classmethod
+    def find_active_by_id(cls, url_id):
+        """Return the active application URL with this id, if any."""
+        return cls.query.filter(cls.id == url_id, cls.is_active.is_(True)).one_or_none()
+
+    @classmethod
+    def find_active_by_app_name(cls, app_name):
+        """Return an app's active URLs, matching its name case-insensitively."""
+        return cls.query.filter(
+            func.lower(cls.app_name) == app_name.lower(),
+            cls.is_active.is_(True),
+        ).order_by(cls.id).all()
