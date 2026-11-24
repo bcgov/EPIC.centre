@@ -33,6 +33,7 @@ from .application_urls import API as APPLICATION_URLS_API
 from .applications import API as APPLICATIONS_API
 from .eao_analytics import API as EAO_ANALYTICS_API
 from .ops import API as OPS_API
+from .ssl_certificates import API as SSL_CERTIFICATES_API
 from .user_application import API as USER_APPLICATION_API
 from .user_settings import API as USER_SETTINGS_API
 from .users import API as USERS_API
@@ -86,6 +87,7 @@ def handle_permission_error(error):
 
 API.add_namespace(APPLICATIONS_API)
 API.add_namespace(APPLICATION_URLS_API)
+API.add_namespace(SSL_CERTIFICATES_API)
 API.add_namespace(APP_CONFIG_API)
 API.add_namespace(ADMIN_CONFIG_API)
 API.add_namespace(USER_APPLICATION_API)

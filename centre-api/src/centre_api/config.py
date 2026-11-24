@@ -39,6 +39,12 @@ def _mask_password(uri: str, password: str) -> str:
     return uri.replace(f':{password}@', ':***@', 1) if password else uri
 
 
+def _split_list(value: str, lower: bool = False) -> list:
+    """Split a comma-separated setting, dropping blanks."""
+    items = [item.strip() for item in (value or '').split(',') if item.strip()]
+    return [item.lower() for item in items] if lower else items
+
+
 def _b64url_uint(value: int) -> str:
     """Encode an integer as a JWK does: big-endian, base64url, unpadded."""
     as_bytes = value.to_bytes((value.bit_length() + 7) // 8, 'big')
@@ -145,6 +151,21 @@ class _Config():  # pylint: disable=too-few-public-methods
 
     # Timeout (seconds) for outbound service-to-service HTTP calls
     CONNECT_TIMEOUT = int(os.getenv('CONNECT_TIMEOUT', '30'))
+
+    # SSL checks and renewal notices (flask ssl run)
+    SSL_CHECK_TIMEOUT = int(os.getenv('SSL_CHECK_TIMEOUT', '10'))
+    # Renewed by the OpenShift platform: checked, never notified
+    SSL_PLATFORM_DOMAINS = _split_list(os.getenv('SSL_PLATFORM_DOMAINS', 'devops.gov.bc.ca'), lower=True)
+    # One notice as a certificate comes within each of these days of expiry
+    SSL_NOTICE_DAYS = sorted((int(days) for days in _split_list(os.getenv('SSL_NOTICE_DAYS', '60,30,14,7,1'))),
+                             reverse=True)
+    # Hours a check must keep failing before a notice, so a blip sends nothing
+    SSL_FAILING_NOTICE_HOURS = int(os.getenv('SSL_FAILING_NOTICE_HOURS', '24'))
+    # Empty sends nothing; set it in prod only
+    SSL_NOTIFICATION_RECIPIENTS = _split_list(os.getenv('SSL_NOTIFICATION_RECIPIENTS', ''))
+    SSL_NOTIFICATION_SUBJECT_PREFIX = os.getenv('SSL_NOTIFICATION_SUBJECT_PREFIX', '')
+    # Eagle Notify's POST /api/messages, called as the service account above
+    EAGLE_NOTIFY_EMAIL_ENDPOINT = os.getenv('EAGLE_NOTIFY_EMAIL_ENDPOINT', '')
 
     # Application Launch URLs Configuration
     APP_LAUNCH_URLS = {
