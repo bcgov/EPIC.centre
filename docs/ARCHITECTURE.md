@@ -33,6 +33,8 @@ The PNGs are useful for orientation. The code-verified details below are the sou
 | Identity provider | external | Keycloak / loginproxy OIDC | Authenticates users and issues JWTs |
 | Auth API | external, configured by `AUTH_API` | REST API | User and group lookup/mutation proxy over Keycloak |
 | Submit API | external, configured by `SUBMIT_API_URL` | REST API | Receives staff-user sync calls when EPIC Submit access is granted |
+| SSL check job | `deployment/charts/centre-api/templates/cronjob-ssl-check.yaml` | OpenShift CronJob running `flask ssl run` in the API image | Checks every application URL's certificate daily and emails renewal reminders |
+| Eagle Notify | external, configured by `EAGLE_NOTIFY_EMAIL_ENDPOINT` | REST API (`POST /api/messages`) | Sends the SSL renewal reminder emails |
 
 ## High-Level Flow
 
@@ -79,7 +81,8 @@ All API namespaces are registered under `/api/`.
 | `user-applications` | `PATCH /api/user-applications/bookmarks`, `PATCH /api/user-applications/sort-order` | Per-user bookmarks and launchpad ordering |
 | `user-settings` | `GET /api/user-settings`, `PUT /api/user-settings/card-positions`, `PUT /api/user-settings/settings` | Per-user UI preferences |
 | `eao-analytics` | `GET/POST /api/eao-analytics` | Records app launch/login timestamps in `login_histories` |
-| `application-urls` | `GET/POST /api/application-urls`, `PUT/DELETE /api/application-urls/{id}` | Application URL and SSL tracking |
+| `application-urls` | `GET/POST /api/application-urls`, `PUT/DELETE /api/application-urls/{id}` | Application URLs; each https URL is linked to its host's certificate |
+| `ssl-certificates` | `GET /api/ssl-certificates`, `PATCH /api/ssl-certificates/{id}`, `POST /api/ssl-certificates/{id}/check` | Certificate check results, renewal tracking, and checking one certificate now |
 | `app-configs` | `GET /api/app-configs` | Frontend app configuration values returned by API |
 
 ## Authentication
@@ -100,7 +103,7 @@ Centre authorization is based on Keycloak group membership and selected client r
 | App admin | Member of an app admin group path | Manage access requests and users for that application |
 | DST admin | Member of Centre admin group path | Manage users and requests across applications, except compliance approval rules handled separately |
 | URL/SSL viewer | `view_ssl_info` role on `epic-centre` token client roles | View `/application-urls` |
-| URL/SSL editor | `edit_app_url` role on `epic-centre` token client roles | Create/update/delete application URL records |
+| URL/SSL editor | `edit_app_url` role on `epic-centre` token client roles | Create/update/delete application URL records, record certificate renewal progress, and check a certificate now |
 | AI search user | `ai_search_user` token client role | See the AI document search widget |
 
 Default backend admin group path values are loaded from environment variables with these fallbacks:
@@ -138,6 +141,19 @@ The registry is seeded by migrations and exposed through `/api/applications`. Th
 
 `document_search` and `intranet` are treated as public launchpad entries and are excluded from the self-service request catalog. `epic_compliance` is also excluded from that catalog by current service logic.
 
+## SSL Certificate Checks
+
+Every https application URL is linked to an `ssl_certificates` row for its origin (scheme, host and port), so URLs on one host share one certificate and one set of renewal tracking. Plain http URLs have no certificate.
+
+The daily `flask ssl run` job:
+
+1. Does a TLS handshake with each certificate's host (no HTTP request, so it works behind a login). It validates the certificate, and if validation fails it still reads the expiry date and records why.
+2. Stores the expiry, issuer, serial, fingerprint, check error and time. Status (`Valid`, `Expiring Soon` within 30 days, `Expired`, `Error`, `Unknown` before the first check) is worked out from these when read, so it can't go stale between checks.
+3. Emails each address in `SSL_NOTIFICATION_RECIPIENTS` one digest of the reminders now due, through Eagle Notify. A certificate gets one reminder as it comes within each of `SSL_NOTICE_DAYS` (60, 30, 14, 7, 1) of expiry, one when it expires, and one when its check has kept failing for `SSL_FAILING_NOTICE_HOURS` (24). Hosts under `SSL_PLATFORM_DOMAINS` (`devops.gov.bc.ca`) are renewed by the platform and get none.
+4. Logs each reminder in `ssl_notifications` only after Eagle Notify accepts it, so a failed send is retried the next day and nothing is sent twice. A renewal changes the expiry date, which starts the reminders afresh.
+
+The job exits non-zero only when a reminder couldn't be sent. A Postgres advisory lock stops a manual run from overlapping the scheduled one. Editors can also check one certificate from the page (`POST /api/ssl-certificates/{id}/check`), which never sends email.
+
 ## Persistence
 
 See [DATABASE.md](DATABASE.md) for schema details. The active model-backed tables are:
@@ -149,6 +165,8 @@ See [DATABASE.md](DATABASE.md) for schema details. The active model-backed table
 - `login_histories`
 - `email_queue`
 - `application_urls`
+- `ssl_certificates`
+- `ssl_notifications`
 
 Historical migrations create and later remove older structures such as `bookmarks` and `staff_users`.
 
@@ -160,6 +178,7 @@ OpenShift deployment is chart-based:
 - `centre-api` serves Flask through Gunicorn on port 8080.
 - `centre-api` has an init container that runs `flask db upgrade` through `pre-hook-update-db.sh` before the app container starts.
 - `centre-patroni` provides the database service used by the API.
+- `centre-api-ssl-check` is a daily CronJob running `flask ssl run` from the API image; see [DEPLOYMENT.md](DEPLOYMENT.md#ssl-certificate-check-job).
 - Runtime secrets and environment values are provided through Secrets and ConfigMaps generated by Helm charts and secret-management workflows.
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for GitHub Actions, image tags, and release procedures.

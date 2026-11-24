@@ -22,7 +22,9 @@ EPIC.centre uses PostgreSQL with SQLAlchemy models and Alembic migrations throug
 | `user_settings` | `UserSettings` | Per-user UI preferences |
 | `login_histories` | `EaoAnalytics` | Last login/launch timestamp by user and application |
 | `email_queue` | `EmailQueue` | Queued notification payloads |
-| `application_urls` | `ApplicationUrl` | Application/environment URLs and SSL metadata |
+| `application_urls` | `ApplicationUrl` | Application/environment URLs; one active URL per app and environment, linked to its certificate |
+| `ssl_certificates` | `SslCertificate` | One row per https origin: last check results and renewal tracking |
+| `ssl_notifications` | `SslNotification` | SSL renewal reminders already sent, one row per reminder and recipient |
 
 ## Seeded Applications
 

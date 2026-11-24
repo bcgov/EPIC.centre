@@ -134,6 +134,61 @@ oc rollout restart deployment/centre-web -n [PREFIX]-[env]
 
 The current workflows do not create dated production snapshot tags automatically.
 
+## SSL Certificate Check Job
+
+`centre-api-ssl-check` is a CronJob in the `centre-api` chart that runs `flask ssl run` daily at 15:00 UTC (7am PST, 8am PDT), using the same image as the API. See [ARCHITECTURE.md](ARCHITECTURE.md#ssl-certificate-checks) for what it does.
+
+The API chart isn't applied with `helm upgrade`, because its live ConfigMap and Deployment have been edited by hand. The job runs in two stages: checks only, then email once Eagle Notify is available.
+
+### Checks only
+
+With `SSL_NOTIFICATION_RECIPIENTS` empty, the job checks every certificate and keeps the page up to date, sends no email and doesn't contact Eagle Notify. Dev and test stay this way: every environment's database holds the same DEV, TEST and PROD URLs, so only prod should ever email.
+
+1. **CronJob:** render only the CronJob, with the same image tag as the environment's API Deployment, and apply it:
+
+   ```bash
+   helm template centre-api deployment/charts/centre-api \
+     --values deployment/charts/centre-api/values.prod.yaml --set image.tag=prod \
+     --show-only templates/cronjob-ssl-check.yaml | oc apply -n [PREFIX]-prod -f -
+   ```
+
+2. **Network:** the job's pods are labelled `app=centre-api-ssl-check`, not `app=centre-api`, so the API Service doesn't route to them. They need the same database access as the API pods, plus outbound HTTPS to every application host.
+
+3. **First run:** start one now rather than waiting for the schedule, and read its log. It should list every certificate and end with "SSL_NOTIFICATION_RECIPIENTS is empty, so no notices are sent here".
+
+   ```bash
+   oc create job ssl-check-first-run --from=cronjob/centre-api-ssl-check -n [PREFIX]-prod
+   oc logs -f job/ssl-check-first-run -n [PREFIX]-prod
+   ```
+
+### Turning on email
+
+Once Eagle Notify is in prod:
+
+1. **Eagle Notify:** add Centre's Keycloak service account (`KEYCLOAK_SERVICE_ACCOUNT_ID`) to `sendClients` in eagle-notify's `azure/main.prod.bicepparam`, and deploy it with Eagle Notify's Bicep. Don't set `SEND_CLIENTS` in the Azure portal: each Bicep deploy rewrites every app setting. Optionally add `centre-ssl` to an app's `callers` in `notifyApps` so the sends show on its dashboard.
+
+   ```bicep
+   {
+     id: 'centre-ssl'
+     azp: '<KEYCLOAK_SERVICE_ACCOUNT_ID>'
+     username: 'service-account-<KEYCLOAK_SERVICE_ACCOUNT_ID>'
+   }
+   ```
+
+2. **Service account:** the job loads the API's ConfigMap and the Secrets in `sslCheck.envFromSecrets` (default `centre-api`) whole. Check that `KEYCLOAK_SERVICE_ACCOUNT_ID` and `KEYCLOAK_SERVICE_ACCOUNT_SECRET` come from one of them, and add their Secret to the list if not. The job's pods also need outbound HTTPS to Eagle Notify.
+
+3. **Settings:** add the job's email keys to the live ConfigMap:
+
+   ```bash
+   oc set data configmap/centre-api -n [PREFIX]-prod \
+     EAGLE_NOTIFY_EMAIL_ENDPOINT=https://<eagle-notify host>/api/messages \
+     SSL_NOTIFICATION_RECIPIENTS=<distribution list address>
+   ```
+
+4. **Run:** start a run as above. Each certificate is reminded once, for the threshold it's within now, not once for every threshold it passed while email was off.
+
+The `CHECK_SSL` job in `bcgov/EPIC.common` (`jobs/epic-cron/tasks/ssl_checker.py`) is replaced by this one. It was never scheduled, and the `application_urls` columns it wrote no longer exist.
+
 ## Post-Deploy Checklist
 
 1. Confirm API rollout status.
@@ -143,6 +198,7 @@ The current workflows do not create dated production snapshot tags automatically
 5. Confirm the API pod completed the migration init container.
 6. Smoke test login, launchpad, access request catalog, admin request list, and application URL page if relevant.
 7. Review logs for startup or integration errors.
+8. If the SSL check job changed, confirm its last run succeeded: `oc get jobs -l app=centre-api-ssl-check`.
 
 ## Current Hardening Opportunities
 
