@@ -1,4 +1,4 @@
-import { ApplicationUrl, RenewalStatus } from "@/models/ApplicationUrl";
+import { ApplicationUrl } from "@/models/ApplicationUrl";
 import { useUpdateApplicationUrl, useDeleteApplicationUrl } from "@/hooks/api/useApplicationUrls";
 import {
     Button,
@@ -10,19 +10,15 @@ import {
     TextField,
     Typography,
     Box,
-    MenuItem
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { useState } from "react";
 import { notify } from "@/components/Shared/Snackbar/snackbarStore";
 import { getErrorMessage, setServerFieldErrors } from "@/utils/errorUtils";
-import { ticketReferenceRules, urlRules } from "./fieldRules";
+import { urlRules } from "./fieldRules";
 
 type EditUrlForm = {
     url: string;
-    ticket_reference: string;
-    renewal_status: Exclude<RenewalStatus, null>;
-    renewal_comments: string;
 };
 
 export function EditUrlModal({
@@ -41,32 +37,20 @@ export function EditUrlModal({
     const isBusy = isPending || isDeleting;
 
     const { control, handleSubmit, setError } = useForm<EditUrlForm>({
-        defaultValues: {
-            url: url.url,
-            renewal_status: url.renewal_status || 'NONE',
-            renewal_comments: url.renewal_comments || '',
-            ticket_reference: url.ticket_reference || ''
-        },
+        defaultValues: { url: url.url },
     });
 
-    // Only the editable fields, so a save can't overwrite the SSL details
+    // Renewal tracking is on the certificate, in CertificateRenewalModal
     const onSubmit = (data: EditUrlForm) => {
         mutate(
-            {
-                id: url.id,
-                url: data.url.trim(),
-                ticket_reference: data.ticket_reference.trim() || null,
-                renewal_status: data.renewal_status,
-                renewal_comments: data.renewal_comments.trim() || null,
-            },
+            { id: url.id, url: data.url.trim() },
             {
                 onSuccess: () => {
                     onClose();
                 },
                 onError: (error) => {
-                    // Only these fields show an error
                     const shownOnFields = setServerFieldErrors(error, setError, ([field]) =>
-                        field === "url" || field === "ticket_reference" ? field : undefined,
+                        field === "url" ? field : undefined,
                     );
                     if (!shownOnFields) {
                         notify.error(getErrorMessage(error, "Unable to save the URL. Please try again."));
@@ -87,7 +71,7 @@ export function EditUrlModal({
         });
     };
 
-    // Stay open while saving: closing unmounts the modal, and the error of a failed save would be lost
+    // Stay open while saving: closing unmounts the modal and loses a failed save's error
     return (
         <Dialog open={open} onClose={isBusy ? undefined : onClose} fullWidth maxWidth="sm">
             <DialogTitle>Edit URL</DialogTitle>
@@ -113,53 +97,6 @@ export function EditUrlModal({
                                     fullWidth
                                     error={!!error}
                                     helperText={error?.message}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="ticket_reference"
-                            control={control}
-                            rules={ticketReferenceRules}
-                            render={({ field, fieldState: { error } }) => (
-                                <TextField
-                                    {...field}
-                                    label="SSL Renewal Ticket # (Optional)"
-                                    placeholder="e.g. INFRA-1234"
-                                    fullWidth
-                                    error={!!error}
-                                    helperText={error?.message || "Reference for tracking external renewal work"}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="renewal_status"
-                            control={control}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    select
-                                    label="Renewal Status"
-                                    fullWidth
-                                    helperText="Current stage of the renewal process"
-                                >
-                                    <MenuItem value="NONE">No Action Taken</MenuItem>
-                                    <MenuItem value="TICKET_CREATED">Ticket Created</MenuItem>
-                                    <MenuItem value="ORDERED">Certificate Ordered</MenuItem>
-                                    <MenuItem value="PLANNED">Installation Planned</MenuItem>
-                                </TextField>
-                            )}
-                        />
-                        <Controller
-                            name="renewal_comments"
-                            control={control}
-                            render={({ field }) => (
-                                <TextField
-                                    {...field}
-                                    label="Comments"
-                                    multiline
-                                    rows={3}
-                                    fullWidth
-                                    placeholder="Add details about delay, ETA, or blockers..."
                                 />
                             )}
                         />

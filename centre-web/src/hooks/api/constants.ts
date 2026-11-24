@@ -8,4 +8,5 @@ export const QUERY_KEY = Object.freeze({
   USER: "user",
   USER_SETTINGS: "user-settings",
   APPLICATION_URLS: "application-urls",
+  SSL_CERTIFICATES: "ssl-certificates",
 });

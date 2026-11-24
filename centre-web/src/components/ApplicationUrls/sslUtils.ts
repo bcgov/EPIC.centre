@@ -1,20 +1,7 @@
 import dayjs, { Dayjs } from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-const PLATFORM_DOMAIN = "devops.gov.bc.ca";
-
-/** True for hosts under devops.gov.bc.ca, whose certificates the OpenShift platform renews. */
-export const isPlatformManagedHost = (hostname: string): boolean => {
-    const host = hostname.toLowerCase();
-    return host === PLATFORM_DOMAIN || host.endsWith(`.${PLATFORM_DOMAIN}`);
-};
-
-export const isPlatformManagedUrl = (url: string): boolean => {
-    try {
-        return isPlatformManagedHost(new URL(url).hostname);
-    } catch {
-        return false;
-    }
-};
+dayjs.extend(relativeTime);
 
 export type ExpiryInfo = {
     expiry: Dayjs;
@@ -43,4 +30,10 @@ export const getExpiryInfo = (expiryDate: string | null): ExpiryInfo | null => {
     const expired = !expiry.isAfter(now);
     const daysLeft = expiry.startOf("day").diff(now.startOf("day"), "day");
     return { expiry, expired, daysLeft, text: describeExpiry(expired, daysLeft) };
+};
+
+/** "Checked 3 hours ago", or "Not checked yet" */
+export const describeLastChecked = (lastChecked: string | null): string => {
+    const checked = lastChecked ? dayjs(lastChecked) : null;
+    return checked?.isValid() ? `Checked ${checked.fromNow()}` : "Not checked yet";
 };

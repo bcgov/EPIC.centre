@@ -1,24 +1,8 @@
 import { Box, Typography, Tooltip } from "@mui/material";
-import { ErrorOutline, CheckCircle, WarningAmber, Info } from "@mui/icons-material";
-import { getExpiryInfo, isPlatformManagedUrl } from "./sslUtils";
+import { ErrorOutline, CheckCircle, WarningAmber } from "@mui/icons-material";
+import { getExpiryInfo } from "./sslUtils";
 
-interface ExpiryDisplayProps {
-    expiryDate: string | null;
-    url?: string;
-}
-
-export function ExpiryDisplay({ expiryDate, url }: ExpiryDisplayProps) {
-    if (url && isPlatformManagedUrl(url)) {
-        return (
-            <Tooltip title="Managed by Platform Services">
-                <Box display="flex" alignItems="center" gap={0.5} color="text.secondary">
-                    <Info fontSize="small" />
-                    <Typography variant="body2">Managed</Typography>
-                </Box>
-            </Tooltip>
-        );
-    }
-
+export function ExpiryDisplay({ expiryDate }: { expiryDate: string | null }) {
     const info = getExpiryInfo(expiryDate);
     if (!info) return <Typography variant="caption" color="text.secondary">No Expiry Date</Typography>;
 

@@ -1,4 +1,3 @@
-import { RenewalStatus } from "@/models/ApplicationUrl";
 import { useCreateApplicationUrl } from "@/hooks/api/useApplicationUrls";
 import { useEffect } from "react";
 import {
@@ -19,11 +18,10 @@ import {
     setServerFieldErrors,
     tooLongMessage,
 } from "@/utils/errorUtils";
-import { ticketReferenceRules, urlRules } from "./fieldRules";
+import { urlRules } from "./fieldRules";
 
 type AddApplicationForm = {
     app_name: string;
-    ticket_reference: string;
     prod_url: string;
     test_url: string;
     dev_url: string;
@@ -33,9 +31,6 @@ type AddEnvironmentForm = {
     app_name: string;
     environment: string;
     url: string;
-    ticket_reference: string;
-    renewal_status: Exclude<RenewalStatus, null>;
-    renewal_comments: string;
 };
 
 const URL_FIELDS = {
@@ -73,7 +68,6 @@ export function AddUrlModal({
     } = useForm<AddApplicationForm>({
         defaultValues: {
             app_name: "",
-            ticket_reference: "",
             prod_url: "",
             test_url: "",
             dev_url: "",
@@ -90,9 +84,6 @@ export function AddUrlModal({
             app_name: initialAppName,
             environment: "",
             url: "",
-            ticket_reference: "",
-            renewal_status: "NONE",
-            renewal_comments: "",
         },
     });
 
@@ -105,9 +96,6 @@ export function AddUrlModal({
             app_name: initialAppName,
             environment: "",
             url: "",
-            ticket_reference: "",
-            renewal_status: "NONE",
-            renewal_comments: "",
         });
     }, [initialAppName, resetEnvironmentForm]);
 
@@ -125,14 +113,9 @@ export function AddUrlModal({
             return;
         }
 
-        const basePayload = {
-            app_name: normalizedAppName,
-            ticket_reference: data.ticket_reference.trim() || null,
-        };
-
         const payloads = (Object.keys(URL_FIELDS) as StandardEnvironment[])
             .map((environment) => ({
-                ...basePayload,
+                app_name: normalizedAppName,
                 environment,
                 url: data[URL_FIELDS[environment]].trim(),
             }))
@@ -166,7 +149,7 @@ export function AddUrlModal({
                 !setServerFieldErrors(error, setApplicationError, ([field]) => {
                     // e.g. "already has a PROD URL" goes under PROD URL
                     if (field === "url" || field === "environment") return URL_FIELDS[environment];
-                    if (field === "app_name" || field === "ticket_reference") return field;
+                    if (field === "app_name") return field;
                     return undefined;
                 }),
         );
@@ -194,18 +177,13 @@ export function AddUrlModal({
                 app_name: data.app_name.trim(),
                 environment: data.environment.trim().toUpperCase(),
                 url: data.url.trim(),
-                ticket_reference: data.ticket_reference.trim() || null,
-                renewal_status: data.renewal_status,
-                renewal_comments: data.renewal_comments.trim() || null,
             });
         } catch (error) {
             const shownOnFields = setServerFieldErrors(
                 error,
                 setEnvironmentError,
                 ([field]) =>
-                    field === "environment" || field === "url" || field === "ticket_reference"
-                        ? field
-                        : undefined,
+                    field === "environment" || field === "url" ? field : undefined,
             );
             if (!shownOnFields) {
                 notify.error(
@@ -218,14 +196,11 @@ export function AddUrlModal({
             app_name: initialAppName,
             environment: "",
             url: "",
-            ticket_reference: "",
-            renewal_status: "NONE",
-            renewal_comments: "",
         });
         onClose();
     };
 
-    // Stay open while saving, so a failure is shown next to the input it's about
+    // Stay open while saving, so a failure shows on its field
     return (
         <Dialog open={open} onClose={isSubmitting ? undefined : onClose} fullWidth maxWidth="sm">
             <DialogTitle>{isAddEnvironmentMode ? "Add Environment" : "Add Application"}</DialogTitle>
@@ -282,21 +257,6 @@ export function AddUrlModal({
                                             error={!!error}
                                             helperText={error?.message}
                                             placeholder="https://example.com"
-                                        />
-                                    )}
-                                />
-                                <Controller
-                                    name="ticket_reference"
-                                    control={environmentControl}
-                                    rules={ticketReferenceRules}
-                                    render={({ field, fieldState: { error } }) => (
-                                        <TextField
-                                            {...field}
-                                            label="SSL Renewal Ticket # (Optional)"
-                                            placeholder="e.g. INFRA-1234"
-                                            fullWidth
-                                            error={!!error}
-                                            helperText={error?.message || "Reference for tracking external renewal work"}
                                         />
                                     )}
                                 />
@@ -401,21 +361,6 @@ export function AddUrlModal({
                                                     clearApplicationErrors(["prod_url", "test_url", "dev_url"]);
                                                 }
                                             }}
-                                        />
-                                    )}
-                                />
-                                <Controller
-                                    name="ticket_reference"
-                                    control={applicationControl}
-                                    rules={ticketReferenceRules}
-                                    render={({ field, fieldState: { error } }) => (
-                                        <TextField
-                                            {...field}
-                                            label="SSL Renewal Ticket # (Optional)"
-                                            placeholder="e.g. INFRA-1234"
-                                            fullWidth
-                                            error={!!error}
-                                            helperText={error?.message || "Applied to the initial URL set"}
                                         />
                                     )}
                                 />
