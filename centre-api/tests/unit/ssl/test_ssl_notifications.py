@@ -217,6 +217,22 @@ class TestEagleNotifyService:
                 pytest.raises(EagleNotifyError, match='Could not reach Eagle Notify'):
             EagleNotifyService.send_email('a@example.com', 'Subject', '<p>Hi</p>', 'tpl')
 
+    @pytest.mark.parametrize('failure, reason', [
+        (requests.HTTPError(response=MagicMock(status_code=401)), r'Keycloak refused .* token \(401\)'),
+        (requests.ConnectionError('down'), 'Could not reach Keycloak'),
+        (None, 'Keycloak returned no access token'),
+    ])
+    def test_token_failure_names_keycloak(self, app, monkeypatch, failure, reason):
+        """A bad service account secret reads as a Keycloak failure, and Eagle Notify isn't called."""
+        monkeypatch.setitem(app.config, 'EAGLE_NOTIFY_EMAIL_ENDPOINT', 'https://notify.example.com/api/messages')
+        token = {'side_effect': failure} if failure else {'return_value': None}
+        with patch('centre_api.services.eagle_notify_service.KeycloakTokenService.get_service_account_token',
+                   **token), \
+                patch('centre_api.services.eagle_notify_service.requests.post') as post, \
+                pytest.raises(EagleNotifyError, match=reason):
+            EagleNotifyService.send_email('a@example.com', 'Subject', '<p>Hi</p>', 'tpl')
+        post.assert_not_called()
+
     def test_unconfigured_raises(self, app, monkeypatch):
         """Recipients without an endpoint is a misconfiguration, so the run fails loudly."""
         monkeypatch.setitem(app.config, 'EAGLE_NOTIFY_EMAIL_ENDPOINT', '')

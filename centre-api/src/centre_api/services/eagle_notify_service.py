@@ -12,6 +12,20 @@ class EagleNotifyError(Exception):
     """Eagle Notify didn't accept the email."""
 
 
+def _service_account_token() -> str:
+    """Return Centre's service account token, or raise EagleNotifyError naming Keycloak as the cause."""
+    try:
+        token = KeycloakTokenService.get_service_account_token()
+    except requests.HTTPError as err:
+        status = err.response.status_code if err.response is not None else 'no response'
+        raise EagleNotifyError(f'Keycloak refused the service account token ({status})') from err
+    except requests.RequestException as err:
+        raise EagleNotifyError(f'Could not reach Keycloak for a token: {type(err).__name__}') from err
+    if not token:
+        raise EagleNotifyError('Keycloak returned no access token')
+    return token
+
+
 class EagleNotifyService:  # pylint: disable=too-few-public-methods
     """Client for Eagle Notify."""
 
@@ -22,8 +36,8 @@ class EagleNotifyService:  # pylint: disable=too-few-public-methods
         if not endpoint:
             raise EagleNotifyError('EAGLE_NOTIFY_EMAIL_ENDPOINT is not set')
 
+        token = _service_account_token()
         try:
-            token = KeycloakTokenService.get_service_account_token()
             response = requests.post(
                 endpoint,
                 json={

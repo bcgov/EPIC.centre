@@ -144,11 +144,10 @@ The API chart isn't applied with `helm upgrade`, because its live ConfigMap and 
 
 With `SSL_NOTIFICATION_RECIPIENTS` empty, the job checks every certificate and keeps the page up to date, sends no email and doesn't contact Eagle Notify. Dev and test stay this way: every environment's database holds the same DEV, TEST and PROD URLs, so only prod should ever email.
 
-1. **CronJob:** render only the CronJob, with the same image tag as the environment's API Deployment, and apply it:
+1. **CronJob:** render only the CronJob, with the same image tag as the environment's API Deployment, and apply it. It reads only the `image`, `database` and `sslCheck` values, and the chart's defaults already point at Centre's image and database, so pass your `values.prod.yaml` with `--values` only if it overrides those.
 
    ```bash
-   helm template centre-api deployment/charts/centre-api \
-     --values deployment/charts/centre-api/values.prod.yaml --set image.tag=prod \
+   helm template centre-api deployment/charts/centre-api --set image.tag=prod \
      --show-only templates/cronjob-ssl-check.yaml | oc apply -n [PREFIX]-prod -f -
    ```
 
@@ -163,29 +162,65 @@ With `SSL_NOTIFICATION_RECIPIENTS` empty, the job checks every certificate and k
 
 ### Turning on email
 
-Once Eagle Notify is in prod:
+Centre sends through Eagle Notify the way EPIC.engage does: `POST /api/messages` at `EAGLE_NOTIFY_EMAIL_ENDPOINT`, as a sender listed in Eagle Notify's `SEND_CLIENTS`. Eagle Notify matches a sender by the token's client (`azp`) and username. Engage signs in as a Keycloak user (`metservice` on `eagle-admin-console`). Centre uses its service account's client-credentials token, whose username is `service-account-<client id>`.
 
-1. **Eagle Notify:** add Centre's Keycloak service account (`KEYCLOAK_SERVICE_ACCOUNT_ID`) to `sendClients` in eagle-notify's `azure/main.prod.bicepparam`, and deploy it with Eagle Notify's Bicep. Don't set `SEND_CLIENTS` in the Azure portal: each Bicep deploy rewrites every app setting. Optionally add `centre-ssl` to an app's `callers` in `notifyApps` so the sends show on its dashboard.
+Each Eagle Notify environment accepts tokens only from its own Keycloak: test from `test.loginproxy.gov.bc.ca`, prod from `loginproxy.gov.bc.ca`, and dev from neither.
+
+1. **Eagle Notify:** in eagle-notify's `azure/main.prod.bicepparam` (and `main.test.bicepparam` for step 2), add Centre's sender to `sendClients` and an app for it to `notifyApps`, next to engage's `engage-mail` and `epic-engage`. Deploy with Eagle Notify's Bicep. Don't set `SEND_CLIENTS` in the Azure portal: each Bicep deploy rewrites every app setting.
 
    ```bicep
+   // sendClients: the client id is the one in that environment's Keycloak
    {
-     id: 'centre-ssl'
+     id: 'centre-mail'
      azp: '<KEYCLOAK_SERVICE_ACCOUNT_ID>'
      username: 'service-account-<KEYCLOAK_SERVICE_ACCOUNT_ID>'
    }
+
+   // notifyApps: an invalid entry, such as a colour that isn't #rrggbb, makes every app's dashboard fail
+   {
+     id: 'epic-centre'
+     name: 'EPIC.centre'
+     colour: '#2E8540'
+     roles: [
+       'notify-admin'
+     ]
+     callers: [
+       'centre-mail'
+     ]
+     templates: {
+       'centre-ssl-renewal': 'SSL renewal reminder'
+     }
+   }
    ```
 
-2. **Service account:** the job loads the API's ConfigMap and the Secrets in `sslCheck.envFromSecrets` (default `centre-api`) whole. Check that `KEYCLOAK_SERVICE_ACCOUNT_ID` and `KEYCLOAK_SERVICE_ACCOUNT_SECRET` come from one of them, and add their Secret to the list if not. The job's pods also need outbound HTTPS to Eagle Notify.
+   Check `hourlySendBudget` in the same file. Every service sender shares what's left of it after a quarter for sign-ups and half for staff: 2 an hour at the default of 8, shared with engage. A refused send waits for the next day's run.
 
-3. **Settings:** add the job's email keys to the live ConfigMap:
+2. **Try it on test:** this only works if test's `centre-api` ConfigMap has `KEYCLOAK_BASE_URL=https://test.loginproxy.gov.bc.ca`. Run once from the test API pod, sending to your own address. The settings apply to this one command only, so test's ConfigMap and CronJob still send nothing. `SSL_NOTICE_DAYS=400` makes every certificate due, so the run sends something:
+
+   ```bash
+   oc exec deploy/centre-api -n [PREFIX]-test -- env \
+     EAGLE_NOTIFY_EMAIL_ENDPOINT=https://<Eagle Notify test host>/api/messages \
+     SSL_NOTIFICATION_RECIPIENTS=<your address> \
+     SSL_NOTIFICATION_SUBJECT_PREFIX='[TEST] ' \
+     SSL_NOTICE_DAYS=400 \
+     flask ssl run
+   ```
+
+   A failure ends the output with the reason. `401` means Eagle Notify doesn't list the client or trust the token's Keycloak. `403` means the token's username doesn't match `sendClients`. A Keycloak error means the service account itself failed.
+
+3. **Service account:** the job loads the API's ConfigMap and the Secrets in `sslCheck.envFromSecrets` (default `centre-api`) whole. Check that `KEYCLOAK_SERVICE_ACCOUNT_ID` and `KEYCLOAK_SERVICE_ACCOUNT_SECRET` come from one of them, and add their Secret to the list if not. The job's pods also need outbound HTTPS to Eagle Notify.
+
+4. **Settings:** once Eagle Notify is in prod, add the job's email keys to the live ConfigMap:
 
    ```bash
    oc set data configmap/centre-api -n [PREFIX]-prod \
-     EAGLE_NOTIFY_EMAIL_ENDPOINT=https://<eagle-notify host>/api/messages \
+     EAGLE_NOTIFY_EMAIL_ENDPOINT=https://<Eagle Notify prod host>/api/messages \
      SSL_NOTIFICATION_RECIPIENTS=<distribution list address>
    ```
 
-4. **Run:** start a run as above. Each certificate is reminded once, for the threshold it's within now, not once for every threshold it passed while email was off.
+   One distribution list sends one email a day, which keeps Centre well inside Eagle Notify's hourly budget.
+
+5. **Run:** start a run as in "Checks only". Each certificate is reminded once, for the threshold it's within now, not once for every threshold it passed while email was off.
 
 The `CHECK_SSL` job in `bcgov/EPIC.common` (`jobs/epic-cron/tasks/ssl_checker.py`) is replaced by this one. It was never scheduled, and the `application_urls` columns it wrote no longer exist.
 
