@@ -166,14 +166,41 @@ Centre sends through Eagle Notify the way EPIC.engage does: `POST /api/messages`
 
 Each Eagle Notify environment accepts tokens only from its own Keycloak: test from `test.loginproxy.gov.bc.ca`, prod from `loginproxy.gov.bc.ca`, and dev from neither.
 
-1. **Eagle Notify:** in eagle-notify's `azure/main.prod.bicepparam` (and `main.test.bicepparam` for step 2), add Centre's sender to `sendClients` and an app for it to `notifyApps`, next to engage's `engage-mail` and `epic-engage`. Deploy with Eagle Notify's Bicep. Don't set `SEND_CLIENTS` in the Azure portal: each Bicep deploy rewrites every app setting.
+1. **Service account:** Centre needs its own Keycloak client in each environment that sends (prod, and test for step 3). No environment had one as of November 2026: the `centre-api` Secrets held only empty, unused `KEYCLOAK_ADMIN_*` keys. In that environment's `eao-epic` realm, create a client with Client authentication and Service accounts roles on, and Standard flow and Direct access grants off. It needs no roles for email, since Eagle Notify checks only the client and username.
+
+   Add its id and secret to the `centre-api` Secret. The job loads that Secret whole (`sslCheck.envFromSecrets`), so its next run picks them up. `read -rs` keeps the secret out of shell history.
+
+   ```bash
+   read -rs SA_SECRET
+   oc set data secret/centre-api -n [PREFIX]-prod \
+     KEYCLOAK_SERVICE_ACCOUNT_ID=<client id> KEYCLOAK_SERVICE_ACCOUNT_SECRET="$SA_SECRET"
+   ```
+
+   Get a token to check the client works and to read the values step 2 needs. Use `test.loginproxy.gov.bc.ca` for test.
+
+   ```bash
+   curl -s https://loginproxy.gov.bc.ca/auth/realms/eao-epic/protocol/openid-connect/token \
+     -d grant_type=client_credentials -d client_id=<client id> -d client_secret="$SA_SECRET" \
+   | python3 -c "import sys,json,base64; t=json.load(sys.stdin)['access_token'].split('.')[1]; t+='='*(-len(t)%4); p=json.loads(base64.urlsafe_b64decode(t)); print(p.get('azp'), p.get('preferred_username'))"
+   ```
+
+   It prints the token's `azp` and `preferred_username`. If `preferred_username` is `None`, the client is missing the `profile` scope, and Eagle Notify would refuse it with `403`.
+
+   The API pod uses the same client to remove a user's EPIC.submit work assignments when their EPIC.track access is revoked. Submit only accepts that call from a token with a Submit staff role, so that also needs a role on the client. To give the live API Deployment the keys (this restarts it):
+
+   ```bash
+   oc set env deployment/centre-api -n [PREFIX]-prod --from=secret/centre-api \
+     --keys=KEYCLOAK_SERVICE_ACCOUNT_ID,KEYCLOAK_SERVICE_ACCOUNT_SECRET
+   ```
+
+2. **Eagle Notify:** in eagle-notify's `azure/main.prod.bicepparam` (and `main.test.bicepparam` for step 3), add Centre's sender to `sendClients` and an app for it to `notifyApps`, next to engage's `engage-mail` and `epic-engage`. Deploy with eagle-notify's "Deploy infrastructure" workflow: a what-if run, then an apply run naming it. Prod deploys only from a tag. Don't set `SEND_CLIENTS` in the Azure portal: each deploy rewrites every app setting.
 
    ```bicep
-   // sendClients: the client id is the one in that environment's Keycloak
+   // sendClients: the values the token in step 1 printed
    {
      id: 'centre-mail'
-     azp: '<KEYCLOAK_SERVICE_ACCOUNT_ID>'
-     username: 'service-account-<KEYCLOAK_SERVICE_ACCOUNT_ID>'
+     azp: '<azp>'
+     username: '<preferred_username>'
    }
 
    // notifyApps: an invalid entry, such as a colour that isn't #rrggbb, makes every app's dashboard fail
@@ -193,9 +220,9 @@ Each Eagle Notify environment accepts tokens only from its own Keycloak: test fr
    }
    ```
 
-   Check `hourlySendBudget` in the same file. Every service sender shares what's left of it after a quarter for sign-ups and half for staff: 2 an hour at the default of 8, shared with engage. A refused send waits for the next day's run.
+   Check `hourlySendBudget` in the same file. Every service sender, engage included, shares what's left of it after a quarter for sign-ups and half for staff: 23 an hour at 90, and 2 at the default of 8. A refused send waits for the next day's run.
 
-2. **Try it on test:** this only works if test's `centre-api` ConfigMap has `KEYCLOAK_BASE_URL=https://test.loginproxy.gov.bc.ca`. Run once from the test API pod, sending to your own address. The settings apply to this one command only, so test's ConfigMap and CronJob still send nothing. `SSL_NOTICE_DAYS=400` makes every certificate due, so the run sends something:
+3. **Try it on test:** this only works if test's `centre-api` ConfigMap has `KEYCLOAK_BASE_URL=https://test.loginproxy.gov.bc.ca`, and the test API Deployment has the keys from step 1's `oc set env`. Run once from the test API pod, sending to your own address. The settings apply to this one command only, so test's ConfigMap and CronJob still send nothing. `SSL_NOTICE_DAYS=400` makes every certificate due, so the run sends something:
 
    ```bash
    oc exec deploy/centre-api -n [PREFIX]-test -- env \
@@ -208,9 +235,7 @@ Each Eagle Notify environment accepts tokens only from its own Keycloak: test fr
 
    A failure ends the output with the reason. `401` means Eagle Notify doesn't list the client or trust the token's Keycloak. `403` means the token's username doesn't match `sendClients`. A Keycloak error means the service account itself failed.
 
-3. **Service account:** the job loads the API's ConfigMap and the Secrets in `sslCheck.envFromSecrets` (default `centre-api`) whole. Check that `KEYCLOAK_SERVICE_ACCOUNT_ID` and `KEYCLOAK_SERVICE_ACCOUNT_SECRET` come from one of them, and add their Secret to the list if not. The job's pods also need outbound HTTPS to Eagle Notify.
-
-4. **Settings:** once Eagle Notify is in prod, add the job's email keys to the live ConfigMap:
+4. **Settings:** once Eagle Notify is in prod, add the job's email keys to the live ConfigMap. The job's pods also need outbound HTTPS to Eagle Notify.
 
    ```bash
    oc set data configmap/centre-api -n [PREFIX]-prod \

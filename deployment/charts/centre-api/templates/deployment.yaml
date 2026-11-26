@@ -121,16 +121,19 @@ spec:
                 configMapKeyRef:
                   name: {{ .Chart.Name }}
                   key: KEYCLOAK_REALM_NAME
-            - name: KEYCLOAK_ADMIN_CLIENT
+            # Optional: a Secret without them still starts the API; only Submit work cleanup needs them
+            - name: KEYCLOAK_SERVICE_ACCOUNT_ID
               valueFrom:
                 secretKeyRef:
                   name: {{ .Chart.Name }}
-                  key: KEYCLOAK_ADMIN_CLIENT
-            - name: KEYCLOAK_ADMIN_SECRET
+                  key: KEYCLOAK_SERVICE_ACCOUNT_ID
+                  optional: true
+            - name: KEYCLOAK_SERVICE_ACCOUNT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ .Chart.Name }}
-                  key: KEYCLOAK_ADMIN_SECRET
+                  key: KEYCLOAK_SERVICE_ACCOUNT_SECRET
+                  optional: true
             - name: CONNECT_TIMEOUT
               valueFrom:
                 configMapKeyRef:

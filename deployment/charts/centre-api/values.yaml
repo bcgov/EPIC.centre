@@ -36,8 +36,10 @@ auth:
   keycloak:
     uri: https://dev.loginproxy.gov.bc.ca
     realm: eao-epic
-    adminClientId:
-    adminClientSecret:
+    # Centre's client-credentials client (docs/DEPLOYMENT.md, "Turning on email"), used for
+    # Eagle Notify and EPIC.submit. Set per environment; never commit the secret.
+    serviceAccountId: ""
+    serviceAccountSecret: ""
 python:
   pythonBuffered: 1
   connectTimeout: 30
