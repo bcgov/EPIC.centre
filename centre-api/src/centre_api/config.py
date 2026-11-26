@@ -139,8 +139,6 @@ class _Config():  # pylint: disable=too-few-public-methods
         'KEYCLOAK_SERVICE_ACCOUNT_SECRET',
         os.getenv('CENTRE_ADMIN_CLIENT_SECRET', os.getenv('MET_ADMIN_CLIENT_SECRET'))
     )
-    KEYCLOAK_ADMIN_CLIENT = os.getenv('KEYCLOAK_ADMIN_CLIENT')
-    KEYCLOAK_ADMIN_SECRET = os.getenv('KEYCLOAK_ADMIN_SECRET')
 
     APP_NAME = os.getenv('APP_NAME')
     DST_EMAIL = os.getenv('DST_EMAIL')
