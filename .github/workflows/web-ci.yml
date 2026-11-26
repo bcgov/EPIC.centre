@@ -80,8 +80,11 @@ jobs:
 
       - name: Test with Cypress
         id: test
+        # Cypress's bundled Electron, not the runner's Chrome: Chrome 158 crashes
+        # Cypress 13 between specs ("* is not a valid URL"), and the Cypress 15 fix
+        # needs module federation reworked for component tests first.
         run: |
-          npx cypress run --component --headed --browser chrome
+          npx cypress run --component --browser electron
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7

@@ -91,7 +91,7 @@ npm run build
 npm run preview
 ```
 
-Component tests use Cypress, configured in `cypress.config.mjs`, with specs named `*.cy.tsx` beside the component they test. Run them with `npx cypress run --component`, or `npx cypress open --component` to watch them. Coverage is written to `coverage/`. The GitHub web CI workflow runs them in Chrome and uploads coverage to Codecov.
+Component tests use Cypress, configured in `cypress.config.mjs`, with specs named `*.cy.tsx` beside the component they test. Run them with `npx cypress run --component`, or `npx cypress open --component` to watch them. Coverage is written to `coverage/`. The GitHub web CI workflow runs them in Cypress's bundled Electron and uploads coverage to Codecov.
 
 ## API Command Reference
 
