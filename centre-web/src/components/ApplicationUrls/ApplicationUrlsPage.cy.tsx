@@ -160,6 +160,34 @@ describe("Application URLs page", () => {
       .and("have.css", "box-shadow").and("contain", "rgba(29, 78, 216, 0.2)");
   });
 
+  it("collapses an application from its top bar, but not from Add New Environment", () => {
+    mountPage();
+
+    cy.contains("h6", "EPIC Centre").click();
+    cy.get("#app-url-row-1").should("not.be.visible");
+    cy.get("#app-url-row-2").should("not.be.visible");
+    cy.get("#app-url-row-3").should("be.visible");
+
+    cy.contains("h6", "EPIC Engage").parents(".MuiPaper-root").first().contains("button", "Add New Environment").click();
+    cy.get('button[aria-label="Collapse EPIC Engage"]').should("have.attr", "aria-expanded", "true");
+    cy.get("body").type("{esc}");
+
+    // The chevron is a real button, so keyboard and screen reader users can expand it too
+    cy.get('button[aria-label="Expand EPIC Centre"]').should("have.attr", "aria-expanded", "false").click();
+    cy.get("#app-url-row-1").should("be.visible");
+  });
+
+  it("expands a collapsed application when View Routes goes to one of its rows", () => {
+    mountPage();
+    cy.contains("h6", "EPIC Centre").click();
+    cy.get("#app-url-row-1").should("not.be.visible");
+
+    cy.contains("button", "Certificates We Manage").click();
+    cy.contains("system.eao.gov.bc.ca").parents(".MuiPaper-root").first().contains("button", "View Routes").click();
+
+    cy.get("#app-url-row-1").should("be.visible");
+  });
+
   it("opens a certificate's renewal details from its card", () => {
     mountPage();
 

@@ -10,8 +10,9 @@ export function EnvironmentChip({ environment }: { environment: string }) {
             color = "#1d4ed8";   // Blue 700
             break;
         case "TEST":
-            bgcolor = "#fff7ed"; // Orange 50
-            color = "#c2410c";   // Orange 700
+            // Not amber or red: those mean "needs attention" on this page
+            bgcolor = "#f5f3ff"; // Violet 50
+            color = "#6d28d9";   // Violet 700
             break;
         case "DEV":
             bgcolor = "#f0fdfa"; // Teal 50

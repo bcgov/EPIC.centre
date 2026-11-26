@@ -4,7 +4,7 @@ import { PageContainer } from "@/components/Shared/PageGrid";
 import { useCurrentUser } from "@/contexts/UserContext";
 import { useGetApplicationUrls, useGetSslCertificates } from "@/hooks/api/useApplicationUrls";
 import { ApplicationUrl } from "@/models/ApplicationUrl";
-import { Edit, Sort as SortIcon, ArrowUpward, ArrowDownward } from "@mui/icons-material";
+import { Edit, Sort as SortIcon, ArrowUpward, ArrowDownward, KeyboardArrowDown } from "@mui/icons-material";
 import {
     Box,
     Button,
@@ -23,14 +23,15 @@ import {
     Stack,
     Tabs,
     Tab,
-    Checkbox,
     FormControlLabel,
     FormGroup,
     Alert,
+    Collapse,
 } from "@mui/material";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { EnvironmentChip } from "@/components/ApplicationUrls/EnvironmentChip";
+import { FilterCheckbox } from "@/components/ApplicationUrls/FilterCheckbox";
 import { ExpiryDisplay } from "@/components/ApplicationUrls/ExpiryDisplay";
 import { CopyToClipboardButton } from "@/components/ApplicationUrls/CopyToClipboardButton";
 import { SSLStatusChip } from "@/components/ApplicationUrls/SSLStatusChip";
@@ -80,6 +81,7 @@ type SortOrder = 'asc' | 'desc';
 type ViewMode = 'certificates' | 'applications';
 
 const rowElementId = (id: number) => `app-url-row-${id}`;
+const appUrlsElementId = (appName: string) => `app-urls-${appName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
 const getExpirySummaryLabel = (expiryDate: string | null): string => {
     const info = getExpiryInfo(expiryDate);
@@ -171,6 +173,7 @@ function ApplicationUrls() {
     // Row to scroll to once it has rendered, then briefly highlight
     const [scrollTargetId, setScrollTargetId] = useState<number | null>(null);
     const [highlightedRowId, setHighlightedRowId] = useState<number | null>(null);
+    const [collapsedApps, setCollapsedApps] = useState<Set<string>>(new Set());
 
     // Filtering State
     const [searchTerm, setSearchTerm] = useState("");
@@ -278,10 +281,29 @@ function ApplicationUrls() {
         };
     }, [urls, rowMeta, searchTerm, selectedEnvs, showPlatformManaged, sortBy, sortOrder]);
 
+    const setAppCollapsed = (appName: string, collapsed: boolean) => {
+        setCollapsedApps((prev) => {
+            if (prev.has(appName) === collapsed) {
+                return prev;
+            }
+            const next = new Set(prev);
+            if (collapsed) {
+                next.add(appName);
+            } else {
+                next.delete(appName);
+            }
+            return next;
+        });
+    };
+
     const revealRow = (rowId: number) => {
         // Otherwise a filtered-out row leaves nothing to scroll to
         if (!visibleRowIds.has(rowId)) {
             clearFilters();
+        }
+        const appName = urls.find((url) => url.id === rowId)?.app_name;
+        if (appName) {
+            setAppCollapsed(appName, false);
         }
         setViewMode('applications');
         setScrollTargetId(rowId);
@@ -540,88 +562,77 @@ function ApplicationUrls() {
                     </Box>
                 ) : (
                     <>
-                        <Box
-                            sx={{
-                                p: 2,
-                                display: 'flex',
-                                gap: 2,
-                                alignItems: 'center',
-                                flexWrap: 'wrap',
-                                borderBottom: 1,
-                                borderColor: "divider",
-                            }}
-                        >
-                            <Box sx={{ minWidth: 220 }}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                                    Applications & Routes
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Full URL inventory, environment management, and shared SSL context.
-                                </Typography>
-                            </Box>
-                            <TextField
-                                size="small"
-                                placeholder="Search applications or URLs..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                InputProps={{
-                                    startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
-                                    endAdornment: searchTerm ? (
-                                        <InputAdornment position="end">
-                                            <IconButton size="small" onClick={() => setSearchTerm("")}>
-                                                <Close fontSize="small" />
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ) : null
-                                }}
-                                sx={{ minWidth: 300, flexGrow: 1 }}
-                            />
+                        <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                                Applications & Routes
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                Full URL inventory, environment management, and shared SSL context.
+                            </Typography>
 
-                            <Box display="flex" alignItems="center" gap={2} flexWrap="wrap" sx={{ mr: 'auto' }}>
-                                <Typography variant="body2" color="text.secondary" fontWeight={600}>
-                                    Show:
-                                </Typography>
-                                <FormGroup row sx={{ gap: { xs: 1, md: 2 } }}>
-                                    {allEnvironments.map((env) => (
+                            <Box sx={{ mt: 2, display: "flex", alignItems: "center", columnGap: 3, rowGap: 1, flexWrap: "wrap" }}>
+                                <TextField
+                                    size="small"
+                                    placeholder="Search applications or URLs..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    InputProps={{
+                                        startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
+                                        endAdornment: searchTerm ? (
+                                            <InputAdornment position="end">
+                                                <IconButton size="small" onClick={() => setSearchTerm("")}>
+                                                    <Close fontSize="small" />
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ) : null
+                                    }}
+                                    // epic.theme gives every FormControl a bottom margin, which would lift it off the row's centre
+                                    sx={{ flex: "1 1 280px", maxWidth: 440, mb: 0 }}
+                                />
+
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                    <Typography id="url-filters-label" variant="body2" color="text.secondary" fontWeight={600}>
+                                        Show:
+                                    </Typography>
+                                    <FormGroup row role="group" aria-labelledby="url-filters-label" sx={{ alignItems: "center", columnGap: 1.5 }}>
+                                        {allEnvironments.map((env) => (
+                                            <FormControlLabel
+                                                key={env}
+                                                control={
+                                                    <FilterCheckbox
+                                                        checked={selectedEnvs[env] !== false}
+                                                        onChange={() => handleEnvToggle(env)}
+                                                    />
+                                                }
+                                                label={<Typography variant="body2" fontWeight={600} color={selectedEnvs[env] !== false ? "text.primary" : "text.secondary"}>{env}</Typography>}
+                                                sx={{ m: 0 }}
+                                            />
+                                        ))}
+                                        <Divider orientation="vertical" flexItem sx={{ my: 1 }} />
                                         <FormControlLabel
-                                            key={env}
                                             control={
-                                                <Checkbox
-                                                    size="small"
-                                                    checked={selectedEnvs[env] !== false}
-                                                    onChange={() => handleEnvToggle(env)}
-                                                    sx={{ py: 0.5, color: 'text.secondary', '&.Mui-checked': { color: 'primary.main' } }}
+                                                <FilterCheckbox
+                                                    checked={showPlatformManaged}
+                                                    onChange={(e) => setShowPlatformManaged(e.target.checked)}
                                                 />
                                             }
-                                            label={<Typography variant="body2" fontWeight={600} color={selectedEnvs[env] !== false ? "text.primary" : "text.secondary"}>{env}</Typography>}
+                                            label={<Typography variant="body2" fontWeight={600} color={showPlatformManaged ? "text.primary" : "text.secondary"}>OpenShift Platform Managed</Typography>}
                                             sx={{ m: 0 }}
                                         />
-                                    ))}
-                                    <Divider orientation="vertical" flexItem sx={{ my: 0.5 }} />
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                size="small"
-                                                checked={showPlatformManaged}
-                                                onChange={(e) => setShowPlatformManaged(e.target.checked)}
-                                                sx={{ py: 0.5, color: '#64748b', '&.Mui-checked': { color: '#0369a1' } }}
-                                            />
-                                        }
-                                        label={<Typography variant="body2" fontWeight={600} color={showPlatformManaged ? "text.primary" : "text.secondary"}>OpenShift Platform Managed</Typography>}
-                                        sx={{ m: 0 }}
-                                    />
-                                </FormGroup>
-                            </Box>
+                                    </FormGroup>
+                                </Box>
 
-                            <Button
-                                variant="outlined"
-                                color="inherit"
-                                startIcon={<SortIcon />}
-                                onClick={handleSortClick}
-                                sx={{ color: 'text.secondary', borderRadius: 5 }}
-                            >
-                                Sort By: {sortBy === 'expiry' ? 'Renewal Urgency' : 'Name'}
-                            </Button>
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    color="inherit"
+                                    startIcon={<SortIcon />}
+                                    onClick={handleSortClick}
+                                    sx={{ color: 'text.secondary', borderRadius: 5, ml: "auto" }}
+                                >
+                                    Sort By: {sortBy === 'expiry' ? 'Renewal Urgency' : 'Name'}
+                                </Button>
+                            </Box>
                         </Box>
 
                         {sortedApps.length === 0 ? (
@@ -651,6 +662,7 @@ function ApplicationUrls() {
                                 {sortedApps.map(({ appName, appUrls }) => (
                                     (() => {
                                         const AppIcon = getAppIcon(appName);
+                                        const collapsed = collapsedApps.has(appName);
                                         return (
                                     <Paper
                                         key={`group-${appName}`}
@@ -668,10 +680,12 @@ function ApplicationUrls() {
                                         }}
                                     >
                                         <Box
+                                            // The chevron button is the keyboard and screen reader control; its click bubbles here
+                                            onClick={() => setAppCollapsed(appName, !collapsed)}
                                             sx={{
                                                 px: 2,
                                                 py: 1.5,
-                                                borderBottom: "1px solid",
+                                                borderBottom: collapsed ? "none" : "1px solid",
                                                 borderColor: "rgba(15,23,42,0.04)",
                                                 background: "linear-gradient(90deg, rgba(241,245,249,0.5) 0%, rgba(255,255,255,0) 100%)",
                                                 display: "flex",
@@ -679,9 +693,23 @@ function ApplicationUrls() {
                                                 justifyContent: "space-between",
                                                 gap: 2,
                                                 flexWrap: "wrap",
+                                                cursor: "pointer",
+                                                "&:hover": { bgcolor: "rgba(15,23,42,0.025)" },
                                             }}
                                         >
                                             <Box display="flex" alignItems="center" gap={1.25}>
+                                                <IconButton
+                                                    size="small"
+                                                    aria-expanded={!collapsed}
+                                                    aria-controls={appUrlsElementId(appName)}
+                                                    aria-label={`${collapsed ? "Expand" : "Collapse"} ${appName}`}
+                                                    sx={{ ml: -0.75, color: "text.secondary" }}
+                                                >
+                                                    <KeyboardArrowDown
+                                                        fontSize="small"
+                                                        sx={{ transition: "transform 0.2s ease", transform: collapsed ? "rotate(-90deg)" : "none" }}
+                                                    />
+                                                </IconButton>
                                                 <Box
                                                     sx={{
                                                         display: "flex",
@@ -744,7 +772,8 @@ function ApplicationUrls() {
                                                         fontWeight: 700,
                                                         boxShadow: 'none',
                                                     }}
-                                                    onClick={() => {
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         setAddModalAppName(appName);
                                                         setIsAddModalOpen(true);
                                                     }}
@@ -754,6 +783,7 @@ function ApplicationUrls() {
                                             )}
                                         </Box>
 
+                                        <Collapse in={!collapsed} id={appUrlsElementId(appName)}>
                                         <Box sx={{ p: 2 }}>
                                             <Stack spacing={1.5}>
                                                 {appUrls.map((url) => (
@@ -963,6 +993,7 @@ function ApplicationUrls() {
                                                 ))}
                                             </Stack>
                                         </Box>
+                                        </Collapse>
                                     </Paper>
                                         );
                                     })()
